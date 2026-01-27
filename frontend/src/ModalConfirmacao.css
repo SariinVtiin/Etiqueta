@@ -1,0 +1,155 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h2 {
+  color: #ff9800;
+  margin-top: 0;
+  margin-bottom: 25px;
+  text-align: center;
+  border-bottom: 3px solid #ff9800;
+  padding-bottom: 15px;
+}
+
+.dados-confirmacao {
+  margin-bottom: 25px;
+}
+
+.secao-dados {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.secao-dados h3 {
+  color: #007bff;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.linha-dado {
+  padding: 8px 0;
+  font-size: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.linha-dado:last-child {
+  border-bottom: none;
+}
+
+.linha-dado strong {
+  color: #333;
+  display: inline-block;
+  width: 180px;
+}
+
+.refeicao-item {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  border-left: 4px solid #007bff;
+}
+
+.refeicao-item:last-child {
+  margin-bottom: 0;
+}
+
+.refeicao-titulo {
+  font-size: 16px;
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.modal-acoes {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 25px;
+}
+
+.btn-cancelar-modal,
+.btn-confirmar-modal {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancelar-modal {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-cancelar-modal:hover {
+  background: #5a6268;
+}
+
+.btn-confirmar-modal {
+  background: #28a745;
+  color: white;
+}
+
+.btn-confirmar-modal:hover {
+  background: #218838;
+}
+
+/* Responsivo para mobile */
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 20px;
+  }
+  
+  .linha-dado strong {
+    width: 120px;
+    font-size: 14px;
+  }
+  
+  .modal-acoes {
+    flex-direction: column;
+  }
+  
+  .btn-cancelar-modal,
+  .btn-confirmar-modal {
+    width: 100%;
+  }
+}
+
+.destaque-sem-principal {
+  background: #fff3cd;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 4px solid #ffc107;
+  margin: 5px 0;
+}
+
+.destaque-sem-principal strong {
+  color: #856404;
+}

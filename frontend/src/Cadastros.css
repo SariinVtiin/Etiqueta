@@ -1,0 +1,146 @@
+.header-cadastro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.btn-voltar {
+  padding: 10px 20px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-voltar:hover {
+  background: #5a6268;
+}
+
+.secao-cadastro {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.secao-cadastro h2 {
+  color: #007bff;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.form-add {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.form-add input {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-add input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.form-add button {
+  padding: 10px 20px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.form-add button:hover {
+  background: #218838;
+}
+
+.lista-itens {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.lista-itens .item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.lista-itens .item span {
+  font-weight: 500;
+}
+
+.lista-itens .item button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.lista-itens .item button:hover {
+  background: #c82333;
+}
+
+.vazio {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 20px;
+}
+
+.info-leitos {
+  background: #e3f2fd;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #2196f3;
+}
+
+.info-leitos h2 {
+  color: #1976d2;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.info-leitos p {
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.info-leitos ul {
+  list-style: none;
+  padding: 0;
+}
+
+.info-leitos li {
+  padding: 8px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.info-leitos li:last-child {
+  border-bottom: none;
+}
+
+.info-leitos strong {
+  color: #1976d2;
+}
