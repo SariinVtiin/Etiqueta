@@ -3,6 +3,7 @@ import MapaAlimentacao from './MapaAlimentacao';
 import FilaImpressao from './FilaImpressao';
 import Cadastros from './Cadastros';
 import PreviewEtiquetas from './PreviewEtiquetas';
+import TesteConexao from './TesteConexao';
 
 function App() {
   const [telaAtual, setTelaAtual] = useState('coleta');
@@ -59,6 +60,7 @@ function App() {
 
   return (
     <div className="App">
+      <TesteConexao />
       {telaAtual === 'coleta' && (
         <MapaAlimentacao
           nucleos={nucleos}
@@ -93,6 +95,7 @@ function App() {
         />
       )}
     </div>
+    
   );
 }
 

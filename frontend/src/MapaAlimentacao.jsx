@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './MapaAlimentacao.css';
 import ModalConfirmacao from './ModalConfirmacao';
+import FormularioPaciente from './FormularioPaciente';
 
 function MapaAlimentacao({ nucleos, tiposAlimentacao, etiquetas, setEtiquetas, irParaCadastros, irParaImpressao, irParaPreview }) {
   const [formData, setFormData] = useState({
@@ -16,60 +17,14 @@ function MapaAlimentacao({ nucleos, tiposAlimentacao, etiquetas, setEtiquetas, i
     refeicoesSelecionadas: []
   });
 
-
   const [configRefeicoes, setConfigRefeicoes] = useState({});
   const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false);
   const [dadosParaConfirmar, setDadosParaConfirmar] = useState(null);
 
-  const calcularIdade = (dataNascimento) => {
-    if (!dataNascimento) return '';
-    
-    const hoje = new Date();
-    const nascimento = new Date(dataNascimento);
-    let idade = hoje.getFullYear() - nascimento.getFullYear();
-    const mes = hoje.getMonth() - nascimento.getMonth();
-    
-    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
-      idade--;
-    }
-    
-    return idade;
-  };
-
-  const formatarCPF = (valor) => {
-    valor = valor.replace(/\D/g, '');
-    valor = valor.slice(0, 11);
-    valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
-    valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
-    valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    return valor;
-  };
-
-  const formatarCodigoAtendimento = (valor) => {
-    return valor.replace(/\D/g, '').slice(0, 7);
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    if (name === 'dataNascimento') {
-      const idade = calcularIdade(value);
-      setFormData({
-        ...formData,
-        dataNascimento: value,
-        idade: idade
-      });
-    } else if (name === 'cpf') {
-      setFormData({
-        ...formData,
-        cpf: formatarCPF(value)
-      });
-    } else if (name === 'codigoAtendimento') {
-      setFormData({
-        ...formData,
-        codigoAtendimento: formatarCodigoAtendimento(value)
-      });
-    } else if (name === 'nucleoSelecionado') {
+    if (name === 'nucleoSelecionado') {
       setFormData({
         ...formData,
         nucleoSelecionado: value,
@@ -81,13 +36,6 @@ function MapaAlimentacao({ nucleos, tiposAlimentacao, etiquetas, setEtiquetas, i
         [name]: value
       });
     }
-  };
-
-  const handleConvenioChange = (convenio) => {
-    setFormData({
-      ...formData,
-      convenio: convenio
-    });
   };
 
   const handleRefeicaoToggle = (refeicao) => {
@@ -146,45 +94,45 @@ function MapaAlimentacao({ nucleos, tiposAlimentacao, etiquetas, setEtiquetas, i
   };
 
   const handleSemPrincipalToggle = (refeicao) => {
-  setConfigRefeicoes({
-    ...configRefeicoes,
-    [refeicao]: {
-      ...configRefeicoes[refeicao],
-      semPrincipal: !configRefeicoes[refeicao].semPrincipal,
-      descricaoSemPrincipal: ''
-    }
-  });
-};
+    setConfigRefeicoes({
+      ...configRefeicoes,
+      [refeicao]: {
+        ...configRefeicoes[refeicao],
+        semPrincipal: !configRefeicoes[refeicao].semPrincipal,
+        descricaoSemPrincipal: ''
+      }
+    });
+  };
 
-const handleDescricaoSemPrincipal = (refeicao, descricao) => {
-  setConfigRefeicoes({
-    ...configRefeicoes,
-    [refeicao]: {
-      ...configRefeicoes[refeicao],
-      descricaoSemPrincipal: descricao
-    }
-  });
-};
+  const handleDescricaoSemPrincipal = (refeicao, descricao) => {
+    setConfigRefeicoes({
+      ...configRefeicoes,
+      [refeicao]: {
+        ...configRefeicoes[refeicao],
+        descricaoSemPrincipal: descricao
+      }
+    });
+  };
 
-const handleObsExclusao = (refeicao, obs) => {
-  setConfigRefeicoes({
-    ...configRefeicoes,
-    [refeicao]: {
-      ...configRefeicoes[refeicao],
-      obsExclusao: obs
-    }
-  });
-};
+  const handleObsExclusao = (refeicao, obs) => {
+    setConfigRefeicoes({
+      ...configRefeicoes,
+      [refeicao]: {
+        ...configRefeicoes[refeicao],
+        obsExclusao: obs
+      }
+    });
+  };
 
-const handleObsAcrescimo = (refeicao, obs) => {
-  setConfigRefeicoes({
-    ...configRefeicoes,
-    [refeicao]: {
-      ...configRefeicoes[refeicao],
-      obsAcrescimo: obs
-    }
-  });
-};
+  const handleObsAcrescimo = (refeicao, obs) => {
+    setConfigRefeicoes({
+      ...configRefeicoes,
+      [refeicao]: {
+        ...configRefeicoes[refeicao],
+        obsAcrescimo: obs
+      }
+    });
+  };
 
   const adicionarEtiqueta = (e) => {
     e.preventDefault();
@@ -295,106 +243,7 @@ const handleObsAcrescimo = (refeicao, obs) => {
       </div>
 
       <form className="formulario" onSubmit={adicionarEtiqueta}>
-        <div className="campo">
-          <label>CPF *</label>
-          <input
-            type="text"
-            name="cpf"
-            value={formData.cpf}
-            onChange={handleChange}
-            placeholder="000.000.000-00"
-            maxLength="14"
-            autoFocus
-          />
-        </div>
-
-        <div className="campo">
-          <label>CÓDIGO DE ATENDIMENTO *</label>
-          <input
-            type="text"
-            name="codigoAtendimento"
-            value={formData.codigoAtendimento}
-            onChange={handleChange}
-            placeholder="0000000 (7 dígitos)"
-            maxLength="7"
-          />
-          {formData.codigoAtendimento && formData.codigoAtendimento.length !== 7 && (
-            <small className="aviso-erro">
-              ⚠️ O código deve ter exatamente 7 dígitos
-            </small>
-          )}
-        </div>
-
-        <div className="campo">
-          <label>CONVÊNIO * (selecione um)</label>
-          <div className="opcoes-radio">
-            <label className="opcao-check">
-              <input
-                type="radio"
-                name="convenio"
-                checked={formData.convenio === 'SUS'}
-                onChange={() => handleConvenioChange('SUS')}
-              />
-              <span>SUS</span>
-            </label>
-            <label className="opcao-check">
-              <input
-                type="radio"
-                name="convenio"
-                checked={formData.convenio === 'Convênio'}
-                onChange={() => handleConvenioChange('Convênio')}
-              />
-              <span>Convênio</span>
-            </label>
-            <label className="opcao-check">
-              <input
-                type="radio"
-                name="convenio"
-                checked={formData.convenio === 'Particular'}
-                onChange={() => handleConvenioChange('Particular')}
-              />
-              <span>Particular</span>
-            </label>
-          </div>
-        </div>
-
-        <div className="campo">
-          <label>NOME DO PACIENTE *</label>
-          <input
-            type="text"
-            name="nomePaciente"
-            value={formData.nomePaciente}
-            onChange={handleChange}
-            placeholder="Nome completo do paciente"
-          />
-        </div>
-
-        <div className="campo">
-          <label>NOME DA MÃE *</label>
-          <input
-            type="text"
-            name="nomeMae"
-            value={formData.nomeMae}
-            onChange={handleChange}
-            placeholder="Nome completo da mãe"
-          />
-        </div>
-
-        <div className="campo">
-          <label>DATA DE NASCIMENTO *</label>
-          <input
-            type="date"
-            name="dataNascimento"
-            value={formData.dataNascimento}
-            onChange={handleChange}
-            max={new Date().toISOString().split('T')[0]}
-          />
-          {formData.idade !== '' && (
-            <small className="info-idade">
-              Idade: {formData.idade} anos
-            </small>
-          )}
-        </div>
+        <FormularioPaciente formData={formData} onChange={handleChange} />
 
         <div className="campo">
           <label>NÚCLEO *</label>
