@@ -3,7 +3,8 @@ import MapaAlimentacao from './MapaAlimentacao';
 import FilaImpressao from './FilaImpressao';
 import Cadastros from './Cadastros';
 import PreviewEtiquetas from './PreviewEtiquetas';
-import TesteConexao from './TesteConexao';
+import StatusIndicador from './components/StatusIndicador';
+import { listarLeitos, listarDietas } from './services/api';
 
 function App() {
   const [telaAtual, setTelaAtual] = useState('coleta');
@@ -13,14 +14,10 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Estrutura de núcleos com seus leitos
-  const nucleos = {
-    'INTERNAÇÃO': Array.from({ length: 61 }, (_, i) => (601 + i).toString()),
-    'UTI PEDIÁTRICA': Array.from({ length: 15 }, (_, i) => (501 + i).toString()),
-    'UTI ADULTO': Array.from({ length: 16 }, (_, i) => (541 + i).toString()),
-    'UDT': Array.from({ length: 18 }, (_, i) => (1 + i).toString()),
-    'TMO': Array.from({ length: 14 }, (_, i) => (301 + i).toString())
-  };
+  // Estados para dados do BD
+  const [nucleos, setNucleos] = useState({});
+  const [dietas, setDietas] = useState([]);
+  const [carregandoDados, setCarregandoDados] = useState(true);
 
   const [tiposAlimentacao, setTiposAlimentacao] = useState(() => {
     const saved = localStorage.getItem('tiposAlimentacao');
@@ -33,6 +30,50 @@ function App() {
       'Ceia'
     ];
   });
+
+  // Buscar leitos e dietas do BD ao carregar
+  useEffect(() => {
+    const carregarDadosBD = async () => {
+      try {
+        // Buscar leitos
+        const respostaLeitos = await listarLeitos();
+        if (respostaLeitos.sucesso) {
+          // Organizar leitos por setor
+          const leitosPorNucleo = {};
+          respostaLeitos.leitos.forEach(leito => {
+            const setor = leito.setor || 'SEM SETOR';
+            if (!leitosPorNucleo[setor]) {
+              leitosPorNucleo[setor] = [];
+            }
+            leitosPorNucleo[setor].push(leito.numero);
+          });
+          setNucleos(leitosPorNucleo);
+          console.log('✅ Leitos carregados do BD:', leitosPorNucleo);
+        }
+
+        // Buscar dietas
+        const respostaDietas = await listarDietas();
+        if (respostaDietas.sucesso) {
+          setDietas(respostaDietas.dietas);
+          console.log('✅ Dietas carregadas do BD:', respostaDietas.dietas);
+        }
+      } catch (erro) {
+        console.error('❌ Erro ao carregar dados do BD:', erro);
+        // Fallback para dados locais se o BD falhar
+        setNucleos({
+          'INTERNAÇÃO': Array.from({ length: 61 }, (_, i) => (601 + i).toString()),
+          'UTI PEDIÁTRICA': Array.from({ length: 15 }, (_, i) => (501 + i).toString()),
+          'UTI ADULTO': Array.from({ length: 16 }, (_, i) => (541 + i).toString()),
+          'UDT': Array.from({ length: 18 }, (_, i) => (1 + i).toString()),
+          'TMO': Array.from({ length: 14 }, (_, i) => (301 + i).toString())
+        });
+      } finally {
+        setCarregandoDados(false);
+      }
+    };
+
+    carregarDadosBD();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('tiposAlimentacao', JSON.stringify(tiposAlimentacao));
@@ -58,12 +99,37 @@ function App() {
     setTelaAtual('coleta');
   };
 
+  if (carregandoDados) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '20px'
+      }}>
+        <div style={{
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #007bff',
+          borderRadius: '50%',
+          width: '50px',
+          height: '50px',
+          animation: 'spin 1s linear infinite'
+        }}></div>
+        <p>Carregando dados do sistema...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="App">
-      <TesteConexao />
+      <StatusIndicador />
+      
       {telaAtual === 'coleta' && (
         <MapaAlimentacao
           nucleos={nucleos}
+          dietas={dietas}
           tiposAlimentacao={tiposAlimentacao}
           etiquetas={etiquetas}
           setEtiquetas={setEtiquetas}
@@ -95,7 +161,6 @@ function App() {
         />
       )}
     </div>
-    
   );
 }
 
