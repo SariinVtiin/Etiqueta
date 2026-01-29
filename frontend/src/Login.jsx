@@ -32,71 +32,73 @@ function Login() {
     }
 
     const resultado = await login(formData.email, formData.senha);
-    
+
     if (!resultado.sucesso) {
       setErro(resultado.erro);
     }
-    
+
     setCarregando(false);
   };
 
   return (
     <div className="login-container">
-      <div className="login-box">
-        <div className="login-header">
-          <h1>🏥 Sistema de Etiquetas</h1>
-          <p>Faça login para continuar</p>
-        </div>
+      <div className="login-layout">
 
-        <form onSubmit={handleSubmit} className="login-form">
-          {erro && (
-            <div className="login-erro">
-              ⚠️ {erro}
+        {/* LADO ESQUERDO */}
+        <div className="login-side">
+          <div className="login-card">
+
+            <div className="login-header">
+              <img
+                src={`${process.env.PUBLIC_URL}/logo-ictdf.png`}
+                alt="ICTDF"
+                className="login-logo"
+              />
+              <h2>Acesso ao sistema</h2>
             </div>
-          )}
 
-          <div className="login-campo">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="seu@email.com"
-              autoFocus
-              disabled={carregando}
-            />
+            <form onSubmit={handleSubmit} className="login-form">
+              {erro && <div className="login-erro">{erro}</div>}
+
+              <div className="login-campo">
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="seu@email.com"
+                  disabled={carregando}
+                />
+              </div>
+
+              <div className="login-campo">
+                <label>Senha</label>
+                <input
+                  type="password"
+                  name="senha"
+                  value={formData.senha}
+                  onChange={handleChange}
+                  placeholder="••••••"
+                  disabled={carregando}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="login-btn"
+                disabled={carregando}
+              >
+                {carregando ? 'Entrando...' : 'Entrar'}
+              </button>
+            </form>
+
           </div>
-
-          <div className="login-campo">
-            <label>Senha</label>
-            <input
-              type="password"
-              name="senha"
-              value={formData.senha}
-              onChange={handleChange}
-              placeholder="••••••"
-              disabled={carregando}
-            />
-          </div>
-
-          <button 
-            type="submit" 
-            className="login-btn"
-            disabled={carregando}
-          >
-            {carregando ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
-
-        <div className="login-footer">
-          <p className="login-ajuda">
-            <strong>Usuários de teste:</strong><br/>
-            <code>admin@hospital.com</code> - Admin<br/>
-            <code>nutri1@hospital.com</code> - Nutricionista<br/>
-            Senha para todos: <code>123456</code>
-          </p>
         </div>
+
+        {/* LADO DIREITO */}
+        <div className="login-image" />
+
       </div>
     </div>
   );
