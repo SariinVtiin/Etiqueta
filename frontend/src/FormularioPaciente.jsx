@@ -1,59 +1,117 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 function FormularioPaciente({ formData, onChange }) {
-  const formatarCPF = (value) => {
-    const cleaned = value.replace(/\D/g, '');
-    const limited = cleaned.substring(0, 11);
-    
-    if (limited.length <= 3) return limited;
-    if (limited.length <= 6) return `${limited.slice(0, 3)}.${limited.slice(3)}`;
-    if (limited.length <= 9) return `${limited.slice(0, 3)}.${limited.slice(3, 6)}.${limited.slice(6)}`;
-    return `${limited.slice(0, 3)}.${limited.slice(3, 6)}.${limited.slice(6, 9)}-${limited.slice(9)}`;
+  
+  // Usar ref para evitar dependências desnecessárias no useEffect
+  const onChangeRef = useRef(onChange);
+  
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+  
+  // Formatar CPF
+  const formatarCPF = (valor) => {
+    const numeros = valor.replace(/\D/g, '');
+    if (numeros.length <= 11) {
+      return numeros
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+    return valor;
   };
 
-  const calcularIdade = (dataNascimento) => {
-    if (!dataNascimento) return '';
-    const hoje = new Date();
-    const nascimento = new Date(dataNascimento);
-    let idade = hoje.getFullYear() - nascimento.getFullYear();
-    const mes = hoje.getMonth() - nascimento.getMonth();
-    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
-      idade--;
+  // Formatar data de nascimento DD/MM/AAAA
+  const formatarData = (valor) => {
+    const numeros = valor.replace(/\D/g, '');
+    
+    if (numeros.length <= 2) {
+      return numeros;
+    } else if (numeros.length <= 4) {
+      return `${numeros.slice(0, 2)}/${numeros.slice(2)}`;
+    } else if (numeros.length <= 8) {
+      return `${numeros.slice(0, 2)}/${numeros.slice(2, 4)}/${numeros.slice(4, 8)}`;
     }
-    return idade;
+    
+    return valor;
   };
+
+  // Calcular idade sempre que a data mudar
+  useEffect(() => {
+    if (formData.dataNascimento && formData.dataNascimento.length === 10) {
+      const partes = formData.dataNascimento.split('/');
+      const dia = parseInt(partes[0]);
+      const mes = parseInt(partes[1]);
+      const ano = parseInt(partes[2]);
+      
+      if (dia && mes && ano && mes <= 12 && dia <= 31 && ano >= 1900 && ano <= new Date().getFullYear()) {
+        const dataNasc = new Date(ano, mes - 1, dia);
+        const hoje = new Date();
+        
+        let idade = hoje.getFullYear() - dataNasc.getFullYear();
+        const mesAtual = hoje.getMonth();
+        const mesNasc = dataNasc.getMonth();
+        
+        if (mesAtual < mesNasc || (mesAtual === mesNasc && hoje.getDate() < dataNasc.getDate())) {
+          idade--;
+        }
+        
+        if (idade >= 0 && formData.idade !== idade) {
+          onChangeRef.current({
+            target: {
+              name: 'idade',
+              value: idade
+            }
+          });
+        }
+      } else if (formData.idade !== '') {
+        onChangeRef.current({
+          target: {
+            name: 'idade',
+            value: ''
+          }
+        });
+      }
+    } else if (formData.idade !== '') {
+      onChangeRef.current({
+        target: {
+          name: 'idade',
+          value: ''
+        }
+      });
+    }
+  }, [formData.dataNascimento, formData.idade]);
 
   const handleCPFChange = (e) => {
-    const formatted = formatarCPF(e.target.value);
+    const cpfFormatado = formatarCPF(e.target.value);
     onChange({
       target: {
         name: 'cpf',
-        value: formatted
+        value: cpfFormatado
       }
     });
   };
 
   const handleDataNascimentoChange = (e) => {
-    const data = e.target.value;
-    const idade = calcularIdade(data);
-    
-    // Atualiza tanto a data quanto a idade
+    const dataFormatada = formatarData(e.target.value);
     onChange({
       target: {
         name: 'dataNascimento',
-        value: data
+        value: dataFormatada
       }
     });
-    
-    // Dispara evento separado para idade
-    setTimeout(() => {
+  };
+
+  const handleCodigoChange = (e) => {
+    const numeros = e.target.value.replace(/\D/g, '');
+    if (numeros.length <= 7) {
       onChange({
         target: {
-          name: 'idade',
-          value: idade
+          name: 'codigoAtendimento',
+          value: numeros
         }
       });
-    }, 0);
+    }
   };
 
   return (
@@ -77,7 +135,7 @@ function FormularioPaciente({ formData, onChange }) {
           type="text"
           name="codigoAtendimento"
           value={formData.codigoAtendimento}
-          onChange={onChange}
+          onChange={handleCodigoChange}
           placeholder="0000000 (7 dígitos)"
           maxLength="7"
         />
@@ -95,9 +153,17 @@ function FormularioPaciente({ formData, onChange }) {
             <input
               type="radio"
               name="convenio"
-              value="Convênio"
+              checked={formData.convenio === 'SUS'}
+              onChange={() => onChange({ target: { name: 'convenio', value: 'SUS' } })}
+            />
+            <span>SUS</span>
+          </label>
+          <label className="opcao-check">
+            <input
+              type="radio"
+              name="convenio"
               checked={formData.convenio === 'Convênio'}
-              onChange={onChange}
+              onChange={() => onChange({ target: { name: 'convenio', value: 'Convênio' } })}
             />
             <span>Convênio</span>
           </label>
@@ -105,33 +171,22 @@ function FormularioPaciente({ formData, onChange }) {
             <input
               type="radio"
               name="convenio"
-              value="Particular"
               checked={formData.convenio === 'Particular'}
-              onChange={onChange}
+              onChange={() => onChange({ target: { name: 'convenio', value: 'Particular' } })}
             />
             <span>Particular</span>
-          </label>
-          <label className="opcao-check">
-            <input
-              type="radio"
-              name="convenio"
-              value="SUS"
-              checked={formData.convenio === 'SUS'}
-              onChange={onChange}
-            />
-            <span>SUS</span>
           </label>
         </div>
       </div>
 
       <div className="campo">
-        <label>NOME COMPLETO DO PACIENTE *</label>
+        <label>NOME DO PACIENTE *</label>
         <input
           type="text"
           name="nomePaciente"
           value={formData.nomePaciente}
           onChange={onChange}
-          placeholder="Nome completo"
+          placeholder="Nome completo do paciente"
         />
       </div>
 
@@ -147,16 +202,22 @@ function FormularioPaciente({ formData, onChange }) {
       </div>
 
       <div className="campo">
-        <label>DATA DE NASCIMENTO *</label>
+        <label>DATA DE NASCIMENTO * (DD/MM/AAAA)</label>
         <input
-          type="date"
+          type="text"
           name="dataNascimento"
           value={formData.dataNascimento}
           onChange={handleDataNascimentoChange}
+          placeholder="Ex: 25/06/1999"
         />
-        {formData.dataNascimento && (
+        {formData.dataNascimento && formData.dataNascimento.length === 10 && formData.idade !== '' && (
           <small className="info-idade">
-            📅 Idade: {formData.idade} anos
+            ✅ Idade: {formData.idade} anos
+          </small>
+        )}
+        {formData.dataNascimento && formData.dataNascimento.length === 10 && formData.idade === '' && (
+          <small className="aviso-erro">
+            ⚠️ Data inválida
           </small>
         )}
       </div>

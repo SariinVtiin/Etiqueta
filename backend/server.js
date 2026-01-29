@@ -9,6 +9,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ============================================
+// IMPORTAR ROTAS DE AUTENTICAÇÃO
+// ============================================
+const { router: authRouter } = require('./routes/auth');
+
+// ============================================
+// REGISTRAR ROTAS
+// ============================================
+app.use('/api/auth', authRouter);
+
 // Testar conexão ao iniciar
 testarConexao();
 
@@ -160,50 +170,25 @@ app.get('/api/pacientes/:id', async (req, res) => {
 });
 
 /**
- * POST /api/pacientes - Adicionar novo paciente
+ * POST /api/pacientes - Cadastrar novo paciente
  */
 app.post('/api/pacientes', async (req, res) => {
   try {
-    const { 
-      nome, 
-      prontuario, 
-      leito_id, 
-      dieta_id, 
-      data_internacao, 
-      observacoes 
-    } = req.body;
-    
-    // Validações
-    if (!nome || !leito_id || !data_internacao) {
-      return res.status(400).json({ 
-        sucesso: false, 
-        erro: 'Nome, leito e data de internação são obrigatórios' 
-      });
-    }
+    const { nome, prontuario, cpf, leito_id, dieta_id, data_internacao, observacoes } = req.body;
     
     const [result] = await pool.query(
-      `INSERT INTO pacientes 
-       (nome, prontuario, leito_id, dieta_id, data_internacao, observacoes) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [nome, prontuario, leito_id, dieta_id, data_internacao, observacoes]
+      `INSERT INTO pacientes (nome, prontuario, cpf, leito_id, dieta_id, data_internacao, observacoes)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [nome, prontuario, cpf, leito_id, dieta_id, data_internacao || new Date(), observacoes]
     );
     
-    res.status(201).json({ 
+    res.json({ 
       sucesso: true, 
-      paciente_id: result.insertId,
-      mensagem: 'Paciente cadastrado com sucesso'
+      id: result.insertId,
+      mensagem: 'Paciente cadastrado com sucesso' 
     });
   } catch (erro) {
     console.error('Erro ao cadastrar paciente:', erro);
-    
-    // Tratamento de erro de prontuário duplicado
-    if (erro.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ 
-        sucesso: false, 
-        erro: 'Prontuário já cadastrado' 
-      });
-    }
-    
     res.status(500).json({ 
       sucesso: false, 
       erro: erro.message 
@@ -212,25 +197,18 @@ app.post('/api/pacientes', async (req, res) => {
 });
 
 /**
- * PUT /api/pacientes/:id - Atualizar dados do paciente
+ * PUT /api/pacientes/:id - Atualizar paciente
  */
 app.put('/api/pacientes/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { 
-      nome, 
-      prontuario, 
-      leito_id, 
-      dieta_id, 
-      observacoes 
-    } = req.body;
+    const { nome, prontuario, cpf, leito_id, dieta_id, observacoes } = req.body;
     
     const [result] = await pool.query(
       `UPDATE pacientes 
-       SET nome = ?, prontuario = ?, leito_id = ?, 
-           dieta_id = ?, observacoes = ?
+       SET nome = ?, prontuario = ?, cpf = ?, leito_id = ?, dieta_id = ?, observacoes = ?
        WHERE id = ?`,
-      [nome, prontuario, leito_id, dieta_id, observacoes, id]
+      [nome, prontuario, cpf, leito_id, dieta_id, observacoes, id]
     );
     
     if (result.affectedRows === 0) {
@@ -254,17 +232,15 @@ app.put('/api/pacientes/:id', async (req, res) => {
 });
 
 /**
- * DELETE /api/pacientes/:id - Dar alta no paciente (soft delete)
+ * POST /api/pacientes/:id/alta - Registrar alta do paciente
  */
-app.delete('/api/pacientes/:id', async (req, res) => {
+app.post('/api/pacientes/:id/alta', async (req, res) => {
   try {
     const { id } = req.params;
     const { data_alta } = req.body;
     
     const [result] = await pool.query(
-      `UPDATE pacientes 
-       SET ativo = FALSE, data_alta = ?
-       WHERE id = ?`,
+      `UPDATE pacientes SET data_alta = ? WHERE id = ?`,
       [data_alta || new Date(), id]
     );
     
@@ -397,10 +373,8 @@ app.post('/api/imprimir', async (req, res) => {
     const etiquetasImpressas = [];
 
     for (const etiqueta of etiquetas) {
-      // Gerar ZPL
       const zpl = gerarZPL(etiqueta);
       
-      // Registrar no banco
       const [result] = await connection.query(
         `INSERT INTO etiquetas 
          (paciente_id, leito, dieta, obs1, obs2, obs3, merenda, jantar, usuario, ip_impressora)
@@ -422,10 +396,8 @@ app.post('/api/imprimir', async (req, res) => {
       const etiquetaId = result.insertId;
 
       try {
-        // Enviar para impressora
         await enviarParaZebra(zpl);
         
-        // Atualizar status: sucesso
         await connection.query(
           'UPDATE etiquetas SET status_impressao = ? WHERE id = ?',
           ['sucesso', etiquetaId]
@@ -438,7 +410,6 @@ app.post('/api/imprimir', async (req, res) => {
         });
         
       } catch (erroImpressao) {
-        // Atualizar status: erro
         await connection.query(
           'UPDATE etiquetas SET status_impressao = ?, erro_mensagem = ? WHERE id = ?',
           ['erro', erroImpressao.message, etiquetaId]
@@ -452,7 +423,6 @@ app.post('/api/imprimir', async (req, res) => {
         });
       }
 
-      // Delay entre impressões
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
@@ -506,7 +476,6 @@ app.get('/api/historico-impressoes', async (req, res) => {
       LIMIT ? OFFSET ?
     `, [parseInt(limite), parseInt(offset)]);
     
-    // Total de registros
     const [total] = await pool.query(
       'SELECT COUNT(*) AS total FROM etiquetas'
     );
@@ -544,11 +513,9 @@ app.get('/api/teste', (req, res) => {
  */
 app.get('/api/status', async (req, res) => {
   try {
-    // Testar conexão com banco
     const [result] = await pool.query('SELECT 1');
     const bancoOk = result ? true : false;
     
-    // Contar registros
     const [pacientes] = await pool.query(
       'SELECT COUNT(*) AS total FROM pacientes WHERE ativo = TRUE AND data_alta IS NULL'
     );
@@ -590,6 +557,9 @@ app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('');
   console.log('Endpoints disponíveis:');
+  console.log(`  POST /api/auth/login`);
+  console.log(`  GET  /api/auth/me`);
+  console.log(`  POST /api/auth/logout`);
   console.log(`  GET  /api/teste`);
   console.log(`  GET  /api/status`);
   console.log(`  GET  /api/pacientes`);
