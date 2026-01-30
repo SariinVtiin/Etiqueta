@@ -1,0 +1,363 @@
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.welcome-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.welcome-header h1 {
+  color: #007bff;
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.welcome-subtitle {
+  color: #6c757d;
+  font-size: 18px;
+}
+
+/* Loading */
+.loading-dashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px;
+  gap: 20px;
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Cards de Estatísticas */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.hoje {
+  border-left: 5px solid #007bff;
+}
+
+.stat-card.semana {
+  border-left: 5px solid #28a745;
+}
+
+.stat-card.mes {
+  border-left: 5px solid #ffc107;
+}
+
+.stat-icon {
+  font-size: 48px;
+}
+
+.stat-content h3 {
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+  text-transform: uppercase;
+}
+
+.stat-number {
+  font-size: 36px;
+  font-weight: bold;
+  color: #212529;
+  margin: 5px 0;
+}
+
+.stat-label {
+  color: #6c757d;
+  font-size: 13px;
+}
+
+/* Cards de Ação */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.dashboard-card h3 {
+  color: #007bff;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.dashboard-card p {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.card-button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.card-button:hover {
+  background: #0056b3;
+}
+
+/* Seção Inferior com Gráficos */
+.dashboard-bottom {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.dashboard-chart-card,
+.dashboard-list-card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-chart-card h3,
+.dashboard-list-card h3 {
+  color: #007bff;
+  font-size: 18px;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+/* Gráficos de Barras */
+.chart-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.chart-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.chart-bar-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.chart-bar-container {
+  background: #f0f0f0;
+  border-radius: 8px;
+  height: 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-bar-fill {
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  height: 100%;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  transition: width 0.5s ease;
+  min-width: 50px;
+}
+
+.chart-bar-fill.dieta {
+  background: linear-gradient(90deg, #28a745, #1e7e34);
+}
+
+.chart-bar-value {
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Prescrições Recentes */
+.prescricoes-recentes {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.sem-prescricoes {
+  text-align: center;
+  color: #6c757d;
+  padding: 30px;
+  font-style: italic;
+}
+
+.prescricao-recente-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+  transition: background 0.3s ease;
+}
+
+.prescricao-recente-item:hover {
+  background: #e9ecef;
+}
+
+.prescricao-recente-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.prescricao-recente-info strong {
+  color: #212529;
+  font-size: 15px;
+}
+
+.prescricao-recente-detalhes {
+  color: #6c757d;
+  font-size: 13px;
+}
+
+.prescricao-recente-data {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  font-size: 13px;
+  color: #495057;
+}
+
+.prescricao-recente-hora {
+  color: #6c757d;
+  font-size: 12px;
+}
+
+/* Informações */
+.dashboard-info {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 30px;
+  border-left: 4px solid #007bff;
+}
+
+.info-card h4 {
+  color: #007bff;
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.info-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.info-card li {
+  color: #495057;
+  font-size: 15px;
+  padding: 8px 0;
+  padding-left: 25px;
+  position: relative;
+}
+
+.info-card li:before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #28a745;
+  font-weight: bold;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-bottom {
+    grid-template-columns: 1fr;
+  }
+  
+  .welcome-header h1 {
+    font-size: 28px;
+  }
+
+  .stat-number {
+    font-size: 28px;
+  }
+
+  .prescricao-recente-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .prescricao-recente-data {
+    align-items: flex-start;
+  }
+}

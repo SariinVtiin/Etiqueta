@@ -2,13 +2,21 @@
 const API_URL = 'http://localhost:3001/api';
 
 /**
- * Configuração padrão para fetch
+ * Obter token do localStorage
  */
-const fetchConfig = {
+const getToken = () => {
+  return localStorage.getItem('token');
+};
+
+/**
+ * Configuração padrão para fetch com autenticação
+ */
+const fetchConfigAuth = () => ({
   headers: {
     'Content-Type': 'application/json',
+    'Authorization': `Bearer ${getToken()}`
   }
-};
+});
 
 /**
  * Handler genérico de erros
@@ -46,72 +54,6 @@ export const buscarStatus = async () => {
 };
 
 // ============================================
-// ENDPOINTS - PACIENTES
-// ============================================
-
-export const listarPacientes = async () => {
-  try {
-    const response = await fetch(`${API_URL}/pacientes`);
-    return handleResponse(response);
-  } catch (erro) {
-    console.error('Erro ao listar pacientes:', erro);
-    throw erro;
-  }
-};
-
-export const buscarPaciente = async (id) => {
-  try {
-    const response = await fetch(`${API_URL}/pacientes/${id}`);
-    return handleResponse(response);
-  } catch (erro) {
-    console.error('Erro ao buscar paciente:', erro);
-    throw erro;
-  }
-};
-
-export const cadastrarPaciente = async (paciente) => {
-  try {
-    const response = await fetch(`${API_URL}/pacientes`, {
-      method: 'POST',
-      ...fetchConfig,
-      body: JSON.stringify(paciente)
-    });
-    return handleResponse(response);
-  } catch (erro) {
-    console.error('Erro ao cadastrar paciente:', erro);
-    throw erro;
-  }
-};
-
-export const atualizarPaciente = async (id, paciente) => {
-  try {
-    const response = await fetch(`${API_URL}/pacientes/${id}`, {
-      method: 'PUT',
-      ...fetchConfig,
-      body: JSON.stringify(paciente)
-    });
-    return handleResponse(response);
-  } catch (erro) {
-    console.error('Erro ao atualizar paciente:', erro);
-    throw erro;
-  }
-};
-
-export const darAltaPaciente = async (id, dataAlta) => {
-  try {
-    const response = await fetch(`${API_URL}/pacientes/${id}/alta`, {
-      method: 'POST',
-      ...fetchConfig,
-      body: JSON.stringify({ data_alta: dataAlta })
-    });
-    return handleResponse(response);
-  } catch (erro) {
-    console.error('Erro ao dar alta:', erro);
-    throw erro;
-  }
-};
-
-// ============================================
 // ENDPOINTS - LEITOS
 // ============================================
 
@@ -121,16 +63,6 @@ export const listarLeitos = async () => {
     return handleResponse(response);
   } catch (erro) {
     console.error('Erro ao listar leitos:', erro);
-    throw erro;
-  }
-};
-
-export const listarLeitosDisponiveis = async () => {
-  try {
-    const response = await fetch(`${API_URL}/leitos/disponiveis`);
-    return handleResponse(response);
-  } catch (erro) {
-    console.error('Erro ao listar leitos disponíveis:', erro);
     throw erro;
   }
 };
@@ -150,81 +82,92 @@ export const listarDietas = async () => {
 };
 
 // ============================================
-// ENDPOINTS - IMPRESSÃO
-// ============================================
-
-export const imprimirEtiquetas = async (etiquetas, usuario = 'Sistema') => {
-  try {
-    const response = await fetch(`${API_URL}/imprimir`, {
-      method: 'POST',
-      ...fetchConfig,
-      body: JSON.stringify({ etiquetas, usuario })
-    });
-    return handleResponse(response);
-  } catch (erro) {
-    console.error('Erro ao imprimir:', erro);
-    throw erro;
-  }
-};
-
-export const buscarHistoricoImpressoes = async (limite = 50, pagina = 1) => {
-  try {
-    const response = await fetch(`${API_URL}/historico-impressoes?limite=${limite}&pagina=${pagina}`);
-    return handleResponse(response);
-  } catch (erro) {
-    console.error('Erro ao buscar histórico:', erro);
-    throw erro;
-  }
-};
-
-// ============================================
-// FUNÇÕES AUXILIARES LOCALSTORAGE (TEMPORÁRIO)
+// ENDPOINTS - PRESCRIÇÕES
 // ============================================
 
 /**
- * Essas funções mantêm compatibilidade com localStorage
- * até migrarmos totalmente para o backend
+ * Listar prescrições com filtros
  */
-
-export const salvarEtiquetasLocal = (etiquetas) => {
+export const listarPrescricoes = async (filtros = {}) => {
   try {
-    localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
+    const params = new URLSearchParams();
+    
+    if (filtros.busca) params.append('busca', filtros.busca);
+    if (filtros.dataInicio) params.append('dataInicio', filtros.dataInicio);
+    if (filtros.dataFim) params.append('dataFim', filtros.dataFim);
+    if (filtros.setor) params.append('setor', filtros.setor);
+    if (filtros.dieta) params.append('dieta', filtros.dieta);
+    if (filtros.page) params.append('page', filtros.page);
+    if (filtros.limit) params.append('limit', filtros.limit);
+    
+    const url = `${API_URL}/prescricoes?${params.toString()}`;
+    const response = await fetch(url, fetchConfigAuth());
+    return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao salvar no localStorage:', erro);
+    console.error('Erro ao listar prescrições:', erro);
+    throw erro;
   }
 };
 
-export const carregarEtiquetasLocal = () => {
+/**
+ * Buscar prescrição por ID
+ */
+export const buscarPrescricao = async (id) => {
   try {
-    const saved = localStorage.getItem('etiquetas');
-    return saved ? JSON.parse(saved) : [];
+    const response = await fetch(`${API_URL}/prescricoes/${id}`, fetchConfigAuth());
+    return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao carregar do localStorage:', erro);
-    return [];
+    console.error('Erro ao buscar prescrição:', erro);
+    throw erro;
   }
 };
 
-export const salvarTiposAlimentacaoLocal = (tipos) => {
+/**
+ * Criar nova prescrição
+ */
+export const criarPrescricao = async (prescricao) => {
   try {
-    localStorage.setItem('tiposAlimentacao', JSON.stringify(tipos));
+    const response = await fetch(`${API_URL}/prescricoes`, {
+      method: 'POST',
+      ...fetchConfigAuth(),
+      body: JSON.stringify(prescricao)
+    });
+    return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao salvar tipos no localStorage:', erro);
+    console.error('Erro ao criar prescrição:', erro);
+    throw erro;
   }
 };
 
-export const carregarTiposAlimentacaoLocal = () => {
+/**
+ * Atualizar prescrição
+ */
+export const atualizarPrescricao = async (id, prescricao) => {
   try {
-    const saved = localStorage.getItem('tiposAlimentacao');
-    return saved ? JSON.parse(saved) : [
-      'Desjejum',
-      'Colação',
-      'Almoço',
-      'Lanche',
-      'Jantar',
-      'Ceia'
-    ];
+    const response = await fetch(`${API_URL}/prescricoes/${id}`, {
+      method: 'PUT',
+      ...fetchConfigAuth(),
+      body: JSON.stringify(prescricao)
+    });
+    return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao carregar tipos do localStorage:', erro);
-    return ['Desjejum', 'Colação', 'Almoço', 'Lanche', 'Jantar', 'Ceia'];
+    console.error('Erro ao atualizar prescrição:', erro);
+    throw erro;
+  }
+};
+
+/**
+ * Deletar prescrição
+ */
+export const deletarPrescricao = async (id) => {
+  try {
+    const response = await fetch(`${API_URL}/prescricoes/${id}`, {
+      method: 'DELETE',
+      ...fetchConfigAuth()
+    });
+    return handleResponse(response);
+  } catch (erro) {
+    console.error('Erro ao deletar prescrição:', erro);
+    throw erro;
   }
 };

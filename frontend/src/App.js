@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Login from './Login';
-import MapaAlimentacao from './MapaAlimentacao';
-import FilaImpressao from './FilaImpressao';
-import Cadastros from './Cadastros';
-import PreviewEtiquetas from './PreviewEtiquetas';
-import StatusIndicador from './components/StatusIndicador';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Prescricoes from './pages/Prescricoes';
+import NovaPrescricao from './pages/NovaPrescricao';
+import FilaImpressao from './pages/FilaImpressao';
+import Cadastros from './pages/Cadastros';
+import PreviewEtiquetas from './pages/PreviewEtiquetas';
+import StatusIndicador from './components/common/StatusIndicador';
+import CentroNotificacoes from './components/common/CentroNotificacoes';
 import { listarLeitos, listarDietas } from './services/api';
 import './App.css';
 
 function AppContent() {
   const { autenticado, usuario, carregando: carregandoAuth, logout, isAdmin } = useAuth();
-  const [telaAtual, setTelaAtual] = useState('coleta');
+  const [telaAtual, setTelaAtual] = useState('dashboard');
+  const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
   
   const [etiquetas, setEtiquetas] = useState(() => {
     const saved = localStorage.getItem('etiquetas');
@@ -84,26 +88,19 @@ function AppContent() {
     localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
   }, [etiquetas]);
 
+  // Funções de navegação
+  const irParaDashboard = () => setTelaAtual('dashboard');
+  const irParaPrescricoes = () => setTelaAtual('prescricoes');
+  const irParaNovaPrescricao = () => setTelaAtual('novaPrescricao');
   const irParaCadastros = () => {
-    // Verificar se é admin
     if (!isAdmin()) {
       alert('⚠️ Acesso negado! Apenas administradores podem acessar os cadastros.');
       return;
     }
     setTelaAtual('cadastros');
   };
-
-  const irParaImpressao = () => {
-    setTelaAtual('impressao');
-  };
-
-  const irParaPreview = () => {
-    setTelaAtual('preview');
-  };
-
-  const voltarParaColeta = () => {
-    setTelaAtual('coleta');
-  };
+  const irParaImpressao = () => setTelaAtual('impressao');
+  const irParaPreview = () => setTelaAtual('preview');
 
   // Loading da autenticação
   if (carregandoAuth) {
@@ -162,7 +159,7 @@ function AppContent() {
     <div className="App">
       <StatusIndicador />
       
-      {/* Header com informações do usuário */}
+      {/* Header com informações do usuário e menu */}
       <div className="user-header">
         <div className="user-info">
           <span className="user-name">👤 {usuario.nome}</span>
@@ -170,13 +167,81 @@ function AppContent() {
             {usuario.role === 'admin' ? '🔴 Administrador' : '🟢 Nutricionista'}
           </span>
         </div>
-        <button className="btn-logout" onClick={logout}>
-          🚪 Sair
-        </button>
+        
+        {/* Menu de Navegação */}
+        <div className="menu-navegacao">
+          <button 
+            className={`menu-btn ${telaAtual === 'dashboard' ? 'active' : ''}`}
+            onClick={irParaDashboard}
+          >
+            🏠 Início
+          </button>
+          <button 
+            className={`menu-btn ${telaAtual === 'prescricoes' ? 'active' : ''}`}
+            onClick={irParaPrescricoes}
+          >
+            📋 Prescrições
+          </button>
+          <button 
+            className={`menu-btn ${telaAtual === 'novaPrescricao' ? 'active' : ''}`}
+            onClick={irParaNovaPrescricao}
+          >
+            ➕ Nova Prescrição
+          </button>
+          {isAdmin() && (
+            <button 
+              className={`menu-btn ${telaAtual === 'cadastros' ? 'active' : ''}`}
+              onClick={irParaCadastros}
+            >
+              ⚙️ Cadastros
+            </button>
+          )}
+        </div>
+        
+        <div className="header-actions">
+          {/* Botão de Notificações */}
+          <button 
+            className="btn-notificacoes"
+            onClick={() => setNotificacoesAbertas(!notificacoesAbertas)}
+            title="Notificações"
+          >
+            🔔
+            {etiquetas.length > 0 && (
+              <span className="notificacoes-badge">{etiquetas.length}</span>
+            )}
+          </button>
+          
+          <button className="btn-logout" onClick={logout}>
+            🚪 Sair
+          </button>
+        </div>
       </div>
       
-      {telaAtual === 'coleta' && (
-        <MapaAlimentacao
+      {/* Centro de Notificações */}
+      <CentroNotificacoes
+        isOpen={notificacoesAbertas}
+        onClose={() => setNotificacoesAbertas(false)}
+        etiquetas={etiquetas}
+      />
+      
+      {/* Renderizar tela de acordo com navegação */}
+      {telaAtual === 'dashboard' && (
+        <Dashboard
+          irParaPrescricoes={irParaPrescricoes}
+          irParaNovaPrescricao={irParaNovaPrescricao}
+        />
+      )}
+      
+      {telaAtual === 'prescricoes' && (
+        <Prescricoes 
+          voltar={irParaDashboard}
+          nucleos={nucleos}
+          dietas={dietas}
+        />
+      )}
+      
+      {telaAtual === 'novaPrescricao' && (
+        <NovaPrescricao
           nucleos={nucleos}
           dietas={dietas}
           tiposAlimentacao={tiposAlimentacao}
@@ -193,7 +258,7 @@ function AppContent() {
         <FilaImpressao
           etiquetas={etiquetas}
           setEtiquetas={setEtiquetas}
-          voltar={voltarParaColeta}
+          voltar={irParaNovaPrescricao}
         />
       )}
       
@@ -201,13 +266,13 @@ function AppContent() {
         <Cadastros
           tiposAlimentacao={tiposAlimentacao}
           setTiposAlimentacao={setTiposAlimentacao}
-          voltar={voltarParaColeta}
+          voltar={irParaDashboard}
         />
       )}
 
       {telaAtual === 'preview' && (
         <PreviewEtiquetas
-          voltar={voltarParaColeta}
+          voltar={irParaNovaPrescricao}
         />
       )}
     </div>

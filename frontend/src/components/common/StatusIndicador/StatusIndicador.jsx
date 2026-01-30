@@ -1,6 +1,6 @@
-// src/components/StatusIndicador.jsx
+// src/components/common/StatusIndicador/StatusIndicador.jsx
 import React, { useState, useEffect } from 'react';
-import { buscarStatus } from '../services/api';
+import { buscarStatus } from '../../../services/api';
 import './StatusIndicador.css';
 
 function StatusIndicador() {

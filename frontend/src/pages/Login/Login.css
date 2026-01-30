@@ -25,12 +25,12 @@
 
 .login-image {
   flex: 0 0 60%;
-  background-image: url('../public/login-bg.jpg');
+  background-image: url('../../../public/login-bg.jpg');
   background-size: cover;
   background-position: center;
 }
 
-/* ===== CARD (BOX CINZA) ===== */
+/* ===== CARD (BOX CINZA) ===== login-bg.jpg*/
 .login-card {
   width: 100%;
   max-width: 420px;

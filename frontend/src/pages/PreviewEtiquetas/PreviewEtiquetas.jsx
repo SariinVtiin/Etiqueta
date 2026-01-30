@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import LayoutEtiqueta from './LayoutEtiqueta';
+import LayoutEtiqueta from '../../components/etiquetas/LayoutEtiqueta';
 import './PreviewEtiquetas.css';
 
 function PreviewEtiquetas({ voltar }) {
-    const [etiquetaExemplo] = useState({
+  const [etiquetaExemplo] = useState({
     nomePaciente: 'Maria da Silva Santos Oliveira',
     nomeMae: 'Ana Paula Santos Oliveira Costa',
     codigoAtendimento: '1234567',
@@ -17,7 +17,7 @@ function PreviewEtiquetas({ voltar }) {
     descricaoSemPrincipal: 'Arroz com frango grelhado',
     obsExclusao: 's/ leite, s/ açúcar',
     obsAcrescimo: 'c/ biscoito, c/ suco de laranja'
-    });
+  });
 
   return (
     <div className="container">

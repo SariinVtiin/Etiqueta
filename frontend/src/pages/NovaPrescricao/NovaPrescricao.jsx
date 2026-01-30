@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import './MapaAlimentacao.css';
-import ModalConfirmacao from './ModalConfirmacao';
-import FormularioPaciente from './FormularioPaciente';
+import './NovaPrescricao.css';
+import ModalConfirmacao from '../../components/common/ModalConfirmacao';
+import FormularioPaciente from '../../components/forms/FormularioPaciente';
+import { criarPrescricao } from '../../services/api';
 
-function MapaAlimentacao({ nucleos, tiposAlimentacao, etiquetas, setEtiquetas, irParaCadastros, irParaImpressao, irParaPreview }) {
+function NovaPrescricao({ nucleos, dietas, tiposAlimentacao, etiquetas, setEtiquetas, irParaCadastros, irParaImpressao, irParaPreview }) {
   const [formData, setFormData] = useState({
     cpf: '',
     codigoAtendimento: '',
@@ -177,45 +178,89 @@ function MapaAlimentacao({ nucleos, tiposAlimentacao, etiquetas, setEtiquetas, i
     setMostrarConfirmacao(true);
   };
 
-  const confirmarAdicao = () => {
-    const novasEtiquetas = dadosParaConfirmar.refeicoes.map(refeicao => ({
-      id: Date.now() + Math.random(),
-      cpf: dadosParaConfirmar.cpf,
-      codigoAtendimento: dadosParaConfirmar.codigoAtendimento,
-      convenio: dadosParaConfirmar.convenio,
-      nomePaciente: dadosParaConfirmar.nomePaciente,
-      nomeMae: dadosParaConfirmar.nomeMae,
-      idade: dadosParaConfirmar.idade,
-      nucleo: dadosParaConfirmar.nucleoSelecionado,
-      leito: dadosParaConfirmar.leito,
-      tipoAlimentacao: refeicao.tipo,
-      dieta: refeicao.dieta,
-      restricoes: refeicao.restricoes,
-      semPrincipal: refeicao.semPrincipal,
-      descricaoSemPrincipal: refeicao.descricaoSemPrincipal,
-      obsExclusao: refeicao.obsExclusao,
-      obsAcrescimo: refeicao.obsAcrescimo
-    }));
+  // INSTRUÇÕES: Substitua a função confirmarAdicao existente por esta versão:
 
-    setEtiquetas([...etiquetas, ...novasEtiquetas]);
-    
-    setFormData({
-      cpf: '',
-      codigoAtendimento: '',
-      convenio: '',
-      nomePaciente: '',
-      nomeMae: '',
-      dataNascimento: '',
-      idade: '',
-      nucleoSelecionado: '',
-      leito: '',
-      refeicoesSelecionadas: []
-    });
-    setConfigRefeicoes({});
-    setMostrarConfirmacao(false);
-    setDadosParaConfirmar(null);
+  const confirmarAdicao = async () => {
+    try {
+      // Criar as prescrições no banco de dados
+      const promessas = dadosParaConfirmar.refeicoes.map(async (refeicao) => {
+        // Converter data de DD/MM/AAAA para AAAA-MM-DD
+        const partesData = dadosParaConfirmar.dataNascimento.split('/');
+        const dataFormatada = `${partesData[2]}-${partesData[1]}-${partesData[0]}`;
 
-    document.querySelector('input[name="cpf"]').focus();
+        const prescricao = {
+          cpf: dadosParaConfirmar.cpf,
+          codigoAtendimento: dadosParaConfirmar.codigoAtendimento,
+          convenio: dadosParaConfirmar.convenio,
+          nomePaciente: dadosParaConfirmar.nomePaciente,
+          nomeMae: dadosParaConfirmar.nomeMae,
+          dataNascimento: dataFormatada,
+          idade: parseInt(dadosParaConfirmar.idade),
+          nucleo: dadosParaConfirmar.nucleoSelecionado,
+          leito: dadosParaConfirmar.leito,
+          tipoAlimentacao: refeicao.tipo,
+          dieta: refeicao.dieta,
+          restricoes: refeicao.restricoes,
+          semPrincipal: refeicao.semPrincipal || false,
+          descricaoSemPrincipal: refeicao.descricaoSemPrincipal || '',
+          obsExclusao: refeicao.obsExclusao || '',
+          obsAcrescimo: refeicao.obsAcrescimo || ''
+        };
+
+        return await criarPrescricao(prescricao);
+      });
+
+      // Aguardar todas as prescrições serem salvas
+      await Promise.all(promessas);
+
+      // Também adicionar à fila local de etiquetas (para impressão)
+      const novasEtiquetas = dadosParaConfirmar.refeicoes.map(refeicao => ({
+        id: Date.now() + Math.random(),
+        cpf: dadosParaConfirmar.cpf,
+        codigoAtendimento: dadosParaConfirmar.codigoAtendimento,
+        convenio: dadosParaConfirmar.convenio,
+        nomePaciente: dadosParaConfirmar.nomePaciente,
+        nomeMae: dadosParaConfirmar.nomeMae,
+        dataNascimento: dadosParaConfirmar.dataNascimento,
+        idade: dadosParaConfirmar.idade,
+        nucleo: dadosParaConfirmar.nucleoSelecionado,
+        leito: dadosParaConfirmar.leito,
+        tipoAlimentacao: refeicao.tipo,
+        dieta: refeicao.dieta,
+        restricoes: refeicao.restricoes,
+        semPrincipal: refeicao.semPrincipal,
+        descricaoSemPrincipal: refeicao.descricaoSemPrincipal,
+        obsExclusao: refeicao.obsExclusao,
+        obsAcrescimo: refeicao.obsAcrescimo
+      }));
+
+      setEtiquetas([...etiquetas, ...novasEtiquetas]);
+      
+      // Limpar formulário
+      setFormData({
+        cpf: '',
+        codigoAtendimento: '',
+        convenio: '',
+        nomePaciente: '',
+        nomeMae: '',
+        dataNascimento: '',
+        idade: '',
+        nucleoSelecionado: '',
+        leito: '',
+        refeicoesSelecionadas: []
+      });
+      setConfigRefeicoes({});
+      setMostrarConfirmacao(false);
+      setDadosParaConfirmar(null);
+
+      alert(`✅ ${promessas.length} prescrição(ões) salva(s) com sucesso e adicionada(s) à fila de impressão!`);
+
+      document.querySelector('input[name="cpf"]')?.focus();
+
+    } catch (erro) {
+      console.error('Erro ao salvar prescrições:', erro);
+      alert(`❌ Erro ao salvar prescrições: ${erro.message}`);
+    }
   };
 
   const cancelarConfirmacao = () => {
@@ -423,4 +468,4 @@ function MapaAlimentacao({ nucleos, tiposAlimentacao, etiquetas, setEtiquetas, i
   );
 }
 
-export default MapaAlimentacao;
+export default NovaPrescricao;

@@ -1,0 +1,258 @@
+.modal-overlay-editar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content-editar {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header-editar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  border-bottom: 2px solid #dee2e6;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.modal-header-editar h2 {
+  color: #007bff;
+  font-size: 24px;
+  margin: 0;
+}
+
+.btn-fechar-modal {
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.btn-fechar-modal:hover {
+  background: #f8f9fa;
+  color: #dc3545;
+}
+
+.form-editar {
+  padding: 30px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+}
+
+.campo.full-width {
+  grid-column: 1 / -1;
+}
+
+.campo label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #495057;
+  margin-bottom: 5px;
+}
+
+.campo input,
+.campo select {
+  padding: 10px 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.campo input:focus,
+.campo select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.info-idade {
+  font-size: 12px;
+  color: #28a745;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.restricoes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.checkbox-label:hover {
+  background: #e9ecef;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-label span {
+  font-size: 14px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.checkbox-label-principal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #495057;
+}
+
+.checkbox-label-principal input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.input-sem-principal {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 2px solid #ffc107;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff3cd;
+}
+
+.input-sem-principal:focus {
+  outline: none;
+  border-color: #ff9800;
+}
+
+.modal-acoes-editar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid #dee2e6;
+}
+
+.btn-cancelar-editar,
+.btn-salvar-editar {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cancelar-editar {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-cancelar-editar:hover {
+  background: #5a6268;
+}
+
+.btn-salvar-editar {
+  background: #28a745;
+  color: white;
+}
+
+.btn-salvar-editar:hover:not(:disabled) {
+  background: #218838;
+}
+
+.btn-salvar-editar:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .modal-overlay-editar {
+    padding: 10px;
+  }
+
+  .modal-content-editar {
+    max-height: 95vh;
+  }
+
+  .modal-header-editar {
+    padding: 15px 20px;
+  }
+
+  .modal-header-editar h2 {
+    font-size: 20px;
+  }
+
+  .form-editar {
+    padding: 20px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .restricoes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-acoes-editar {
+    flex-direction: column;
+  }
+
+  .btn-cancelar-editar,
+  .btn-salvar-editar {
+    width: 100%;
+  }
+}
