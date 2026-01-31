@@ -1,8 +1,20 @@
-.header-cadastro {
+.cadastros-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.cadastros-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
+}
+
+.cadastros-header h1 {
+  color: #007bff;
+  font-size: 32px;
+  margin: 0;
 }
 
 .btn-voltar {
@@ -10,137 +22,134 @@
   background: #6c757d;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 14px;
+  font-weight: bold;
   cursor: pointer;
+  transition: background 0.3s ease;
 }
 
 .btn-voltar:hover {
   background: #5a6268;
 }
 
-.secao-cadastro {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+/* Cards de cadastros */
+.cadastros-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
 }
 
-.secao-cadastro h2 {
-  color: #007bff;
-  margin-top: 0;
-  margin-bottom: 15px;
+.cadastro-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
 }
 
-.form-add {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.form-add input {
-  flex: 1;
-  padding: 10px;
-  border: 2px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.form-add input:focus {
-  outline: none;
+.cadastro-card:not(.disabled):hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
   border-color: #007bff;
 }
 
-.form-add button {
-  padding: 10px 20px;
-  background: #28a745;
+.cadastro-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f8f9fa;
+}
+
+.card-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.cadastro-card h3 {
+  color: #007bff;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.cadastro-card p {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.card-button {
+  background: #007bff;
   color: white;
   border: none;
-  border-radius: 4px;
+  padding: 10px 25px;
+  border-radius: 6px;
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
-  white-space: nowrap;
+  transition: background 0.3s ease;
 }
 
-.form-add button:hover {
-  background: #218838;
+.card-button:not(:disabled):hover {
+  background: #0056b3;
 }
 
-.lista-itens {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 10px;
+.card-button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
 }
 
-.lista-itens .item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+/* Informações */
+.cadastros-info {
+  background: #fff3cd;
+  border-radius: 12px;
+  padding: 25px;
+  border-left: 4px solid #ffc107;
 }
 
-.lista-itens .item span {
-  font-weight: 500;
-}
-
-.lista-itens .item button {
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 3px 8px;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.lista-itens .item button:hover {
-  background: #c82333;
-}
-
-.vazio {
-  text-align: center;
-  color: #6c757d;
-  font-style: italic;
-  padding: 20px;
-}
-
-.info-leitos {
-  background: #e3f2fd;
-  padding: 20px;
-  border-radius: 8px;
-  border: 2px solid #2196f3;
-}
-
-.info-leitos h2 {
-  color: #1976d2;
-  margin-top: 0;
+.info-card h4 {
+  color: #856404;
+  font-size: 18px;
   margin-bottom: 15px;
 }
 
-.info-leitos p {
-  margin-bottom: 10px;
-  color: #555;
-}
-
-.info-leitos ul {
+.info-card ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
-.info-leitos li {
-  padding: 8px 0;
-  border-bottom: 1px solid #ddd;
+.info-card li {
+  color: #856404;
+  font-size: 14px;
+  padding: 6px 0;
+  padding-left: 25px;
+  position: relative;
 }
 
-.info-leitos li:last-child {
-  border-bottom: none;
+.info-card li:before {
+  content: "⚠️";
+  position: absolute;
+  left: 0;
 }
 
-.info-leitos strong {
-  color: #1976d2;
+/* Responsivo */
+@media (max-width: 768px) {
+  .cadastros-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+
+  .cadastros-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .cadastros-header h1 {
+    font-size: 24px;
+  }
 }

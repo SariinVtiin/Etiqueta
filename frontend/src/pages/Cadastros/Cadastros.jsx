@@ -1,67 +1,56 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './Cadastros.css';
 
-function Cadastros({ tiposAlimentacao, setTiposAlimentacao, voltar }) {
-  const [novoTipo, setNovoTipo] = useState('');
-
-  const adicionarTipo = (e) => {
-    e.preventDefault();
-    if (novoTipo.trim()) {
-      setTiposAlimentacao([...tiposAlimentacao, novoTipo.trim()]);
-      setNovoTipo('');
-    }
-  };
-
-  const removerTipo = (index) => {
-    setTiposAlimentacao(tiposAlimentacao.filter((_, i) => i !== index));
-  };
-
+function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas }) {
   return (
-    <div className="container">
-      <div className="header-cadastro">
-        <h1>Cadastros</h1>
+    <div className="cadastros-container">
+      <div className="cadastros-header">
+        <h1>⚙️ Configurações e Cadastros</h1>
         <button className="btn-voltar" onClick={voltar}>
-          ← Voltar
+          ← Voltar ao Menu
         </button>
       </div>
 
-      <div className="secao-cadastro">
-        <h2>Tipos de Alimentação ({tiposAlimentacao.length})</h2>
-        
-        <form onSubmit={adicionarTipo} className="form-add">
-          <input
-            type="text"
-            value={novoTipo}
-            onChange={(e) => setNovoTipo(e.target.value)}
-            placeholder="Digite o tipo (ex: Desjejum, Almoço...)"
-          />
-          <button type="submit">+ Adicionar</button>
-        </form>
+      <div className="cadastros-cards">
+        <div className="cadastro-card" onClick={irParaGestaoUsuarios}>
+          <div className="card-icon">👥</div>
+          <h3>Gestão de Usuários</h3>
+          <p>Criar, editar e gerenciar usuários do sistema</p>
+          <button className="card-button">Acessar</button>
+        </div>
 
-        <div className="lista-itens">
-          {tiposAlimentacao.length === 0 ? (
-            <p className="vazio">Nenhum tipo cadastrado</p>
-          ) : (
-            tiposAlimentacao.map((tipo, index) => (
-              <div key={index} className="item">
-                <span>{tipo}</span>
-                <button onClick={() => removerTipo(index)}>✕</button>
-              </div>
-            ))
-          )}
+        <div className="cadastro-card disabled">
+          <div className="card-icon">🏥</div>
+          <h3>Setores e Leitos</h3>
+          <p>Gerenciar setores hospitalares e leitos</p>
+          <button className="card-button" disabled>Em Breve</button>
+        </div>
+
+        <div className="cadastro-card" onClick={irParaGestaoDietas}>
+          <div className="card-icon">🍽️</div>
+          <h3>Tipos de Dieta</h3>
+          <p>Configurar tipos de alimentação disponíveis</p>
+          <button className="card-button">Acessar</button>
+        </div>
+
+        <div className="cadastro-card disabled">
+          <div className="card-icon">📊</div>
+          <h3>Relatórios</h3>
+          <p>Configurações de relatórios e exportações</p>
+          <button className="card-button" disabled>Em Breve</button>
         </div>
       </div>
 
-      <div className="info-leitos">
-        <h2>ℹ️ Informação sobre Leitos</h2>
-        <p>Os leitos são organizados automaticamente por núcleo:</p>
-        <ul>
-          <li><strong>INTERNAÇÃO:</strong> Leitos 601 a 661</li>
-          <li><strong>UTI PEDIÁTRICA:</strong> Leitos 501 a 515</li>
-          <li><strong>UTI ADULTO:</strong> Leitos 541 a 556</li>
-          <li><strong>UDT:</strong> Leitos 1 a 18</li>
-          <li><strong>TMO:</strong> Leitos 301 a 314</li>
-        </ul>
+      <div className="cadastros-info">
+        <div className="info-card">
+          <h4>ℹ️ Área Administrativa</h4>
+          <ul>
+            <li>Esta área é restrita a administradores do sistema</li>
+            <li>Alterações aqui afetam todo o sistema</li>
+            <li>Use com cuidado e responsabilidade</li>
+            <li>Todas as ações são registradas em log</li>
+          </ul>
+        </div>
       </div>
     </div>
   );

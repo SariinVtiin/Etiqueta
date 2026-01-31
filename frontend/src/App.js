@@ -6,6 +6,8 @@ import Prescricoes from './pages/Prescricoes';
 import NovaPrescricao from './pages/NovaPrescricao';
 import FilaImpressao from './pages/FilaImpressao';
 import Cadastros from './pages/Cadastros';
+import GestaoUsuarios from './pages/GestaoUsuarios';
+import GestaoDietas from './pages/GestaoDietas';
 import PreviewEtiquetas from './pages/PreviewEtiquetas';
 import StatusIndicador from './components/common/StatusIndicador';
 import CentroNotificacoes from './components/common/CentroNotificacoes';
@@ -26,7 +28,7 @@ function AppContent() {
   const [dietas, setDietas] = useState([]);
   const [carregandoDados, setCarregandoDados] = useState(true);
 
-  const [tiposAlimentacao, setTiposAlimentacao] = useState(() => {
+  const [tiposAlimentacao] = useState(() => {
     const saved = localStorage.getItem('tiposAlimentacao');
     return saved ? JSON.parse(saved) : [
       'Desjejum',
@@ -81,10 +83,6 @@ function AppContent() {
   }, [autenticado]);
 
   useEffect(() => {
-    localStorage.setItem('tiposAlimentacao', JSON.stringify(tiposAlimentacao));
-  }, [tiposAlimentacao]);
-
-  useEffect(() => {
     localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
   }, [etiquetas]);
 
@@ -98,6 +96,20 @@ function AppContent() {
       return;
     }
     setTelaAtual('cadastros');
+  };
+  const irParaGestaoUsuarios = () => {
+    if (!isAdmin()) {
+      alert('⚠️ Acesso negado! Apenas administradores podem gerenciar usuários.');
+      return;
+    }
+    setTelaAtual('gestaoUsuarios');
+  };
+  const irParaGestaoDietas = () => {
+    if (!isAdmin()) {
+      alert('⚠️ Acesso negado! Apenas administradores podem gerenciar dietas.');
+      return;
+    }
+    setTelaAtual('gestaoDietas');
   };
   const irParaImpressao = () => setTelaAtual('impressao');
   const irParaPreview = () => setTelaAtual('preview');
@@ -264,9 +276,21 @@ function AppContent() {
       
       {telaAtual === 'cadastros' && isAdmin() && (
         <Cadastros
-          tiposAlimentacao={tiposAlimentacao}
-          setTiposAlimentacao={setTiposAlimentacao}
           voltar={irParaDashboard}
+          irParaGestaoUsuarios={irParaGestaoUsuarios}
+          irParaGestaoDietas={irParaGestaoDietas}
+        />
+      )}
+
+      {telaAtual === 'gestaoUsuarios' && isAdmin() && (
+        <GestaoUsuarios
+          voltar={irParaCadastros}
+        />
+      )}
+
+      {telaAtual === 'gestaoDietas' && isAdmin() && (
+        <GestaoDietas
+          voltar={irParaCadastros}
         />
       )}
 
