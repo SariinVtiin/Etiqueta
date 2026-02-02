@@ -1,8 +1,9 @@
+// frontend/src/pages/NovaPrescricao/NovaPrescricao.jsx
 import React, { useState } from 'react';
 import './NovaPrescricao.css';
 import ModalConfirmacao from '../../components/common/ModalConfirmacao';
 import FormularioPaciente from '../../components/forms/FormularioPaciente';
-import { criarPrescricao } from '../../services/api';
+import { criarPrescricao, criarEtiqueta } from '../../services/api';
 
 function NovaPrescricao({ nucleos, dietas, tiposAlimentacao, etiquetas, setEtiquetas, irParaCadastros, irParaImpressao, irParaPreview }) {
   const [formData, setFormData] = useState({
@@ -178,12 +179,15 @@ function NovaPrescricao({ nucleos, dietas, tiposAlimentacao, etiquetas, setEtiqu
     setMostrarConfirmacao(true);
   };
 
-  // INSTRUÇÕES: Substitua a função confirmarAdicao existente por esta versão:
-
+  // ===================================================================
+  // FUNÇÃO CORRIGIDA - confirmarAdicao
+  // ===================================================================
   const confirmarAdicao = async () => {
     try {
-      // Criar as prescrições no banco de dados
-      const promessas = dadosParaConfirmar.refeicoes.map(async (refeicao) => {
+      console.log('📋 Iniciando salvamento de prescrições e etiquetas...');
+      
+      // ETAPA 1: Criar as prescrições no banco de dados
+      const promessasPrescricoes = dadosParaConfirmar.refeicoes.map(async (refeicao) => {
         // Converter data de DD/MM/AAAA para AAAA-MM-DD
         const partesData = dadosParaConfirmar.dataNascimento.split('/');
         const dataFormatada = `${partesData[2]}-${partesData[1]}-${partesData[0]}`;
@@ -207,15 +211,37 @@ function NovaPrescricao({ nucleos, dietas, tiposAlimentacao, etiquetas, setEtiqu
           obsAcrescimo: refeicao.obsAcrescimo || ''
         };
 
+        console.log('💾 Salvando prescrição:', prescricao);
         return await criarPrescricao(prescricao);
       });
 
       // Aguardar todas as prescrições serem salvas
-      await Promise.all(promessas);
+      const resultadosPrescricoes = await Promise.all(promessasPrescricoes);
+      console.log('✅ Prescrições salvas:', resultadosPrescricoes);
 
-      // Também adicionar à fila local de etiquetas (para impressão)
-      const novasEtiquetas = dadosParaConfirmar.refeicoes.map(refeicao => ({
-        id: Date.now() + Math.random(),
+      // ETAPA 2: Criar etiquetas no banco de dados via API
+      const promessasEtiquetas = dadosParaConfirmar.refeicoes.map(async (refeicao) => {
+        const etiqueta = {
+          leito: dadosParaConfirmar.leito,
+          dieta: refeicao.dieta,
+          obs1: refeicao.restricoes?.length > 0 ? refeicao.restricoes.join(', ') : null,
+          obs2: refeicao.obsExclusao || null,
+          obs3: refeicao.obsAcrescimo || null,
+          usuario: dadosParaConfirmar.nomePaciente // ou use nome do usuário logado
+        };
+
+        console.log('🏷️ Criando etiqueta:', etiqueta);
+        return await criarEtiqueta(etiqueta);
+      });
+
+      // Aguardar todas as etiquetas serem criadas
+      const resultadosEtiquetas = await Promise.all(promessasEtiquetas);
+      console.log('✅ Etiquetas criadas:', resultadosEtiquetas);
+
+      // ETAPA 3: Atualizar a fila local de etiquetas (para exibição na interface)
+      const novasEtiquetas = dadosParaConfirmar.refeicoes.map((refeicao, index) => ({
+        // Usar o ID retornado pelo banco de dados se disponível
+        id: resultadosEtiquetas[index]?.id || (Date.now() + Math.random()),
         cpf: dadosParaConfirmar.cpf,
         codigoAtendimento: dadosParaConfirmar.codigoAtendimento,
         convenio: dadosParaConfirmar.convenio,
@@ -231,7 +257,8 @@ function NovaPrescricao({ nucleos, dietas, tiposAlimentacao, etiquetas, setEtiqu
         semPrincipal: refeicao.semPrincipal,
         descricaoSemPrincipal: refeicao.descricaoSemPrincipal,
         obsExclusao: refeicao.obsExclusao,
-        obsAcrescimo: refeicao.obsAcrescimo
+        obsAcrescimo: refeicao.obsAcrescimo,
+        status_impressao: 'pendente' // Adicionar status
       }));
 
       setEtiquetas([...etiquetas, ...novasEtiquetas]);
@@ -253,13 +280,27 @@ function NovaPrescricao({ nucleos, dietas, tiposAlimentacao, etiquetas, setEtiqu
       setMostrarConfirmacao(false);
       setDadosParaConfirmar(null);
 
-      alert(`✅ ${promessas.length} prescrição(ões) salva(s) com sucesso e adicionada(s) à fila de impressão!`);
+      console.log('🎉 Processo concluído com sucesso!');
+      alert(`✅ ${promessasPrescricoes.length} prescrição(ões) e ${promessasEtiquetas.length} etiqueta(s) salvas com sucesso!`);
 
+      // Voltar foco para o início do formulário
       document.querySelector('input[name="cpf"]')?.focus();
 
     } catch (erro) {
-      console.error('Erro ao salvar prescrições:', erro);
-      alert(`❌ Erro ao salvar prescrições: ${erro.message}`);
+      console.error('❌ Erro detalhado:', erro);
+      
+      // Mensagem de erro mais detalhada
+      let mensagemErro = 'Erro desconhecido';
+      
+      if (erro.message) {
+        mensagemErro = erro.message;
+      }
+      
+      if (erro.response) {
+        mensagemErro = `Erro do servidor: ${erro.response.statusText}`;
+      }
+      
+      alert(`❌ Erro ao salvar: ${mensagemErro}\n\nVerifique o console (F12) para mais detalhes.`);
     }
   };
 
@@ -269,6 +310,9 @@ function NovaPrescricao({ nucleos, dietas, tiposAlimentacao, etiquetas, setEtiqu
   };
 
   const leitosDisponiveis = formData.nucleoSelecionado ? nucleos[formData.nucleoSelecionado] : [];
+
+  // Filtrar dietas ativas
+  const dietasFiltradas = dietas.filter(d => d.ativa);
 
   return (
     <div className="container">
@@ -347,48 +391,28 @@ function NovaPrescricao({ nucleos, dietas, tiposAlimentacao, etiquetas, setEtiqu
 
         {formData.refeicoesSelecionadas.map(refeicao => (
           <div key={refeicao} className="config-refeicao">
-            <h3 className="titulo-refeicao">Configuração: {refeicao}</h3>
-            
+            <h3 className="titulo-refeicao">⚙️ Configurações para {refeicao}</h3>
+
             <div className="campo">
               <label>DIETA * (para {refeicao})</label>
-              <div className="opcoes-radio">
-                <label className="opcao-check">
-                  <input
-                    type="radio"
-                    name={`dieta-${refeicao}`}
-                    checked={configRefeicoes[refeicao]?.dieta === 'NORMAL'}
-                    onChange={() => handleDietaRefeicao(refeicao, 'NORMAL')}
-                  />
-                  <span>NORMAL</span>
-                </label>
-                <label className="opcao-check">
-                  <input
-                    type="radio"
-                    name={`dieta-${refeicao}`}
-                    checked={configRefeicoes[refeicao]?.dieta === 'LIQUIDA'}
-                    onChange={() => handleDietaRefeicao(refeicao, 'LIQUIDA')}
-                  />
-                  <span>LIQUIDA</span>
-                </label>
-                <label className="opcao-check">
-                  <input
-                    type="radio"
-                    name={`dieta-${refeicao}`}
-                    checked={configRefeicoes[refeicao]?.dieta === 'PASTOSA'}
-                    onChange={() => handleDietaRefeicao(refeicao, 'PASTOSA')}
-                  />
-                  <span>PASTOSA</span>
-                </label>
-                <label className="opcao-check">
-                  <input
-                    type="radio"
-                    name={`dieta-${refeicao}`}
-                    checked={configRefeicoes[refeicao]?.dieta === 'LIQUIDA PASTOSA'}
-                    onChange={() => handleDietaRefeicao(refeicao, 'LIQUIDA PASTOSA')}
-                  />
-                  <span>LIQUIDA PASTOSA</span>
-                </label>
+              <div className="opcoes-check">
+                {dietasFiltradas.map(dieta => (
+                  <label key={dieta.id} className="opcao-check">
+                    <input
+                      type="radio"
+                      name={`dieta-${refeicao}`}
+                      checked={configRefeicoes[refeicao]?.dieta === dieta.nome}
+                      onChange={() => handleDietaRefeicao(refeicao, dieta.nome)}
+                    />
+                    <span>{dieta.nome}</span>
+                  </label>
+                ))}
               </div>
+              {dietasFiltradas.length === 0 && (
+                <small className="aviso-erro">
+                  ⚠️ Nenhuma dieta cadastrada. Vá em Cadastros → Dietas para adicionar.
+                </small>
+              )}
             </div>
 
             <div className="campo">

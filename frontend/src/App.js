@@ -14,6 +14,53 @@ import CentroNotificacoes from './components/common/CentroNotificacoes';
 import { listarLeitos, listarDietas } from './services/api';
 import './App.css';
 
+// Ícones SVG
+const Icons = {
+  user: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+  ),
+  home: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  ),
+  clipboard: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+    </svg>
+  ),
+  plus: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  ),
+  settings: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  ),
+  bell: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+    </svg>
+  ),
+  logout: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+  )
+};
+
 function AppContent() {
   const { autenticado, usuario, carregando: carregandoAuth, logout, isAdmin } = useAuth();
   const [telaAtual, setTelaAtual] = useState('dashboard');
@@ -92,21 +139,21 @@ function AppContent() {
   const irParaNovaPrescricao = () => setTelaAtual('novaPrescricao');
   const irParaCadastros = () => {
     if (!isAdmin()) {
-      alert('⚠️ Acesso negado! Apenas administradores podem acessar os cadastros.');
+      alert('Acesso negado! Apenas administradores podem acessar os cadastros.');
       return;
     }
     setTelaAtual('cadastros');
   };
   const irParaGestaoUsuarios = () => {
     if (!isAdmin()) {
-      alert('⚠️ Acesso negado! Apenas administradores podem gerenciar usuários.');
+      alert('Acesso negado! Apenas administradores podem gerenciar usuários.');
       return;
     }
     setTelaAtual('gestaoUsuarios');
   };
   const irParaGestaoDietas = () => {
     if (!isAdmin()) {
-      alert('⚠️ Acesso negado! Apenas administradores podem gerenciar dietas.');
+      alert('Acesso negado! Apenas administradores podem gerenciar dietas.');
       return;
     }
     setTelaAtual('gestaoDietas');
@@ -117,22 +164,8 @@ function AppContent() {
   // Loading da autenticação
   if (carregandoAuth) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        flexDirection: 'column',
-        gap: '20px'
-      }}>
-        <div style={{
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #007bff',
-          borderRadius: '50%',
-          width: '50px',
-          height: '50px',
-          animation: 'spin 1s linear infinite'
-        }}></div>
+      <div className="loading-global">
+        <div className="loading-spinner"></div>
         <p>Verificando autenticação...</p>
       </div>
     );
@@ -146,22 +179,8 @@ function AppContent() {
   // Loading dos dados
   if (carregandoDados) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        flexDirection: 'column',
-        gap: '20px'
-      }}>
-        <div style={{
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #007bff',
-          borderRadius: '50%',
-          width: '50px',
-          height: '50px',
-          animation: 'spin 1s linear infinite'
-        }}></div>
+      <div className="loading-global">
+        <div className="loading-spinner"></div>
         <p>Carregando dados do sistema...</p>
       </div>
     );
@@ -172,43 +191,50 @@ function AppContent() {
       <StatusIndicador />
       
       {/* Header com informações do usuário e menu */}
-      <div className="user-header">
+      <header className="user-header">
         <div className="user-info">
-          <span className="user-name">👤 {usuario.nome}</span>
-          <span className="user-role">
-            {usuario.role === 'admin' ? '🔴 Administrador' : '🟢 Nutricionista'}
+          <span className="user-name">
+            {Icons.user}
+            {usuario.nome}
+          </span>
+          <span className={`user-role ${usuario.role}`}>
+            {usuario.role === 'admin' ? 'Administrador' : 'Nutricionista'}
           </span>
         </div>
         
         {/* Menu de Navegação */}
-        <div className="menu-navegacao">
+        <nav className="menu-navegacao">
           <button 
             className={`menu-btn ${telaAtual === 'dashboard' ? 'active' : ''}`}
             onClick={irParaDashboard}
           >
-            🏠 Início
+            {Icons.home}
+            <span>Início</span>
           </button>
           <button 
             className={`menu-btn ${telaAtual === 'prescricoes' ? 'active' : ''}`}
             onClick={irParaPrescricoes}
           >
-            📋 Prescrições
+            {Icons.clipboard}
+            <span>Prescrições</span>
           </button>
           <button 
             className={`menu-btn ${telaAtual === 'novaPrescricao' ? 'active' : ''}`}
             onClick={irParaNovaPrescricao}
           >
-            ➕ Nova Prescrição
+            {Icons.plus}
+            <span>Nova Prescrição</span>
           </button>
           {isAdmin() && (
             <button 
               className={`menu-btn ${telaAtual === 'cadastros' ? 'active' : ''}`}
               onClick={irParaCadastros}
             >
-              ⚙️ Cadastros
+              {Icons.settings}
+              <span>Cadastros</span>
             </button>
           )}
-        </div>
+        </nav>
         
         <div className="header-actions">
           {/* Botão de Notificações */}
@@ -217,17 +243,18 @@ function AppContent() {
             onClick={() => setNotificacoesAbertas(!notificacoesAbertas)}
             title="Notificações"
           >
-            🔔
+            {Icons.bell}
             {etiquetas.length > 0 && (
               <span className="notificacoes-badge">{etiquetas.length}</span>
             )}
           </button>
           
           <button className="btn-logout" onClick={logout}>
-            🚪 Sair
+            {Icons.logout}
+            <span>Sair</span>
           </button>
         </div>
-      </div>
+      </header>
       
       {/* Centro de Notificações */}
       <CentroNotificacoes

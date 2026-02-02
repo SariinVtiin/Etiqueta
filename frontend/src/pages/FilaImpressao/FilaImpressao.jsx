@@ -1,332 +1,367 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { 
+  listarEtiquetasPendentes, 
+  marcarEtiquetaImpressa,
+  imprimirEtiquetasLote,
+  deletarEtiqueta 
+} from '../../services/api';
 import './FilaImpressao.css';
 
-function FilaImpressao({ etiquetas, setEtiquetas, voltar }) {
-  const removerEtiqueta = (id) => {
-    setEtiquetas(etiquetas.filter(e => e.id !== id));
+function FilaImpressao({ voltar }) {
+  const [etiquetas, setEtiquetas] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [selecionadas, setSelecionadas] = useState([]);
+  const [imprimindo, setImprimindo] = useState(false);
+
+  useEffect(() => {
+    carregarFila();
+    
+    // Atualizar fila a cada 30 segundos
+    const intervalo = setInterval(carregarFila, 30000);
+    return () => clearInterval(intervalo);
+  }, []);
+
+  const carregarFila = async () => {
+    try {
+      setCarregando(true);
+      const resposta = await listarEtiquetasPendentes();
+      
+      if (resposta.sucesso) {
+        setEtiquetas(resposta.etiquetas);
+      }
+    } catch (erro) {
+      console.error('Erro ao carregar fila:', erro);
+    } finally {
+      setCarregando(false);
+    }
   };
 
-  const limparTodas = () => {
-    if (window.confirm('Tem certeza que deseja limpar TODAS as etiquetas da fila?')) {
-      setEtiquetas([]);
+  const toggleSelecao = (id) => {
+    if (selecionadas.includes(id)) {
+      setSelecionadas(selecionadas.filter(i => i !== id));
+    } else {
+      setSelecionadas([...selecionadas, id]);
     }
   };
 
-  const gerarHTMLImpressao = () => {
-  const hoje = new Date();
-  const dataFormatada = hoje.toLocaleDateString('pt-BR');
-  
-  const css = `
-    @page { 
-      size: 10cm 8cm; 
-      margin: 0; 
+  const selecionarTodas = () => {
+    if (selecionadas.length === etiquetas.length) {
+      setSelecionadas([]);
+    } else {
+      setSelecionadas(etiquetas.map(e => e.id));
     }
-    
-    body { 
-      font-family: Arial, sans-serif; 
-      margin: 0; 
-      padding: 0; 
-    }
-    
-    .etiqueta-visual {
-      width: 10cm;
-      height: 8cm;
-      padding: 6px 6mm;
-      box-sizing: border-box;
-      border: 2px solid #000;
-      background: white;
-      page-break-after: always;
-      margin-bottom: 5mm;
-    }
-    
-    .etiqueta-visual:last-child {
-      page-break-after: auto;
-    }
-    
-    .etiqueta-empresa {
-      text-align: center;
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 5px;
-      padding-bottom: 4px;
-      border-bottom: 2px solid #000;
-    }
-    
-    .etiqueta-linha-principal {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-      padding-bottom: 5px;
-      border-bottom: 2px solid #000;
-    }
-    
-    .etiqueta-nome {
-      font-size: 13px;
-      font-weight: bold;
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .etiqueta-idade {
-      font-size: 12px;
-      font-weight: bold;
-      background: #000;
-      color: #fff;
-      padding: 2px 6px;
-      border-radius: 3px;
-      margin-left: 8px;
-      white-space: nowrap;
-    }
-    
-    .etiqueta-sem-principal-destaque {
-      background: #fff3cd;
-      padding: 5px 6px;
-      margin-bottom: 6px;
-      border-radius: 3px;
-      border-left: 3px solid #ffc107;
-      display: flex;
-      font-size: 10px;
-      font-weight: bold;
-    }
-    
-    .etiqueta-label-destaque {
-      color: #856404;
-      margin-right: 5px;
-      white-space: nowrap;
-    }
-    
-    .etiqueta-valor-destaque {
-      color: #856404;
-      flex: 1;
-    }
-    
-    .etiqueta-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 3px 6px;
-    }
-    
-    .etiqueta-item {
-      display: flex;
-      font-size: 10px;
-      line-height: 1.2;
-    }
-    
-    .etiqueta-item.full-width {
-      grid-column: 1 / -1;
-    }
-    
-    .etiqueta-item.destaque {
-      font-weight: bold;
-    }
-    
-    .etiqueta-label {
-      font-weight: bold;
-      min-width: 48px;
-      flex-shrink: 0;
-    }
-    
-    .etiqueta-valor {
-      flex: 1;
-      word-wrap: break-word;
-    }
-    
-    .preview-container {
-      margin: 20px;
-      padding: 20px;
-      background: #f0f0f0;
-      border-radius: 5px;
-    }
-    
-    .btn-preview {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      border: none;
-      border-radius: 4px;
-      margin-right: 10px;
-    }
-    
-    .btn-imprimir-preview {
-      background: #007bff;
-      color: white;
-    }
-    
-    .btn-fechar-preview {
-      background: #6c757d;
-      color: white;
-    }
-    
-    @media print {
-      .preview-container { 
-        display: none; 
-      }
-      .etiqueta-visual {
-        margin-bottom: 0;
-      }
-    }
-  `;
-  
-  let html = `
-    <html>
-    <head>
-      <title>Mapa de Alimentação - ${dataFormatada}</title>
-      <style>${css}</style>
-    </head>
-    <body>
-      <div class="preview-container">
-        <h3>Preview de Impressão</h3>
-        <p>Total de ${etiquetas.length} etiqueta(s) - Data: ${dataFormatada}</p>
-        <button onclick="window.print()" class="btn-preview btn-imprimir-preview">
-          🖨️ Imprimir
-        </button>
-        <button onclick="window.close()" class="btn-preview btn-fechar-preview">
-          ✕ Fechar
-        </button>
-      </div>
-  `;
-  
-  etiquetas.forEach(etiqueta => {
-    html += `
-      <div class="etiqueta-visual">
-        <div class="etiqueta-empresa">Maxima Facility</div>
-        
-        <div class="etiqueta-linha-principal">
-          <div class="etiqueta-nome">${etiqueta.nomePaciente}</div>
-          <div class="etiqueta-idade">${etiqueta.idade} anos</div>
-        </div>
+  };
 
-        ${etiqueta.semPrincipal ? `
-        <div class="etiqueta-sem-principal-destaque">
-          <span class="etiqueta-label-destaque">⚠️ SEM PRINCIPAL:</span>
-          <span class="etiqueta-valor-destaque">${etiqueta.descricaoSemPrincipal}</span>
-        </div>` : ''}
-
-        <div class="etiqueta-grid">
-          <div class="etiqueta-item">
-            <span class="etiqueta-label">Mãe:</span>
-            <span class="etiqueta-valor">${etiqueta.nomeMae}</span>
-          </div>
-          
-          <div class="etiqueta-item">
-            <span class="etiqueta-label">Atend:</span>
-            <span class="etiqueta-valor">${etiqueta.codigoAtendimento}</span>
-          </div>
-          
-          <div class="etiqueta-item">
-            <span class="etiqueta-label">Convênio:</span>
-            <span class="etiqueta-valor">${etiqueta.convenio}</span>
-          </div>
-          
-          <div class="etiqueta-item">
-            <span class="etiqueta-label">Leito:</span>
-            <span class="etiqueta-valor">${etiqueta.leito}</span>
-          </div>
-          
-          <div class="etiqueta-item destaque">
-            <span class="etiqueta-label">Refeição:</span>
-            <span class="etiqueta-valor">${etiqueta.tipoAlimentacao}</span>
-          </div>
-          
-          <div class="etiqueta-item destaque">
-            <span class="etiqueta-label">Dieta:</span>
-            <span class="etiqueta-valor">${etiqueta.dieta}</span>
-          </div>
-          
-          ${etiqueta.restricoes && etiqueta.restricoes.length > 0 ? `
-          <div class="etiqueta-item full-width">
-            <span class="etiqueta-label">Restrição:</span>
-            <span class="etiqueta-valor">${etiqueta.restricoes.join(', ')}</span>
-          </div>` : ''}
-          
-          ${etiqueta.obsExclusao ? `
-          <div class="etiqueta-item full-width">
-            <span class="etiqueta-label">Exclusão:</span>
-            <span class="etiqueta-valor">${etiqueta.obsExclusao}</span>
-          </div>` : ''}
-          
-          ${etiqueta.obsAcrescimo ? `
-          <div class="etiqueta-item full-width">
-            <span class="etiqueta-label">Acréscimo:</span>
-            <span class="etiqueta-valor">${etiqueta.obsAcrescimo}</span>
-          </div>` : ''}
-        </div>
-      </div>
-    `;
-  });
-  
-  html += '</body></html>';
-  return html;
-};
-
-  const imprimirTodas = () => {
-    if (etiquetas.length === 0) {
-      alert('Nenhuma etiqueta na fila para imprimir!');
+  const handleImprimirSelecionadas = async () => {
+    if (selecionadas.length === 0) {
+      alert('⚠️ Selecione pelo menos uma etiqueta!');
       return;
     }
 
-    const janelaImpressao = window.open('', '', 'width=800,height=600');
-    janelaImpressao.document.write(gerarHTMLImpressao());
-    janelaImpressao.document.close();
+    if (!window.confirm(`Imprimir ${selecionadas.length} etiqueta(s)?`)) {
+      return;
+    }
+
+    try {
+      setImprimindo(true);
+      
+      // Abrir janela de impressão
+      abrirJanelaImpressao(selecionadas);
+      
+      // Aguardar um pouco
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Marcar como impressas
+      const resposta = await imprimirEtiquetasLote(selecionadas);
+      
+      if (resposta.sucesso) {
+        alert(`✅ ${resposta.total} etiqueta(s) impressa(s)!`);
+        setSelecionadas([]);
+        carregarFila();
+      }
+    } catch (erro) {
+      console.error('Erro ao imprimir:', erro);
+      alert('❌ Erro ao imprimir: ' + erro.message);
+    } finally {
+      setImprimindo(false);
+    }
+  };
+
+  const handleImprimirIndividual = async (id) => {
+    if (!window.confirm('Imprimir esta etiqueta?')) {
+      return;
+    }
+
+    try {
+      setImprimindo(true);
+      
+      // Abrir janela de impressão
+      abrirJanelaImpressao([id]);
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const resposta = await marcarEtiquetaImpressa(id);
+      
+      if (resposta.sucesso) {
+        alert('✅ Etiqueta impressa!');
+        carregarFila();
+      }
+    } catch (erro) {
+      console.error('Erro ao imprimir:', erro);
+      alert('❌ Erro ao imprimir: ' + erro.message);
+    } finally {
+      setImprimindo(false);
+    }
+  };
+
+  const abrirJanelaImpressao = (ids) => {
+    const etiquetasImprimir = etiquetas.filter(e => ids.includes(e.id));
+    
+    let html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Impressão de Etiquetas</title>
+        <style>
+          @media print {
+            @page { margin: 0; size: 10cm 5cm; }
+            body { margin: 0; padding: 0; }
+          }
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+          }
+          .etiqueta {
+            width: 10cm;
+            height: 5cm;
+            border: 2px solid #000;
+            padding: 10px;
+            margin-bottom: 10px;
+            page-break-after: always;
+            box-sizing: border-box;
+          }
+          .etiqueta:last-child {
+            page-break-after: auto;
+          }
+          .leito {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+          }
+          .dieta {
+            font-size: 20px;
+            margin-bottom: 8px;
+          }
+          .obs {
+            font-size: 14px;
+            margin: 5px 0;
+          }
+          .rodape {
+            font-size: 10px;
+            color: #666;
+            margin-top: 10px;
+          }
+        </style>
+      </head>
+      <body>
+    `;
+    
+    etiquetasImprimir.forEach(e => {
+      html += `
+        <div class="etiqueta">
+          <div class="leito">🏥 LEITO: ${e.leito}</div>
+          <div class="dieta">🍽️ ${e.dieta}</div>
+          ${e.obs1 ? `<div class="obs">📝 ${e.obs1}</div>` : ''}
+          ${e.obs2 ? `<div class="obs">📝 ${e.obs2}</div>` : ''}
+          ${e.obs3 ? `<div class="obs">📝 ${e.obs3}</div>` : ''}
+          <div class="rodape">
+            ${new Date().toLocaleString('pt-BR')} | ${e.usuario}
+          </div>
+        </div>
+      `;
+    });
+    
+    html += '</body></html>';
+    
+    const janela = window.open('', '', 'width=800,height=600');
+    janela.document.write(html);
+    janela.document.close();
+    janela.focus();
+    
+    setTimeout(() => {
+      janela.print();
+    }, 250);
+  };
+
+  const handleRemover = async (id) => {
+    if (!window.confirm('Remover esta etiqueta da fila?')) {
+      return;
+    }
+
+    try {
+      const resposta = await deletarEtiqueta(id);
+      
+      if (resposta.sucesso) {
+        alert('✅ Etiqueta removida!');
+        setSelecionadas(selecionadas.filter(i => i !== id));
+        carregarFila();
+      }
+    } catch (erro) {
+      console.error('Erro ao remover:', erro);
+      alert('❌ Erro ao remover: ' + erro.message);
+    }
   };
 
   return (
-    <div className="container">
-      <div className="header-fila">
-        <h1>Fila de Impressão</h1>
-        <button className="btn-voltar-fila" onClick={voltar}>
+    <div className="fila-impressao-container">
+      {/* Header */}
+      <div className="fila-header">
+        <h1>🖨️ Fila de Impressão</h1>
+        <button className="btn-voltar" onClick={voltar}>
           ← Voltar
         </button>
       </div>
 
-      {etiquetas.length === 0 ? (
+      {/* Estatísticas */}
+      <div className="fila-stats">
+        <div className="stat-box">
+          <div className="stat-icon">📋</div>
+          <div className="stat-info">
+            <span className="stat-label">Na Fila</span>
+            <span className="stat-value">{etiquetas.length}</span>
+          </div>
+        </div>
+        <div className="stat-box selected">
+          <div className="stat-icon">✅</div>
+          <div className="stat-info">
+            <span className="stat-label">Selecionadas</span>
+            <span className="stat-value">{selecionadas.length}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Ações */}
+      {etiquetas.length > 0 && (
+        <div className="fila-acoes">
+          <button 
+            className="btn-selecionar-todas"
+            onClick={selecionarTodas}
+          >
+            {selecionadas.length === etiquetas.length ? '☑️ Desmarcar Todas' : '☐ Selecionar Todas'}
+          </button>
+          
+          <button 
+            className="btn-atualizar"
+            onClick={carregarFila}
+            disabled={carregando}
+          >
+            🔄 Atualizar
+          </button>
+          
+          <button 
+            className="btn-imprimir-selecionadas"
+            onClick={handleImprimirSelecionadas}
+            disabled={selecionadas.length === 0 || imprimindo}
+          >
+            {imprimindo ? '⏳ Imprimindo...' : `🖨️ Imprimir (${selecionadas.length})`}
+          </button>
+        </div>
+      )}
+
+      {/* Lista de Etiquetas */}
+      {carregando && etiquetas.length === 0 ? (
+        <div className="loading-fila">
+          <div className="loading-spinner"></div>
+          <p>Carregando fila...</p>
+        </div>
+      ) : etiquetas.length === 0 ? (
         <div className="fila-vazia">
-          <h2>📋 Nenhuma etiqueta na fila</h2>
-          <p>Vá para "Adicionar Etiquetas" para começar a coletar dados.</p>
+          <div className="vazia-icon">📭</div>
+          <h3>Fila Vazia</h3>
+          <p>Não há etiquetas pendentes para impressão.</p>
+          <button className="btn-nova-prescricao" onClick={voltar}>
+            ➕ Nova Prescrição
+          </button>
         </div>
       ) : (
-        <div className="fila-impressao">
-          <div className="fila-header">
-            <h2>Total: {etiquetas.length} etiqueta(s)</h2>
-            <button className="btn-limpar" onClick={limparTodas}>
-              🗑️ Limpar Todas
-            </button>
-          </div>
-          
-          <div className="lista-etiquetas">
-            {etiquetas.map((etiqueta) => (
-              <div key={etiqueta.id} className="etiqueta-preview">
-                <div className="etiqueta-info">
-                  <strong>{etiqueta.nomePaciente}</strong> ({etiqueta.idade} anos)
-                  <div>Mãe: {etiqueta.nomeMae} | CPF: {etiqueta.cpf}</div>
-                  <div>Atend: {etiqueta.codigoAtendimento} | Convênio: {etiqueta.convenio}</div>
-                  <div>Leito: {etiqueta.leito} | <strong>{etiqueta.tipoAlimentacao}</strong></div>
-                  <div>Dieta: {etiqueta.dieta}</div>
-                  {etiqueta.restricoes.length > 0 && <div>Restrição: {etiqueta.restricoes.join(', ')}</div>}
-                  {etiqueta.semPrincipal && <div className="destaque-amarelo"> SEM PRINCIPAL: {etiqueta.descricaoSemPrincipal}</div>}
-                  {etiqueta.obsExclusao && <div className="obs">Exclusão: {etiqueta.obsExclusao}</div>}
-                  {etiqueta.obsAcrescimo && <div className="obs">Acréscimo: {etiqueta.obsAcrescimo}</div>}
+        <div className="etiquetas-grid">
+          {etiquetas.map((etiqueta) => (
+            <div 
+              key={etiqueta.id} 
+              className={`etiqueta-card ${selecionadas.includes(etiqueta.id) ? 'selecionada' : ''}`}
+            >
+              {/* Checkbox */}
+              <div className="card-checkbox">
+                <input
+                  type="checkbox"
+                  checked={selecionadas.includes(etiqueta.id)}
+                  onChange={() => toggleSelecao(etiqueta.id)}
+                />
+              </div>
+
+              {/* Conteúdo */}
+              <div className="card-conteudo" onClick={() => toggleSelecao(etiqueta.id)}>
+                <div className="card-header">
+                  <span className="leito-badge">🏥 Leito {etiqueta.leito}</span>
+                  <span className="status-badge pendente">🟡 Pendente</span>
                 </div>
-                <button 
-                  type="button"
-                  className="btn-remover"
-                  onClick={() => removerEtiqueta(etiqueta.id)}
+
+                <div className="card-body">
+                  <div className="info-row">
+                    <span className="info-label">Dieta:</span>
+                    <span className="info-value">{etiqueta.dieta}</span>
+                  </div>
+                  
+                  {etiqueta.obs1 && (
+                    <div className="info-row">
+                      <span className="info-label">Obs:</span>
+                      <span className="info-value">{etiqueta.obs1}</span>
+                    </div>
+                  )}
+
+                  <div className="info-row meta">
+                    <span className="info-meta">
+                      👤 {etiqueta.usuario}
+                    </span>
+                    <span className="info-meta">
+                      🕐 {new Date(etiqueta.created_at).toLocaleString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ações */}
+              <div className="card-acoes">
+                <button
+                  className="btn-acao imprimir"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleImprimirIndividual(etiqueta.id);
+                  }}
+                  disabled={imprimindo}
+                  title="Imprimir"
                 >
-                  ✕
+                  🖨️
+                </button>
+                <button
+                  className="btn-acao remover"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemover(etiqueta.id);
+                  }}
+                  title="Remover"
+                >
+                  🗑️
                 </button>
               </div>
-            ))}
-          </div>
-
-          <button 
-            type="button"
-            className="btn-imprimir-grande"
-            onClick={imprimirTodas}
-          >
-            🖨️ Imprimir {etiquetas.length} Etiquetas
-          </button>
+            </div>
+          ))}
         </div>
       )}
     </div>

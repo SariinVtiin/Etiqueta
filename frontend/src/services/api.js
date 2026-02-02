@@ -1,4 +1,4 @@
-// src/services/api.js
+// frontend/src/services/api.js
 const API_URL = 'http://localhost:3001/api';
 
 /**
@@ -389,6 +389,14 @@ export const listarEtiquetasPendentes = async () => {
 
 /**
  * Criar etiqueta
+ * 
+ * @param {Object} etiqueta - Dados da etiqueta
+ * @param {string} etiqueta.leito - Número do leito
+ * @param {string} etiqueta.dieta - Nome da dieta
+ * @param {string} [etiqueta.obs1] - Observação 1 (ex: restrições)
+ * @param {string} [etiqueta.obs2] - Observação 2 (ex: exclusões)
+ * @param {string} [etiqueta.obs3] - Observação 3 (ex: acréscimos)
+ * @param {string} [etiqueta.usuario] - Nome do usuário que criou
  */
 export const criarEtiqueta = async (etiqueta) => {
   const response = await fetch(`${API_URL}/etiquetas`, {
