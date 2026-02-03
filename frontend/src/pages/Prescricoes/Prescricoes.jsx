@@ -1,161 +1,21 @@
-// frontend/src/pages/Prescricoes/Prescricoes.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { listarPrescricoes, deletarPrescricao, atualizarPrescricao } from '../../services/api';
 import { exportarParaExcel, exportarParaPDF, exportarRelatorioDetalhado } from '../../services/relatorios';
 import ModalEditarPrescricao from '../../components/forms/ModalEditarPrescricao';
 import './Prescricoes.css';
 
-// Ícones SVG
-const Icons = {
-  search: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8"/>
-      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-    </svg>
-  ),
-  calendar: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/>
-    </svg>
-  ),
-  building: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
-      <path d="M9 22v-4h6v4"/>
-      <path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/>
-    </svg>
-  ),
-  utensils: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
-      <path d="M7 2v20"/>
-      <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
-    </svg>
-  ),
-  filter: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-    </svg>
-  ),
-  x: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18"/>
-      <line x1="6" y1="6" x2="18" y2="18"/>
-    </svg>
-  ),
-  fileSpreadsheet: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-      <polyline points="14 2 14 8 20 8"/>
-      <line x1="8" y1="13" x2="16" y2="13"/>
-      <line x1="8" y1="17" x2="16" y2="17"/>
-      <line x1="10" y1="9" x2="10" y2="9"/>
-    </svg>
-  ),
-  filePdf: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-      <polyline points="14 2 14 8 20 8"/>
-    </svg>
-  ),
-  fileText: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-      <polyline points="14 2 14 8 20 8"/>
-      <line x1="16" y1="13" x2="8" y2="13"/>
-      <line x1="16" y1="17" x2="8" y2="17"/>
-      <line x1="10" y1="9" x2="8" y2="9"/>
-    </svg>
-  ),
-  chevronDown: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="6 9 12 15 18 9"/>
-    </svg>
-  ),
-  chevronRight: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 18 15 12 9 6"/>
-    </svg>
-  ),
-  chevronLeft: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="15 18 9 12 15 6"/>
-    </svg>
-  ),
-  edit: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-    </svg>
-  ),
-  trash: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6"/>
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-    </svg>
-  ),
-  arrowLeft: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="19" y1="12" x2="5" y2="12"/>
-      <polyline points="12 19 5 12 12 5"/>
-    </svg>
-  ),
-  clipboard: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-    </svg>
-  ),
-  inbox: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
-      <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
-    </svg>
-  ),
-  alertCircle: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-  ),
-  user: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-      <circle cx="12" cy="7" r="4"/>
-    </svg>
-  ),
-  bed: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 4v16"/>
-      <path d="M2 8h18a2 2 0 0 1 2 2v10"/>
-      <path d="M2 17h20"/>
-      <path d="M6 8v9"/>
-    </svg>
-  ),
-  clock: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <polyline points="12 6 12 12 16 14"/>
-    </svg>
-  )
-};
-
 function Prescricoes({ voltar, nucleos, dietas }) {
   const [prescricoes, setPrescricoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
-  const [mounted, setMounted] = useState(false);
   
   const [filtros, setFiltros] = useState({
     busca: '',
     dataInicio: '',
     dataFim: '',
     setor: '',
-    dieta: ''
+    dieta: '',
+    leito: ''
   });
 
   const [paginacao, setPaginacao] = useState({
@@ -168,10 +28,6 @@ function Prescricoes({ voltar, nucleos, dietas }) {
   const [linhaExpandida, setLinhaExpandida] = useState(null);
   const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
   const [prescricaoEditando, setPrescricaoEditando] = useState(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const carregarPrescricoes = useCallback(async () => {
     try {
@@ -222,7 +78,8 @@ function Prescricoes({ voltar, nucleos, dietas }) {
       dataInicio: '',
       dataFim: '',
       setor: '',
-      dieta: ''
+      dieta: '',
+      leito: ''
     });
     setPaginacao(prev => ({ ...prev, pagina: 1 }));
     setTimeout(() => carregarPrescricoes(), 100);
@@ -333,6 +190,298 @@ function Prescricoes({ voltar, nucleos, dietas }) {
     }
   };
 
+  // NOVA FUNÇÃO: Imprimir etiquetas em massa
+  const handleImprimirEtiquetas = async () => {
+    if (prescricoes.length === 0) {
+      alert('Nenhuma prescrição encontrada para imprimir.');
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `Você vai imprimir ${prescricoes.length} etiqueta(s) filtrada(s).\n\nDeseja continuar?`
+    );
+
+    if (!confirmar) return;
+
+    try {
+      const params = {
+        ...filtros,
+        limit: 1000
+      };
+
+      const resposta = await listarPrescricoes(params);
+
+      if (!resposta.sucesso || resposta.prescricoes.length === 0) {
+        alert('Nenhuma prescrição encontrada para imprimir.');
+        return;
+      }
+
+      const todasPrescricoes = resposta.prescricoes.map(p => ({
+        ...p,
+        restricoes: p.restricoes ? JSON.parse(p.restricoes) : []
+      }));
+
+      const janelaImpressao = window.open('', '', 'width=800,height=600');
+      janelaImpressao.document.write(gerarHTMLImpressao(todasPrescricoes));
+      janelaImpressao.document.close();
+
+    } catch (erro) {
+      console.error('Erro ao preparar impressão:', erro);
+      alert('Erro ao preparar etiquetas para impressão.');
+    }
+  };
+
+  // NOVA FUNÇÃO: Gerar HTML para impressão de etiquetas
+  const gerarHTMLImpressao = (prescricoesParaImprimir) => {
+    const dataFormatada = new Date().toLocaleDateString('pt-BR');
+
+    const css = `
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: Arial, sans-serif;
+        padding: 10mm;
+        background: #f0f0f0;
+      }
+      
+      .etiqueta-visual {
+        width: 10cm;
+        height: 8cm;
+        background: white;
+        padding: 8px 6mm;
+        margin-bottom: 5mm;
+        page-break-after: always;
+        border: 1px solid #ccc;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      
+      .etiqueta-empresa {
+        text-align: center;
+        font-size: 11px;
+        font-weight: bold;
+        color: #333;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 4px;
+      }
+      
+      .etiqueta-linha-principal {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+        padding-bottom: 4px;
+        border-bottom: 2px solid #333;
+      }
+      
+      .etiqueta-nome {
+        font-size: 14px;
+        font-weight: bold;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      
+      .etiqueta-idade {
+        font-size: 11px;
+        font-weight: bold;
+        background: #e9ecef;
+        padding: 2px 6px;
+        border-radius: 3px;
+        margin-left: 8px;
+        white-space: nowrap;
+      }
+      
+      .etiqueta-sem-principal-destaque {
+        background: #fff3cd;
+        padding: 5px 6px;
+        margin-bottom: 6px;
+        border-radius: 3px;
+        border-left: 3px solid #ffc107;
+        display: flex;
+        font-size: 10px;
+        font-weight: bold;
+      }
+      
+      .etiqueta-label-destaque {
+        color: #856404;
+        margin-right: 5px;
+        white-space: nowrap;
+      }
+      
+      .etiqueta-valor-destaque {
+        color: #856404;
+        flex: 1;
+      }
+      
+      .etiqueta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3px 6px;
+      }
+      
+      .etiqueta-item {
+        display: flex;
+        font-size: 10px;
+        line-height: 1.2;
+      }
+      
+      .etiqueta-item.full-width {
+        grid-column: 1 / -1;
+      }
+      
+      .etiqueta-item.destaque {
+        font-weight: bold;
+      }
+      
+      .etiqueta-label {
+        font-weight: bold;
+        min-width: 48px;
+        flex-shrink: 0;
+      }
+      
+      .etiqueta-valor {
+        flex: 1;
+        word-wrap: break-word;
+      }
+      
+      .preview-container {
+        margin: 20px;
+        padding: 20px;
+        background: #f0f0f0;
+        border-radius: 5px;
+      }
+      
+      .btn-preview {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border: none;
+        border-radius: 4px;
+        margin-right: 10px;
+      }
+      
+      .btn-imprimir-preview {
+        background: #007bff;
+        color: white;
+      }
+      
+      .btn-fechar-preview {
+        background: #6c757d;
+        color: white;
+      }
+      
+      @media print {
+        .preview-container { 
+          display: none; 
+        }
+        .etiqueta-visual {
+          margin-bottom: 0;
+        }
+      }
+    </style>
+    `;
+
+    let html = `
+      <html>
+      <head>
+        <title>Etiquetas de Alimentação - ${dataFormatada}</title>
+        ${css}
+      </head>
+      <body>
+        <div class="preview-container">
+          <h3>Preview de Impressão</h3>
+          <p>Total de ${prescricoesParaImprimir.length} etiqueta(s) - Data: ${dataFormatada}</p>
+          <button onclick="window.print()" class="btn-preview btn-imprimir-preview">
+            Imprimir
+          </button>
+          <button onclick="window.close()" class="btn-preview btn-fechar-preview">
+            Fechar
+          </button>
+        </div>
+    `;
+
+    prescricoesParaImprimir.forEach(prescricao => {
+      html += `
+        <div class="etiqueta-visual">
+          <div class="etiqueta-empresa">Maxima Facility</div>
+          
+          <div class="etiqueta-linha-principal">
+            <div class="etiqueta-nome">${prescricao.nome_paciente}</div>
+            <div class="etiqueta-idade">${prescricao.idade} anos</div>
+          </div>
+
+          ${prescricao.sem_principal ? `
+          <div class="etiqueta-sem-principal-destaque">
+            <span class="etiqueta-label-destaque">SEM PRINCIPAL:</span>
+            <span class="etiqueta-valor-destaque">${prescricao.descricao_sem_principal || ''}</span>
+          </div>` : ''}
+
+          <div class="etiqueta-grid">
+            <div class="etiqueta-item">
+              <span class="etiqueta-label">Mãe:</span>
+              <span class="etiqueta-valor">${prescricao.nome_mae}</span>
+            </div>
+            
+            <div class="etiqueta-item">
+              <span class="etiqueta-label">Atend:</span>
+              <span class="etiqueta-valor">${prescricao.codigo_atendimento}</span>
+            </div>
+            
+            <div class="etiqueta-item">
+              <span class="etiqueta-label">Convênio:</span>
+              <span class="etiqueta-valor">${prescricao.convenio}</span>
+            </div>
+            
+            <div class="etiqueta-item">
+              <span class="etiqueta-label">Leito:</span>
+              <span class="etiqueta-valor">${prescricao.leito}</span>
+            </div>
+            
+            <div class="etiqueta-item destaque">
+              <span class="etiqueta-label">Refeição:</span>
+              <span class="etiqueta-valor">${prescricao.tipo_alimentacao}</span>
+            </div>
+            
+            <div class="etiqueta-item destaque">
+              <span class="etiqueta-label">Dieta:</span>
+              <span class="etiqueta-valor">${prescricao.dieta}</span>
+            </div>
+            
+            ${prescricao.restricoes && prescricao.restricoes.length > 0 ? `
+            <div class="etiqueta-item full-width">
+              <span class="etiqueta-label">Restrição:</span>
+              <span class="etiqueta-valor">${prescricao.restricoes.join(', ')}</span>
+            </div>` : ''}
+            
+            ${prescricao.obs_exclusao ? `
+            <div class="etiqueta-item full-width">
+              <span class="etiqueta-label">Exclusão:</span>
+              <span class="etiqueta-valor">${prescricao.obs_exclusao}</span>
+            </div>` : ''}
+            
+            ${prescricao.obs_acrescimo ? `
+            <div class="etiqueta-item full-width">
+              <span class="etiqueta-label">Acréscimo:</span>
+              <span class="etiqueta-valor">${prescricao.obs_acrescimo}</span>
+            </div>` : ''}
+          </div>
+        </div>
+      `;
+    });
+
+    html += '</body></html>';
+    return html;
+  };
+
   const formatarData = (dataString) => {
     const data = new Date(dataString);
     return data.toLocaleDateString('pt-BR');
@@ -344,337 +493,290 @@ function Prescricoes({ voltar, nucleos, dietas }) {
   };
 
   return (
-    <div className={`prescricoes-page ${mounted ? 'mounted' : ''}`}>
-      {/* Header */}
-      <header className="prescricoes-header">
-        <div className="header-left">
-          <button className="btn-voltar" onClick={voltar}>
-            {Icons.arrowLeft}
-            <span>Voltar</span>
-          </button>
-          <div className="header-title">
-            <div className="title-icon">{Icons.clipboard}</div>
-            <div>
-              <h1>Prescrições</h1>
-              <p>Gerencie todas as prescrições de alimentação</p>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="prescricoes-container">
+      <div className="prescricoes-header">
+        <h1>Prescrições de Alimentação</h1>
+        <button className="btn-voltar" onClick={voltar}>
+          Voltar ao Menu
+        </button>
+      </div>
 
       {/* Filtros */}
-      <section className="filtros-section">
-        <div className="filtros-header">
-          <div className="filtros-title">
-            {Icons.filter}
-            <span>Filtros</span>
-          </div>
-          <button className="btn-limpar" onClick={limparFiltros}>
-            {Icons.x}
-            <span>Limpar</span>
+      <div className="filtros-container">
+        <div className="filtro-grupo">
+          <label>Buscar</label>
+          <input
+            type="text"
+            placeholder="Nome, CPF..."
+            value={filtros.busca}
+            onChange={(e) => setFiltros({ ...filtros, busca: e.target.value })}
+            onKeyPress={(e) => e.key === 'Enter' && aplicarFiltros()}
+          />
+        </div>
+
+        <div className="filtro-grupo">
+          <label>Leito</label>
+          <input
+            type="text"
+            placeholder="Ex: 601"
+            value={filtros.leito}
+            onChange={(e) => setFiltros({ ...filtros, leito: e.target.value })}
+            onKeyPress={(e) => e.key === 'Enter' && aplicarFiltros()}
+          />
+        </div>
+
+        <div className="filtro-grupo">
+          <label>Data Início</label>
+          <input
+            type="date"
+            value={filtros.dataInicio}
+            onChange={(e) => setFiltros({ ...filtros, dataInicio: e.target.value })}
+          />
+        </div>
+
+        <div className="filtro-grupo">
+          <label>Data Fim</label>
+          <input
+            type="date"
+            value={filtros.dataFim}
+            onChange={(e) => setFiltros({ ...filtros, dataFim: e.target.value })}
+          />
+        </div>
+
+        <div className="filtro-grupo">
+          <label>Setor</label>
+          <select
+            value={filtros.setor}
+            onChange={(e) => setFiltros({ ...filtros, setor: e.target.value })}
+          >
+            <option value="">Todos</option>
+            <option value="INTERNAÇÃO">INTERNAÇÃO</option>
+            <option value="UTI PEDIÁTRICA">UTI PEDIÁTRICA</option>
+            <option value="UTI ADULTO">UTI ADULTO</option>
+            <option value="UDT">UDT</option>
+            <option value="TMO">TMO</option>
+          </select>
+        </div>
+
+        <div className="filtro-grupo">
+          <label>Dieta</label>
+          <select
+            value={filtros.dieta}
+            onChange={(e) => setFiltros({ ...filtros, dieta: e.target.value })}
+          >
+            <option value="">Todas</option>
+            <option value="NORMAL">NORMAL</option>
+            <option value="LIQUIDA">LIQUIDA</option>
+            <option value="PASTOSA">PASTOSA</option>
+            <option value="LIQUIDA PASTOSA">LIQUIDA PASTOSA</option>
+          </select>
+        </div>
+
+        <div className="filtro-acoes">
+          <button className="btn-filtrar" onClick={aplicarFiltros}>
+            Filtrar
+          </button>
+          <button className="btn-limpar-filtros" onClick={limparFiltros}>
+            Limpar
           </button>
         </div>
-        
-        <div className="filtros-grid">
-          <div className="filtro-group">
-            <label>
-              {Icons.search}
-              Buscar
-            </label>
-            <input
-              type="text"
-              placeholder="Nome, CPF ou Leito..."
-              value={filtros.busca}
-              onChange={(e) => setFiltros({ ...filtros, busca: e.target.value })}
-              onKeyPress={(e) => e.key === 'Enter' && aplicarFiltros()}
-            />
-          </div>
-
-          <div className="filtro-group">
-            <label>
-              {Icons.calendar}
-              Data Início
-            </label>
-            <input
-              type="date"
-              value={filtros.dataInicio}
-              onChange={(e) => setFiltros({ ...filtros, dataInicio: e.target.value })}
-            />
-          </div>
-
-          <div className="filtro-group">
-            <label>
-              {Icons.calendar}
-              Data Fim
-            </label>
-            <input
-              type="date"
-              value={filtros.dataFim}
-              onChange={(e) => setFiltros({ ...filtros, dataFim: e.target.value })}
-            />
-          </div>
-
-          <div className="filtro-group">
-            <label>
-              {Icons.building}
-              Setor
-            </label>
-            <select
-              value={filtros.setor}
-              onChange={(e) => setFiltros({ ...filtros, setor: e.target.value })}
-            >
-              <option value="">Todos os setores</option>
-              {Object.keys(nucleos).map(setor => (
-                <option key={setor} value={setor}>{setor}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filtro-group">
-            <label>
-              {Icons.utensils}
-              Dieta
-            </label>
-            <select
-              value={filtros.dieta}
-              onChange={(e) => setFiltros({ ...filtros, dieta: e.target.value })}
-            >
-              <option value="">Todas as dietas</option>
-              {dietas.map(d => (
-                <option key={d.id} value={d.nome}>{d.nome}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filtro-action">
-            <button className="btn-filtrar" onClick={aplicarFiltros}>
-              {Icons.search}
-              Buscar
-            </button>
-          </div>
-        </div>
-      </section>
+      </div>
 
       {/* Barra de Ações */}
       {!carregando && prescricoes.length > 0 && (
-        <section className="acoes-section">
-          <div className="acoes-info">
-            <span className="total-badge">{paginacao.total}</span>
-            <span>prescrições encontradas</span>
+        <div className="acoes-exportacao">
+          <div className="info-exportacao">
+            <span>{prescricoes.length} prescrição(ões) encontrada(s)</span>
           </div>
-          <div className="acoes-botoes">
-            <button className="btn-exportar btn-excel" onClick={handleExportarExcel}>
-              {Icons.fileSpreadsheet}
-              <span>Excel</span>
+          <div className="botoes-exportacao">
+            <button 
+              className="btn-exportar imprimir" 
+              onClick={handleImprimirEtiquetas} 
+              title="Imprimir todas as etiquetas filtradas"
+            >
+              Imprimir Etiquetas
             </button>
-            <button className="btn-exportar btn-pdf" onClick={handleExportarPDF}>
-              {Icons.filePdf}
-              <span>PDF</span>
+            <button className="btn-exportar excel" onClick={handleExportarExcel}>
+              Exportar Excel
             </button>
-            <button className="btn-exportar btn-detalhado" onClick={handleExportarDetalhado}>
-              {Icons.fileText}
-              <span>Detalhado</span>
+            <button className="btn-exportar pdf" onClick={handleExportarPDF}>
+              Exportar PDF
+            </button>
+            <button className="btn-exportar detalhado" onClick={handleExportarDetalhado}>
+              PDF Detalhado
             </button>
           </div>
-        </section>
-      )}
-
-      {/* Erro */}
-      {erro && (
-        <div className="erro-mensagem">
-          {Icons.alertCircle}
-          <span>{erro}</span>
         </div>
       )}
 
-      {/* Conteúdo Principal */}
+      {/* Mensagem de erro */}
+      {erro && (
+        <div className="mensagem-erro">
+          {erro}
+        </div>
+      )}
+
+      {/* Loading */}
       {carregando ? (
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Carregando prescrições...</p>
         </div>
       ) : prescricoes.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">{Icons.inbox}</div>
+        <div className="sem-resultados">
           <h3>Nenhuma prescrição encontrada</h3>
-          <p>Tente ajustar os filtros ou criar uma nova prescrição</p>
+          <p>Tente ajustar os filtros ou criar uma nova prescrição.</p>
         </div>
       ) : (
         <>
-          {/* Tabela */}
-          <section className="tabela-section">
-            <div className="tabela-wrapper">
-              <table className="tabela-prescricoes">
-                <thead>
-                  <tr>
-                    <th className="col-expand"></th>
-                    <th>Paciente</th>
-                    <th>CPF</th>
-                    <th>Leito</th>
-                    <th>Setor</th>
-                    <th>Dieta</th>
-                    <th>Refeição</th>
-                    <th>Data</th>
-                    <th>Hora</th>
-                    <th>Status</th>
-                    <th className="col-acoes">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {prescricoes.map((prescricao) => (
-                    <React.Fragment key={prescricao.id}>
-                      <tr className={`linha-principal ${linhaExpandida === prescricao.id ? 'expandida' : ''}`}>
-                        <td>
-                          <button 
-                            className="btn-expandir"
-                            onClick={() => toggleExpandir(prescricao.id)}
-                            aria-label={linhaExpandida === prescricao.id ? 'Recolher' : 'Expandir'}
-                          >
-                            {linhaExpandida === prescricao.id ? Icons.chevronDown : Icons.chevronRight}
-                          </button>
-                        </td>
-                        <td className="col-paciente">
-                          <div className="paciente-info">
-                            <span className="paciente-nome">{prescricao.nome_paciente}</span>
-                          </div>
-                        </td>
-                        <td>{prescricao.cpf}</td>
-                        <td>
-                          <span className="leito-badge">{prescricao.leito}</span>
-                        </td>
-                        <td>{prescricao.nucleo}</td>
-                        <td>
-                          <span className="dieta-tag">{prescricao.dieta}</span>
-                        </td>
-                        <td>{prescricao.tipo_alimentacao}</td>
-                        <td>{formatarData(prescricao.data_prescricao)}</td>
-                        <td>{formatarHora(prescricao.data_prescricao)}</td>
-                        <td>
-                          <span className={`status-badge ${prescricao.status?.toLowerCase()}`}>
-                            {prescricao.status}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="acoes-cell">
-                            <button 
-                              className="btn-acao btn-editar" 
-                              onClick={() => handleEditar(prescricao.id)}
-                              title="Editar prescrição"
-                            >
-                              {Icons.edit}
-                            </button>
-                            <button 
-                              className="btn-acao btn-excluir" 
-                              onClick={() => handleExcluir(prescricao.id)}
-                              title="Excluir prescrição"
-                            >
-                              {Icons.trash}
-                            </button>
+          {/* Tabela de Prescrições */}
+          <div className="tabela-container">
+            <table className="tabela-prescricoes">
+              <thead>
+                <tr>
+                  <th>Expand</th>
+                  <th>Paciente</th>
+                  <th>CPF</th>
+                  <th>Leito</th>
+                  <th>Setor</th>
+                  <th>Dieta</th>
+                  <th>Refeição</th>
+                  <th>Data</th>
+                  <th>Horário</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {prescricoes.map((prescricao) => (
+                  <React.Fragment key={prescricao.id}>
+                    <tr className="linha-principal">
+                      <td>
+                        <button 
+                          className="btn-expandir"
+                          onClick={() => toggleExpandir(prescricao.id)}
+                        >
+                          {linhaExpandida === prescricao.id ? '▼' : '▶'}
+                        </button>
+                      </td>
+                      <td>{prescricao.nome_paciente}</td>
+                      <td>{prescricao.cpf}</td>
+                      <td>{prescricao.leito}</td>
+                      <td>{prescricao.nucleo}</td>
+                      <td>{prescricao.dieta}</td>
+                      <td>{prescricao.tipo_alimentacao}</td>
+                      <td>{formatarData(prescricao.data_prescricao)}</td>
+                      <td>{formatarHora(prescricao.data_prescricao)}</td>
+                      <td>
+                        <span className={`status-badge ${prescricao.status.toLowerCase()}`}>
+                          {prescricao.status}
+                        </span>
+                      </td>
+                      <td>
+                        <button 
+                          className="btn-acao-editar" 
+                          onClick={() => handleEditar(prescricao.id)}
+                          title="Editar"
+                        >
+                          Editar
+                        </button>
+                        <button 
+                          className="btn-acao-excluir" 
+                          onClick={() => handleExcluir(prescricao.id)}
+                          title="Excluir"
+                        >
+                          Excluir
+                        </button>
+                      </td>
+                    </tr>
+                    
+                    {linhaExpandida === prescricao.id && (
+                      <tr className="linha-expandida">
+                        <td colSpan="11">
+                          <div className="detalhes-prescricao">
+                            <h4>Detalhes da Prescrição</h4>
+                            <div className="detalhes-grid">
+                              <div className="detalhe-item">
+                                <strong>Nome da Mãe:</strong>
+                                <span>{prescricao.nome_mae}</span>
+                              </div>
+                              <div className="detalhe-item">
+                                <strong>Data de Nascimento:</strong>
+                                <span>{formatarData(prescricao.data_nascimento)}</span>
+                              </div>
+                              <div className="detalhe-item">
+                                <strong>Idade:</strong>
+                                <span>{prescricao.idade} anos</span>
+                              </div>
+                              <div className="detalhe-item">
+                                <strong>Código Atendimento:</strong>
+                                <span>{prescricao.codigo_atendimento}</span>
+                              </div>
+                              <div className="detalhe-item">
+                                <strong>Convênio:</strong>
+                                <span>{prescricao.convenio}</span>
+                              </div>
+                              {prescricao.restricoes && prescricao.restricoes.length > 0 && (
+                                <div className="detalhe-item full-width">
+                                  <strong>Restrições:</strong>
+                                  <span>{prescricao.restricoes.join(', ')}</span>
+                                </div>
+                              )}
+                              {prescricao.sem_principal && (
+                                <div className="detalhe-item full-width">
+                                  <strong>Sem Principal:</strong>
+                                  <span>{prescricao.descricao_sem_principal}</span>
+                                </div>
+                              )}
+                              {prescricao.obs_exclusao && (
+                                <div className="detalhe-item full-width">
+                                  <strong>Observação Exclusão:</strong>
+                                  <span>{prescricao.obs_exclusao}</span>
+                                </div>
+                              )}
+                              {prescricao.obs_acrescimo && (
+                                <div className="detalhe-item full-width">
+                                  <strong>Observação Acréscimo:</strong>
+                                  <span>{prescricao.obs_acrescimo}</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
                       </tr>
-                      
-                      {/* Detalhes Expandidos */}
-                      {linhaExpandida === prescricao.id && (
-                        <tr className="linha-expandida">
-                          <td colSpan="11">
-                            <div className="detalhes-container">
-                              <h4>Detalhes da Prescrição</h4>
-                              <div className="detalhes-grid">
-                                <div className="detalhe-item">
-                                  <label>Nome da Mãe</label>
-                                  <span>{prescricao.nome_mae || '-'}</span>
-                                </div>
-                                <div className="detalhe-item">
-                                  <label>Código Atendimento</label>
-                                  <span>{prescricao.codigo_atendimento}</span>
-                                </div>
-                                <div className="detalhe-item">
-                                  <label>Convênio</label>
-                                  <span>{prescricao.convenio}</span>
-                                </div>
-                                <div className="detalhe-item">
-                                  <label>Idade</label>
-                                  <span>{prescricao.idade} anos</span>
-                                </div>
-                                <div className="detalhe-item">
-                                  <label>Data de Nascimento</label>
-                                  <span>{formatarData(prescricao.data_nascimento)}</span>
-                                </div>
-                                <div className="detalhe-item">
-                                  <label>Restrições</label>
-                                  <span>
-                                    {prescricao.restricoes && prescricao.restricoes.length > 0
-                                      ? prescricao.restricoes.join(', ')
-                                      : 'Nenhuma'}
-                                  </span>
-                                </div>
-                                <div className="detalhe-item">
-                                  <label>Sem Principal</label>
-                                  <span>{prescricao.sem_principal ? 'Sim' : 'Não'}</span>
-                                </div>
-                                {prescricao.sem_principal && prescricao.descricao_sem_principal && (
-                                  <div className="detalhe-item full-width">
-                                    <label>Descrição Sem Principal</label>
-                                    <span>{prescricao.descricao_sem_principal}</span>
-                                  </div>
-                                )}
-                                {prescricao.obs_exclusao && (
-                                  <div className="detalhe-item full-width">
-                                    <label>Observação Exclusão</label>
-                                    <span>{prescricao.obs_exclusao}</span>
-                                  </div>
-                                )}
-                                {prescricao.obs_acrescimo && (
-                                  <div className="detalhe-item full-width">
-                                    <label>Observação Acréscimo</label>
-                                    <span>{prescricao.obs_acrescimo}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {/* Paginação */}
-          <section className="paginacao-section">
+          <div className="paginacao">
             <div className="paginacao-info">
-              Mostrando <strong>{prescricoes.length}</strong> de <strong>{paginacao.total}</strong> prescrições
+              Página {paginacao.pagina} de {paginacao.totalPaginas} | Total: {paginacao.total} prescrição(ões)
             </div>
-            <div className="paginacao-controles">
+            <div className="paginacao-botoes">
               <button 
-                className="btn-pagina"
-                onClick={paginaAnterior}
+                onClick={paginaAnterior} 
                 disabled={paginacao.pagina === 1}
               >
-                {Icons.chevronLeft}
                 Anterior
               </button>
-              <span className="pagina-atual">
-                Página {paginacao.pagina} de {paginacao.totalPaginas}
-              </span>
+              <span>Página {paginacao.pagina}</span>
               <button 
-                className="btn-pagina"
-                onClick={proximaPagina}
+                onClick={proximaPagina} 
                 disabled={paginacao.pagina >= paginacao.totalPaginas}
               >
                 Próxima
-                {Icons.chevronRight}
               </button>
             </div>
-          </section>
+          </div>
         </>
       )}
 
       {/* Modal de Edição */}
-      {modalEdicaoAberto && prescricaoEditando && (
+      {modalEdicaoAberto && (
         <ModalEditarPrescricao
           prescricao={prescricaoEditando}
           nucleos={nucleos}

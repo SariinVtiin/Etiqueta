@@ -5,6 +5,77 @@ const { pool } = require('../config/database');
 const { autenticar } = require('./auth');
 
 /**
+ * FUNÇÃO AUXILIAR: Salvar ou Atualizar Paciente
+ */
+async function salvarOuAtualizarPaciente(dadosPaciente) {
+  try {
+    const {
+      cpf,
+      codigoAtendimento,
+      convenio,
+      nomePaciente,
+      nomeMae,
+      dataNascimento,
+      idade
+    } = dadosPaciente;
+
+    // Verificar se o paciente já existe
+    const [pacienteExistente] = await pool.query(
+      'SELECT id FROM pacientes WHERE cpf = ?',
+      [cpf]
+    );
+
+    if (pacienteExistente.length > 0) {
+      // ATUALIZAR paciente existente
+      await pool.query(
+        `UPDATE pacientes SET 
+          codigo_atendimento = ?,
+          convenio = ?,
+          nome_paciente = ?,
+          nome_mae = ?,
+          data_nascimento = ?,
+          idade = ?,
+          data_atualizacao = CURRENT_TIMESTAMP
+        WHERE cpf = ?`,
+        [
+          codigoAtendimento,
+          convenio,
+          nomePaciente,
+          nomeMae,
+          dataNascimento,
+          idade,
+          cpf
+        ]
+      );
+      console.log(`Paciente atualizado: ${nomePaciente} (CPF: ${cpf})`);
+      return pacienteExistente[0].id;
+    } else {
+      // INSERIR novo paciente
+      const [result] = await pool.query(
+        `INSERT INTO pacientes (
+          cpf, codigo_atendimento, convenio, nome_paciente, 
+          nome_mae, data_nascimento, idade
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          cpf,
+          codigoAtendimento,
+          convenio,
+          nomePaciente,
+          nomeMae,
+          dataNascimento,
+          idade
+        ]
+      );
+      console.log(`Novo paciente cadastrado: ${nomePaciente} (CPF: ${cpf})`);
+      return result.insertId;
+    }
+  } catch (erro) {
+    console.error('Erro ao salvar/atualizar paciente:', erro);
+    throw erro;
+  }
+}
+
+/**
  * GET /api/prescricoes - Listar prescrições com filtros
  */
 router.get('/', autenticar, async (req, res) => {
@@ -15,6 +86,7 @@ router.get('/', autenticar, async (req, res) => {
       dataFim, 
       setor, 
       dieta,
+      leito,
       page = 1,
       limit = 20
     } = req.query;
@@ -27,6 +99,12 @@ router.get('/', autenticar, async (req, res) => {
       query += ' AND (nome_paciente LIKE ? OR cpf LIKE ? OR leito LIKE ?)';
       const buscaParam = `%${busca}%`;
       params.push(buscaParam, buscaParam, buscaParam);
+    }
+
+    // Filtro específico de leito
+    if (leito) {
+      query += ' AND leito LIKE ?';
+      params.push(`%${leito}%`);
     }
 
     // Filtro de data
@@ -68,6 +146,9 @@ router.get('/', autenticar, async (req, res) => {
 
     if (busca) {
       countQuery += ' AND (nome_paciente LIKE ? OR cpf LIKE ? OR leito LIKE ?)';
+    }
+    if (leito) {
+      countQuery += ' AND leito LIKE ?';
     }
     if (dataInicio) {
       countQuery += ' AND DATE(data_prescricao) >= ?';
@@ -140,6 +221,7 @@ router.get('/:id', autenticar, async (req, res) => {
 
 /**
  * POST /api/prescricoes - Criar nova prescrição
+ * ATUALIZADO: Agora também salva/atualiza o paciente
  */
 router.post('/', autenticar, async (req, res) => {
   try {
@@ -163,20 +245,38 @@ router.post('/', autenticar, async (req, res) => {
     } = req.body;
 
     // Validações
-    if (!cpf || !codigoAtendimento || !nomePaciente || !nomeMae || !leito || !tipoAlimentacao || !dieta) {
+    if (!cpf || !nomePaciente || !nucleo || !leito || !tipoAlimentacao || !dieta) {
       return res.status(400).json({
         sucesso: false,
-        erro: 'Campos obrigatórios faltando'
+        erro: 'Campos obrigatórios não preenchidos'
       });
     }
 
-    const [resultado] = await pool.query(
+    // ========================================
+    // PASSO 1: Salvar/Atualizar PACIENTE
+    // ========================================
+    await salvarOuAtualizarPaciente({
+      cpf,
+      codigoAtendimento,
+      convenio,
+      nomePaciente,
+      nomeMae,
+      dataNascimento,
+      idade
+    });
+
+    // ========================================
+    // PASSO 2: Salvar PRESCRIÇÃO
+    // ========================================
+    const restricoesJSON = JSON.stringify(restricoes || []);
+
+    const [result] = await pool.query(
       `INSERT INTO prescricoes (
-        cpf, codigo_atendimento, convenio, nome_paciente, nome_mae,
-        data_nascimento, idade, nucleo, leito, tipo_alimentacao, dieta,
-        restricoes, sem_principal, descricao_sem_principal,
-        obs_exclusao, obs_acrescimo, usuario_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        cpf, codigo_atendimento, convenio, nome_paciente, nome_mae, 
+        data_nascimento, idade, nucleo, leito, tipo_alimentacao, dieta, 
+        restricoes, sem_principal, descricao_sem_principal, 
+        obs_exclusao, obs_acrescimo, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ATIVO')`,
       [
         cpf,
         codigoAtendimento,
@@ -189,19 +289,18 @@ router.post('/', autenticar, async (req, res) => {
         leito,
         tipoAlimentacao,
         dieta,
-        restricoes ? JSON.stringify(restricoes) : null,
+        restricoesJSON,
         semPrincipal || false,
-        descricaoSemPrincipal || null,
-        obsExclusao || null,
-        obsAcrescimo || null,
-        req.usuario.id
+        descricaoSemPrincipal || '',
+        obsExclusao || '',
+        obsAcrescimo || ''
       ]
     );
 
     res.status(201).json({
       sucesso: true,
-      mensagem: 'Prescrição criada com sucesso',
-      id: resultado.insertId
+      mensagem: 'Prescrição e paciente salvos com sucesso',
+      id: result.insertId
     });
 
   } catch (erro) {
@@ -215,34 +314,11 @@ router.post('/', autenticar, async (req, res) => {
 
 /**
  * PUT /api/prescricoes/:id - Atualizar prescrição
+ * ATUALIZADO: Agora também atualiza o paciente
  */
 router.put('/:id', autenticar, async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Buscar prescrição
-    const [prescricoes] = await pool.query(
-      'SELECT * FROM prescricoes WHERE id = ?',
-      [id]
-    );
-
-    if (prescricoes.length === 0) {
-      return res.status(404).json({
-        sucesso: false,
-        erro: 'Prescrição não encontrada'
-      });
-    }
-
-    const prescricao = prescricoes[0];
-
-    // Validar se pode editar (até 9h do dia seguinte)
-    if (!podeEditarOuExcluir(prescricao.data_prescricao)) {
-      return res.status(403).json({
-        sucesso: false,
-        erro: 'Prescrição não pode mais ser editada. Limite: 9h do dia seguinte.'
-      });
-    }
-
     const {
       cpf,
       codigoAtendimento,
@@ -262,11 +338,55 @@ router.put('/:id', autenticar, async (req, res) => {
       obsAcrescimo
     } = req.body;
 
+    // Verificar se prescrição existe
+    const [prescricoesExistentes] = await pool.query(
+      'SELECT * FROM prescricoes WHERE id = ?',
+      [id]
+    );
+
+    if (prescricoesExistentes.length === 0) {
+      return res.status(404).json({
+        sucesso: false,
+        erro: 'Prescrição não encontrada'
+      });
+    }
+
+    // Verificar se pode editar (antes das 9h do dia seguinte)
+    const dataPrescricao = new Date(prescricoesExistentes[0].data_prescricao);
+    const limite = new Date(dataPrescricao);
+    limite.setDate(limite.getDate() + 1);
+    limite.setHours(9, 0, 0, 0);
+
+    if (new Date() > limite) {
+      return res.status(403).json({
+        sucesso: false,
+        erro: 'Prazo para edição expirado (até 9h do dia seguinte)'
+      });
+    }
+
+    // ========================================
+    // PASSO 1: Atualizar PACIENTE
+    // ========================================
+    await salvarOuAtualizarPaciente({
+      cpf,
+      codigoAtendimento,
+      convenio,
+      nomePaciente,
+      nomeMae,
+      dataNascimento,
+      idade
+    });
+
+    // ========================================
+    // PASSO 2: Atualizar PRESCRIÇÃO
+    // ========================================
+    const restricoesJSON = JSON.stringify(restricoes || []);
+
     await pool.query(
-      `UPDATE prescricoes SET
-        cpf = ?, codigo_atendimento = ?, convenio = ?, nome_paciente = ?,
-        nome_mae = ?, data_nascimento = ?, idade = ?, nucleo = ?, leito = ?,
-        tipo_alimentacao = ?, dieta = ?, restricoes = ?, sem_principal = ?,
+      `UPDATE prescricoes SET 
+        cpf = ?, codigo_atendimento = ?, convenio = ?, nome_paciente = ?, 
+        nome_mae = ?, data_nascimento = ?, idade = ?, nucleo = ?, leito = ?, 
+        tipo_alimentacao = ?, dieta = ?, restricoes = ?, sem_principal = ?, 
         descricao_sem_principal = ?, obs_exclusao = ?, obs_acrescimo = ?
       WHERE id = ?`,
       [
@@ -281,18 +401,18 @@ router.put('/:id', autenticar, async (req, res) => {
         leito,
         tipoAlimentacao,
         dieta,
-        restricoes ? JSON.stringify(restricoes) : null,
+        restricoesJSON,
         semPrincipal || false,
-        descricaoSemPrincipal || null,
-        obsExclusao || null,
-        obsAcrescimo || null,
+        descricaoSemPrincipal || '',
+        obsExclusao || '',
+        obsAcrescimo || '',
         id
       ]
     );
 
     res.json({
       sucesso: true,
-      mensagem: 'Prescrição atualizada com sucesso'
+      mensagem: 'Prescrição e paciente atualizados com sucesso'
     });
 
   } catch (erro) {
@@ -306,34 +426,39 @@ router.put('/:id', autenticar, async (req, res) => {
 
 /**
  * DELETE /api/prescricoes/:id - Deletar prescrição
+ * NOTA: NÃO deleta o paciente, apenas a prescrição
  */
 router.delete('/:id', autenticar, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Buscar prescrição
-    const [prescricoes] = await pool.query(
+    // Verificar se prescrição existe
+    const [prescricoesExistentes] = await pool.query(
       'SELECT * FROM prescricoes WHERE id = ?',
       [id]
     );
 
-    if (prescricoes.length === 0) {
+    if (prescricoesExistentes.length === 0) {
       return res.status(404).json({
         sucesso: false,
         erro: 'Prescrição não encontrada'
       });
     }
 
-    const prescricao = prescricoes[0];
+    // Verificar se pode excluir (antes das 9h do dia seguinte)
+    const dataPrescricao = new Date(prescricoesExistentes[0].data_prescricao);
+    const limite = new Date(dataPrescricao);
+    limite.setDate(limite.getDate() + 1);
+    limite.setHours(9, 0, 0, 0);
 
-    // Validar se pode excluir (até 9h do dia seguinte)
-    if (!podeEditarOuExcluir(prescricao.data_prescricao)) {
+    if (new Date() > limite) {
       return res.status(403).json({
         sucesso: false,
-        erro: 'Prescrição não pode mais ser excluída. Limite: 9h do dia seguinte.'
+        erro: 'Prazo para exclusão expirado (até 9h do dia seguinte)'
       });
     }
 
+    // Deletar prescrição (paciente permanece no banco)
     await pool.query('DELETE FROM prescricoes WHERE id = ?', [id]);
 
     res.json({
@@ -349,21 +474,5 @@ router.delete('/:id', autenticar, async (req, res) => {
     });
   }
 });
-
-/**
- * Função auxiliar: Verificar se pode editar/excluir
- * Regra: Até 9h do dia seguinte
- */
-function podeEditarOuExcluir(dataPrescricao) {
-  const agora = new Date();
-  const prescricao = new Date(dataPrescricao);
-  
-  // Criar data limite: 9h do dia seguinte
-  const limite = new Date(prescricao);
-  limite.setDate(limite.getDate() + 1);
-  limite.setHours(9, 0, 0, 0);
-  
-  return agora <= limite;
-}
 
 module.exports = router;

@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const response = await fetch('http://localhost:3001/api/auth/me', {
+        const response = await fetch('http://192.167.0.10:3001/api/auth/me', {
           headers: {
             'Authorization': `Bearer ${tokenSalvo}`
           }
@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, senha) => {
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch('http://192.167.0.10:3001/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
