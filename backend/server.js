@@ -37,51 +37,6 @@ app.use('/api/acrescimos', acrescimosRouter);
 // Testar conexão ao iniciar
 testarConexao();
 
-/**
- * GET /api/teste - Endpoint de teste
- */
-app.get('/api/teste', async (req, res) => {
-  res.json({
-    sucesso: true,
-    mensagem: 'API funcionando!',
-    timestamp: new Date().toISOString()
-  });
-});
-
-/**
- * GET /api/status - Status do sistema
- */
-app.get('/api/status', async (req, res) => {
-  try {
-    const [result] = await pool.query('SELECT 1');
-    const bancoOk = result ? true : false;
-    
-    const [pacientes] = await pool.query(
-      'SELECT COUNT(*) AS total FROM pacientes WHERE ativo = TRUE AND data_alta IS NULL'
-    );
-    const [leitos] = await pool.query('SELECT COUNT(*) AS total FROM leitos WHERE ativo = TRUE');
-    const [dietas] = await pool.query('SELECT COUNT(*) AS total FROM dietas WHERE ativa = TRUE');
-    
-    res.json({
-      sucesso: true,
-      status: 'online',
-      banco: bancoOk ? 'conectado' : 'desconectado',
-      estatisticas: {
-        pacientes_ativos: pacientes[0].total,
-        leitos_cadastrados: leitos[0].total,
-        dietas_disponiveis: dietas[0].total
-      },
-      timestamp: new Date().toISOString()
-    });
-  } catch (erro) {
-    res.status(500).json({
-      sucesso: false,
-      status: 'erro',
-      erro: erro.message
-    });
-  }
-});
-
 // Rotas de pacientes
 const pacientesRoutes = require('./routes/pacientes');
 app.use('/api/pacientes', pacientesRoutes);

@@ -9,7 +9,6 @@ import Cadastros from './pages/Cadastros';
 import GestaoUsuarios from './pages/GestaoUsuarios';
 import GestaoDietas from './pages/GestaoDietas';
 import PreviewEtiquetas from './pages/PreviewEtiquetas';
-import StatusIndicador from './components/common/StatusIndicador';
 import CentroNotificacoes from './components/common/CentroNotificacoes';
 import { listarLeitos, listarDietas } from './services/api';
 import './App.css';
@@ -188,7 +187,6 @@ function AppContent() {
 
   return (
     <div className="App">
-      <StatusIndicador />
       
       {/* Header com informações do usuário e menu */}
       <header className="user-header">
@@ -284,6 +282,8 @@ function AppContent() {
           nucleos={nucleos}
           dietas={dietas}
           tiposAlimentacao={tiposAlimentacao}
+          etiquetas={etiquetas}
+          setEtiquetas={setEtiquetas}
         />
       )}
       

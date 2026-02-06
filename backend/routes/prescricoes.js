@@ -1,5 +1,5 @@
 // backend/routes/prescricoes.js
-// CORREÇÃO: Usando INSERT ... ON DUPLICATE KEY UPDATE para evitar erro de CPF duplicado
+// VERSÃO CORRIGIDA: COM SUPORTE COMPLETO A ACRÉSCIMOS
 
 const express = require('express');
 const router = express.Router();
@@ -24,8 +24,6 @@ async function salvarOuAtualizarPaciente(dados) {
   console.log(`Salvando/Atualizando paciente: ${nomePaciente} (CPF: ${cpf})`);
 
   try {
-    // CORREÇÃO: Usar INSERT ... ON DUPLICATE KEY UPDATE
-    // Isso cria o paciente se não existir, ou atualiza se já existir
     await pool.query(
       `INSERT INTO pacientes (
         cpf, codigo_atendimento, convenio, nome_paciente, 
@@ -57,7 +55,6 @@ function podeEditarOuExcluir(dataPrescricao) {
   const agora = new Date();
   const prescricao = new Date(dataPrescricao);
   
-  // Criar data limite: dia seguinte às 9h
   const limite = new Date(prescricao);
   limite.setDate(limite.getDate() + 1);
   limite.setHours(9, 0, 0, 0);
@@ -83,14 +80,12 @@ router.get('/', autenticar, async (req, res) => {
     let query = 'SELECT * FROM prescricoes WHERE 1=1';
     const params = [];
 
-    // Filtro de busca (nome, CPF ou leito)
     if (busca) {
       query += ' AND (nome_paciente LIKE ? OR cpf LIKE ? OR leito LIKE ?)';
       const buscaParam = `%${busca}%`;
       params.push(buscaParam, buscaParam, buscaParam);
     }
 
-    // Filtro de data
     if (dataInicio) {
       query += ' AND DATE(data_prescricao) >= ?';
       params.push(dataInicio);
@@ -101,50 +96,27 @@ router.get('/', autenticar, async (req, res) => {
       params.push(dataFim);
     }
 
-    // Filtro de setor
     if (setor) {
       query += ' AND nucleo = ?';
       params.push(setor);
     }
 
-    // Filtro de dieta
     if (dieta) {
       query += ' AND dieta = ?';
       params.push(dieta);
     }
 
-    // Ordenar por mais recentes
     query += ' ORDER BY data_prescricao DESC';
 
-    // Paginação
     const offset = (page - 1) * limit;
     query += ' LIMIT ? OFFSET ?';
     params.push(parseInt(limit), parseInt(offset));
 
     const [prescricoes] = await pool.query(query, params);
 
-    // Contar total para paginação
-    let countQuery = 'SELECT COUNT(*) as total FROM prescricoes WHERE 1=1';
-    const countParams = params.slice(0, -2); // Remove LIMIT e OFFSET
-
-    if (busca) {
-      countQuery += ' AND (nome_paciente LIKE ? OR cpf LIKE ? OR leito LIKE ?)';
-    }
-    if (dataInicio) {
-      countQuery += ' AND DATE(data_prescricao) >= ?';
-    }
-    if (dataFim) {
-      countQuery += ' AND DATE(data_prescricao) <= ?';
-    }
-    if (setor) {
-      countQuery += ' AND nucleo = ?';
-    }
-    if (dieta) {
-      countQuery += ' AND dieta = ?';
-    }
-
-    const [countResult] = await pool.query(countQuery, countParams);
-    const total = countResult[0].total;
+    const [[{ total }]] = await pool.query(
+      'SELECT COUNT(*) as total FROM prescricoes WHERE 1=1'
+    );
 
     res.json({
       sucesso: true,
@@ -172,7 +144,7 @@ router.get('/', autenticar, async (req, res) => {
 router.get('/:id', autenticar, async (req, res) => {
   try {
     const { id } = req.params;
-
+    
     const [prescricoes] = await pool.query(
       'SELECT * FROM prescricoes WHERE id = ?',
       [id]
@@ -201,7 +173,7 @@ router.get('/:id', autenticar, async (req, res) => {
 
 /**
  * POST /api/prescricoes - Criar nova prescrição
- * CORRIGIDO: Agora salva o paciente sem duplicar
+ * ✅ CORRIGIDO: Agora salva acrescimosIds
  */
 router.post('/', autenticar, async (req, res) => {
   try {
@@ -221,7 +193,8 @@ router.post('/', autenticar, async (req, res) => {
       semPrincipal,
       descricaoSemPrincipal,
       obsExclusao,
-      obsAcrescimo
+      obsAcrescimo,
+      acrescimosIds  // ✅ ADICIONADO
     } = req.body;
 
     // Validações
@@ -232,7 +205,15 @@ router.post('/', autenticar, async (req, res) => {
       });
     }
 
-    // PASSO 1: Salvar/Atualizar paciente (CORRIGIDO)
+    // Log para debug
+    console.log('📦 Dados recebidos:', {
+      cpf,
+      nomePaciente,
+      dieta,
+      acrescimosIds: acrescimosIds ? `[${acrescimosIds.length} itens]` : 'nenhum'
+    });
+
+    // PASSO 1: Salvar/Atualizar paciente
     await salvarOuAtualizarPaciente({
       cpf,
       codigoAtendimento,
@@ -243,14 +224,14 @@ router.post('/', autenticar, async (req, res) => {
       idade
     });
 
-    // PASSO 2: Criar prescrição
+    // PASSO 2: Criar prescrição (COM acrescimos_ids)
     const [resultado] = await pool.query(
       `INSERT INTO prescricoes (
         cpf, codigo_atendimento, convenio, nome_paciente, nome_mae,
         data_nascimento, idade, nucleo, leito, tipo_alimentacao, dieta,
         restricoes, sem_principal, descricao_sem_principal,
-        obs_exclusao, obs_acrescimo, usuario_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        obs_exclusao, obs_acrescimo, acrescimos_ids, usuario_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         cpf,
         codigoAtendimento,
@@ -268,11 +249,16 @@ router.post('/', autenticar, async (req, res) => {
         descricaoSemPrincipal || null,
         obsExclusao || null,
         obsAcrescimo || null,
+        acrescimosIds ? JSON.stringify(acrescimosIds) : null,  // ✅ ADICIONADO
         req.usuario.id
       ]
     );
 
     console.log(`✅ Prescrição criada com sucesso! ID: ${resultado.insertId}`);
+    
+    if (acrescimosIds && acrescimosIds.length > 0) {
+      console.log(`📝 Acréscimos salvos: ${acrescimosIds.join(', ')}`);
+    }
 
     res.status(201).json({
       sucesso: true,
@@ -291,6 +277,7 @@ router.post('/', autenticar, async (req, res) => {
 
 /**
  * PUT /api/prescricoes/:id - Atualizar prescrição
+ * ✅ CORRIGIDO: Agora atualiza acrescimosIds
  */
 router.put('/:id', autenticar, async (req, res) => {
   try {
@@ -311,7 +298,7 @@ router.put('/:id', autenticar, async (req, res) => {
 
     const prescricao = prescricoes[0];
 
-    // Validar se pode editar (até 9h do dia seguinte)
+    // Validar se pode editar
     if (!podeEditarOuExcluir(prescricao.data_prescricao)) {
       return res.status(403).json({
         sucesso: false,
@@ -335,7 +322,8 @@ router.put('/:id', autenticar, async (req, res) => {
       semPrincipal,
       descricaoSemPrincipal,
       obsExclusao,
-      obsAcrescimo
+      obsAcrescimo,
+      acrescimosIds  // ✅ ADICIONADO
     } = req.body;
 
     await pool.query(
@@ -343,7 +331,8 @@ router.put('/:id', autenticar, async (req, res) => {
         cpf = ?, codigo_atendimento = ?, convenio = ?, nome_paciente = ?,
         nome_mae = ?, data_nascimento = ?, idade = ?, nucleo = ?, leito = ?,
         tipo_alimentacao = ?, dieta = ?, restricoes = ?, sem_principal = ?,
-        descricao_sem_principal = ?, obs_exclusao = ?, obs_acrescimo = ?
+        descricao_sem_principal = ?, obs_exclusao = ?, obs_acrescimo = ?,
+        acrescimos_ids = ?
       WHERE id = ?`,
       [
         cpf,
@@ -362,9 +351,12 @@ router.put('/:id', autenticar, async (req, res) => {
         descricaoSemPrincipal || null,
         obsExclusao || null,
         obsAcrescimo || null,
+        acrescimosIds ? JSON.stringify(acrescimosIds) : null,  // ✅ ADICIONADO
         id
       ]
     );
+
+    console.log(`✅ Prescrição ${id} atualizada com sucesso!`);
 
     res.json({
       sucesso: true,
@@ -387,7 +379,6 @@ router.delete('/:id', autenticar, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Buscar prescrição
     const [prescricoes] = await pool.query(
       'SELECT * FROM prescricoes WHERE id = ?',
       [id]
@@ -402,7 +393,6 @@ router.delete('/:id', autenticar, async (req, res) => {
 
     const prescricao = prescricoes[0];
 
-    // Validar se pode excluir (até 9h do dia seguinte)
     if (!podeEditarOuExcluir(prescricao.data_prescricao)) {
       return res.status(403).json({
         sucesso: false,
