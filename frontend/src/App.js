@@ -1,10 +1,10 @@
+// frontend/src/App.js
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Prescricoes from './pages/Prescricoes';
 import NovaPrescricao from './pages/NovaPrescricao';
-import FilaImpressao from './pages/FilaImpressao';
 import Cadastros from './pages/Cadastros';
 import GestaoUsuarios from './pages/GestaoUsuarios';
 import GestaoDietas from './pages/GestaoDietas';
@@ -157,7 +157,6 @@ function AppContent() {
     }
     setTelaAtual('gestaoDietas');
   };
-  const irParaImpressao = () => setTelaAtual('impressao');
   const irParaPreview = () => setTelaAtual('preview');
 
   // Loading da autenticação
@@ -187,7 +186,6 @@ function AppContent() {
 
   return (
     <div className="App">
-      
       {/* Header com informações do usuário e menu */}
       <header className="user-header">
         <div className="user-info">
@@ -284,14 +282,6 @@ function AppContent() {
           tiposAlimentacao={tiposAlimentacao}
           etiquetas={etiquetas}
           setEtiquetas={setEtiquetas}
-        />
-      )}
-      
-      {telaAtual === 'impressao' && (
-        <FilaImpressao
-          etiquetas={etiquetas}
-          setEtiquetas={setEtiquetas}
-          voltar={irParaNovaPrescricao}
         />
       )}
       
