@@ -442,6 +442,44 @@ export const imprimirEtiquetasLote = async (ids) => {
   return response.json();
 };
 
+// ============================================
+// PACIENTES - FUNÇÃO NOVA
+// ============================================
+
+export const buscarPacientePorCPF = async (cpf) => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('Token não encontrado');
+    }
+
+    const cpfLimpo = cpf.replace(/\D/g, '');
+
+    const resposta = await fetch(`${API_URL}/api/pacientes/buscar/${cpfLimpo}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const dados = await resposta.json();
+
+    if (!resposta.ok) {
+      if (resposta.status === 404) {
+        return { sucesso: false, paciente: null };
+      }
+      throw new Error(dados.erro || 'Erro ao buscar paciente');
+    }
+
+    return dados;
+  } catch (erro) {
+    console.error('Erro na busca de paciente:', erro);
+    throw erro;
+  }
+};
+
 /**
  * Deletar etiqueta
  */
@@ -453,6 +491,55 @@ export const deletarEtiqueta = async (id) => {
   if (!response.ok) {
     const erro = await response.json();
     throw new Error(erro.erro || 'Erro ao deletar');
+  }
+  return response.json();
+};
+
+// frontend/src/services/api.js
+// ADICIONAR ESTAS FUNÇÕES NO FINAL DO ARQUIVO
+
+// ====================================
+// FUNÇÕES DE ACRÉSCIMOS
+// ====================================
+
+/**
+ * Listar acréscimos ativos
+ */
+export const listarAcrescimos = async () => {
+  const response = await fetch(`${API_URL}/acrescimos`, fetchConfigAuth());
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao listar acréscimos');
+  }
+  return response.json();
+};
+
+/**
+ * Buscar acréscimos por IDs (para relatórios)
+ */
+export const buscarAcrescimosPorIds = async (ids) => {
+  if (!ids || ids.length === 0) {
+    return { sucesso: true, acrescimos: [] };
+  }
+  
+  const idsString = Array.isArray(ids) ? ids.join(',') : ids;
+  const response = await fetch(`${API_URL}/acrescimos/buscar/${idsString}`, fetchConfigAuth());
+  
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao buscar acréscimos');
+  }
+  return response.json();
+};
+
+/**
+ * Obter estatísticas de acréscimos
+ */
+export const obterEstatisticasAcrescimos = async () => {
+  const response = await fetch(`${API_URL}/acrescimos/estatisticas`, fetchConfigAuth());
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao obter estatísticas');
   }
   return response.json();
 };

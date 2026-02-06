@@ -284,12 +284,6 @@ function AppContent() {
           nucleos={nucleos}
           dietas={dietas}
           tiposAlimentacao={tiposAlimentacao}
-          etiquetas={etiquetas}
-          setEtiquetas={setEtiquetas}
-          irParaCadastros={irParaCadastros}
-          irParaImpressao={irParaImpressao}
-          irParaPreview={irParaPreview}
-          isAdmin={isAdmin()}
         />
       )}
       
@@ -306,6 +300,7 @@ function AppContent() {
           voltar={irParaDashboard}
           irParaGestaoUsuarios={irParaGestaoUsuarios}
           irParaGestaoDietas={irParaGestaoDietas}
+          irParaPreview={irParaPreview}
         />
       )}
 

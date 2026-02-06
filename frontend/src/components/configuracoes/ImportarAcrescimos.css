@@ -1,0 +1,283 @@
+/* frontend/src/components/configuracoes/ImportarAcrescimos.css */
+
+.importar-acrescimos-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.card-importacao {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.card-header {
+  background: #0d9488;
+  color: white;
+  padding: 24px;
+}
+
+.card-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.card-descricao {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 14px;
+}
+
+.card-body {
+  padding: 24px;
+}
+
+/* Estatísticas */
+.estatisticas-box {
+  background: #f0fdfa;
+  border: 2px solid #99f6e4;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.stat-valor {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0d9488;
+}
+
+.stat-valor.ativo {
+  color: #059669;
+}
+
+.stat-valor.inativo {
+  color: #9ca3af;
+}
+
+/* Upload de Arquivo */
+.upload-section {
+  margin-bottom: 20px;
+}
+
+.file-label {
+  display: block;
+  cursor: pointer;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-button {
+  display: inline-block;
+  background: #f3f4f6;
+  border: 2px dashed #d1d5db;
+  padding: 40px;
+  border-radius: 8px;
+  text-align: center;
+  width: 100%;
+  font-size: 16px;
+  font-weight: 600;
+  color: #6b7280;
+  transition: all 0.3s ease;
+}
+
+.file-button:hover {
+  background: #e5e7eb;
+  border-color: #0d9488;
+  color: #0d9488;
+}
+
+.arquivo-selecionado {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.arquivo-nome {
+  font-weight: 600;
+  color: #059669;
+}
+
+.arquivo-tamanho {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Botão de Importar */
+.btn-importar {
+  width: 100%;
+  background: #059669;
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.btn-importar:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+}
+
+.btn-importar:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Resultado */
+.resultado-box {
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.resultado-box.sucesso {
+  background: #d1fae5;
+  border: 2px solid #6ee7b7;
+}
+
+.resultado-box.erro {
+  background: #fee2e2;
+  border: 2px solid #fca5a5;
+}
+
+.resultado-header {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.resultado-box.sucesso .resultado-header {
+  color: #065f46;
+}
+
+.resultado-box.erro .resultado-header {
+  color: #991b1b;
+}
+
+.resultado-detalhes {
+  font-size: 14px;
+  color: #374151;
+  margin-top: 8px;
+}
+
+.resultado-detalhes p {
+  margin: 4px 0;
+}
+
+/* Instruções */
+.instrucoes-box {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.instrucoes-box h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #374151;
+}
+
+.instrucoes-box ol {
+  margin: 0;
+  padding-left: 20px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.instrucoes-box ol li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.instrucoes-box code {
+  background: #e5e7eb;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+/* Aviso */
+.aviso-box {
+  background: #fef3c7;
+  border: 2px solid #fbbf24;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.aviso-box strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #92400e;
+  font-size: 15px;
+}
+
+.aviso-box p {
+  margin: 8px 0;
+  color: #78350f;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .importar-acrescimos-container {
+    padding: 10px;
+  }
+
+  .card-header {
+    padding: 16px;
+  }
+
+  .card-header h2 {
+    font-size: 20px;
+  }
+
+  .card-body {
+    padding: 16px;
+  }
+
+  .estatisticas-box {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .file-button {
+    padding: 30px;
+    font-size: 14px;
+  }
+}
