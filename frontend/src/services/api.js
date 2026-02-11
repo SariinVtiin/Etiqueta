@@ -21,14 +21,19 @@ const fetchConfigAuth = () => ({
 /**
  * Handler genérico de erros
  */
-const handleResponse = async (response) => {
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ erro: 'Erro na requisição' }));
-    throw new Error(error.erro || 'Erro na requisição');
-  }
-  return response.json();
-};
-
+  const handleResponse = async (response) => {
+    if (response.status === 401) {
+      // Token expirado: limpa localStorage e redireciona para login
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+      throw new Error('Sessão expirada. Faça login novamente.');
+    }
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ erro: 'Erro na requisição' }));
+      throw new Error(error.erro || 'Erro na requisição');
+    }
+    return response.json();
+  };
 // ============================================
 // ENDPOINTS - TESTE E STATUS
 // ============================================

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// frontend/src/pages/GestaoUsuarios/GestaoUsuarios.jsx
+import React, { useState, useEffect, useCallback } from 'react';
 import { listarUsuarios, criarUsuario, atualizarUsuario, desativarUsuario, ativarUsuario, resetarSenhaUsuario } from '../../services/api';
 import './GestaoUsuarios.css';
 
@@ -16,11 +17,7 @@ function GestaoUsuarios({ voltar }) {
   });
   const [novaSenha, setNovaSenha] = useState('');
 
-  useEffect(() => {
-    carregarUsuarios();
-  }, []);
-
-  const carregarUsuarios = async () => {
+  const carregarUsuarios = useCallback(async () => {
     try {
       setCarregando(true);
       const resposta = await listarUsuarios(busca);
@@ -33,7 +30,11 @@ function GestaoUsuarios({ voltar }) {
     } finally {
       setCarregando(false);
     }
-  };
+  }, [busca]);
+
+  useEffect(() => {
+    carregarUsuarios();
+  }, [carregarUsuarios]);
 
   const handleBuscar = () => {
     carregarUsuarios();
@@ -332,27 +333,30 @@ function GestaoUsuarios({ voltar }) {
                   </td>
                   <td>
                     <div className="gu-actions">
-                      <button className="gu-action-btn gu-action-edit" onClick={() => abrirModalEditar(usuario)} title="Editar">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <button className="gu-btn-action gu-btn-edit" onClick={() => abrirModalEditar(usuario)} title="Editar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
                       </button>
-                      <button className="gu-action-btn gu-action-key" onClick={() => abrirModalSenha(usuario)} title="Resetar Senha">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                      <button className="gu-btn-action gu-btn-password" onClick={() => abrirModalSenha(usuario)} title="Resetar senha">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                         </svg>
                       </button>
                       {usuario.ativo ? (
-                        <button className="gu-action-btn gu-action-disable" onClick={() => handleDesativar(usuario)} title="Desativar">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                        <button className="gu-btn-action gu-btn-deactivate" onClick={() => handleDesativar(usuario)} title="Desativar">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
                           </svg>
                         </button>
                       ) : (
-                        <button className="gu-action-btn gu-action-enable" onClick={() => handleAtivar(usuario)} title="Ativar">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                        <button className="gu-btn-action gu-btn-activate" onClick={() => handleAtivar(usuario)} title="Ativar">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
                           </svg>
                         </button>
                       )}
@@ -485,9 +489,10 @@ function GestaoUsuarios({ voltar }) {
         <div className="gu-modal-overlay" onClick={fecharModal}>
           <div className="gu-modal" onClick={(e) => e.stopPropagation()}>
             <div className="gu-modal-header">
-              <div className="gu-modal-icon gu-modal-icon-key">
+              <div className="gu-modal-icon gu-modal-icon-password">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
               </div>
               <h2>Resetar Senha</h2>
@@ -497,23 +502,18 @@ function GestaoUsuarios({ voltar }) {
                 </svg>
               </button>
             </div>
-            <div className="gu-modal-user-info">
-              <div className={`gu-avatar ${usuarioSelecionado?.role}`}>
-                {usuarioSelecionado?.nome.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <strong>{usuarioSelecionado?.nome}</strong>
-                <span>{usuarioSelecionado?.email}</span>
-              </div>
-            </div>
             <form onSubmit={handleResetarSenha}>
+              <div className="gu-form-group">
+                <label>Usuário</label>
+                <input type="text" value={usuarioSelecionado?.nome} disabled />
+              </div>
               <div className="gu-form-group">
                 <label>Nova Senha *</label>
                 <input type="password" value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} placeholder="Mínimo 6 caracteres" />
               </div>
               <div className="gu-modal-actions">
                 <button type="button" className="gu-btn-cancel" onClick={fecharModal}>Cancelar</button>
-                <button type="submit" className="gu-btn-confirm gu-btn-warning">Resetar Senha</button>
+                <button type="submit" className="gu-btn-confirm">Resetar Senha</button>
               </div>
             </form>
           </div>

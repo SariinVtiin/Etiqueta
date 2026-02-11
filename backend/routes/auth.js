@@ -49,13 +49,9 @@ router.post('/login', async (req, res) => {
 
     // Gerar token JWT
     const token = jwt.sign(
-      { 
-        id: usuario.id, 
-        email: usuario.email, 
-        role: usuario.role 
-      },
+      { id: usuario.id, email: usuario.email, role: usuario.role },
       JWT_SECRET,
-      { expiresIn: '8h' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }  // ← era '8h' hardcoded
     );
 
     // Atualizar último login
