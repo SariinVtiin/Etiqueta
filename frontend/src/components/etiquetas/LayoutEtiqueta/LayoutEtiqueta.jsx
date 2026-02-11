@@ -4,13 +4,16 @@ import './LayoutEtiqueta.css';
 function LayoutEtiqueta({ etiqueta, modoPreview = false }) {
   return (
     <div className={`etiqueta-visual ${modoPreview ? 'modo-preview' : ''}`}>
+      {/* CABEÇALHO: Nome da Empresa */}
       <div className="etiqueta-empresa">Maxima Facility</div>
       
+      {/* LINHA PRINCIPAL: Nome + Idade */}
       <div className="etiqueta-linha-principal">
-        <div className="etiqueta-nome">{etiqueta.nomePaciente}</div>
-        <div className="etiqueta-idade">{etiqueta.idade} anos</div>
+        <span className="etiqueta-nome">{etiqueta.nomePaciente}</span>
+        <span className="etiqueta-idade">{etiqueta.idade} anos</span>
       </div>
 
+      {/* DESTAQUE SEM PRINCIPAL (só aparece se existir) */}
       {etiqueta.semPrincipal && (
         <div className="etiqueta-sem-principal-destaque">
           <span className="etiqueta-label-destaque">⚠️ SEM PRINCIPAL:</span>
@@ -18,56 +21,48 @@ function LayoutEtiqueta({ etiqueta, modoPreview = false }) {
         </div>
       )}
 
+      {/* GRID DE INFORMAÇÕES - SPANS DIRETOS SEM DIVS EXTRAS */}
       <div className="etiqueta-grid">
-        <div className="etiqueta-item">
-          <span className="etiqueta-label">Mãe:</span>
-          <span className="etiqueta-valor">{etiqueta.nomeMae}</span>
-        </div>
+        {/* Mãe e Atendimento */}
+        <span className="etiqueta-label">Mãe:</span>
+        <span className="etiqueta-valor">{etiqueta.nomeMae}</span>
+        <span className="etiqueta-label">Atend:</span>
+        <span className="etiqueta-valor">{etiqueta.codigoAtendimento}</span>
         
-        <div className="etiqueta-item">
-          <span className="etiqueta-label">Atend:</span>
-          <span className="etiqueta-valor">{etiqueta.codigoAtendimento}</span>
-        </div>
+        {/* Convênio e Leito */}
+        <span className="etiqueta-label">Convênio:</span>
+        <span className="etiqueta-valor">{etiqueta.convenio}</span>
+        <span className="etiqueta-label">Leito:</span>
+        <span className="etiqueta-valor">{etiqueta.leito}</span>
         
-        <div className="etiqueta-item">
-          <span className="etiqueta-label">Convênio:</span>
-          <span className="etiqueta-valor">{etiqueta.convenio}</span>
-        </div>
+        {/* Refeição e Dieta */}
+        <span className="etiqueta-label destaque">Refeição:</span>
+        <span className="etiqueta-valor destaque">{etiqueta.tipoAlimentacao}</span>
+        <span className="etiqueta-label destaque">Dieta:</span>
+        <span className="etiqueta-valor destaque">{etiqueta.dieta}</span>
         
-        <div className="etiqueta-item">
-          <span className="etiqueta-label">Leito:</span>
-          <span className="etiqueta-valor">{etiqueta.leito}</span>
-        </div>
-        
-        <div className="etiqueta-item destaque">
-          <span className="etiqueta-label">Refeição:</span>
-          <span className="etiqueta-valor">{etiqueta.tipoAlimentacao}</span>
-        </div>
-        
-        <div className="etiqueta-item destaque">
-          <span className="etiqueta-label">Dieta:</span>
-          <span className="etiqueta-valor">{etiqueta.dieta}</span>
-        </div>
-        
+        {/* Restrições (linha inteira - só se existir) */}
         {etiqueta.restricoes && etiqueta.restricoes.length > 0 && (
-          <div className="etiqueta-item full-width">
-            <span className="etiqueta-label">Restrição:</span>
-            <span className="etiqueta-valor">{etiqueta.restricoes.join(', ')}</span>
-          </div>
+          <>
+            <span className="etiqueta-label full-width">Restrição:</span>
+            <span className="etiqueta-valor full-width">{etiqueta.restricoes.join(', ')}</span>
+          </>
         )}
         
+        {/* Exclusão (linha inteira - só se existir) */}
         {etiqueta.obsExclusao && (
-          <div className="etiqueta-item full-width">
-            <span className="etiqueta-label">Exclusão:</span>
-            <span className="etiqueta-valor">{etiqueta.obsExclusao}</span>
-          </div>
+          <>
+            <span className="etiqueta-label full-width">Exclusão:</span>
+            <span className="etiqueta-valor full-width">{etiqueta.obsExclusao}</span>
+          </>
         )}
         
+        {/* Acréscimo (linha inteira - só se existir) */}
         {etiqueta.obsAcrescimo && (
-          <div className="etiqueta-item full-width">
-            <span className="etiqueta-label">Acréscimo:</span>
-            <span className="etiqueta-valor">{etiqueta.obsAcrescimo}</span>
-          </div>
+          <>
+            <span className="etiqueta-label full-width">Acréscimo:</span>
+            <span className="etiqueta-valor full-width">{etiqueta.obsAcrescimo}</span>
+          </>
         )}
       </div>
     </div>

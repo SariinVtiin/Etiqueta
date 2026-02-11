@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { listarPrescricoes, deletarPrescricao, atualizarPrescricao } from '../../services/api';
 import { exportarParaExcel, exportarParaPDF, exportarRelatorioDetalhado } from '../../services/relatorios';
 import ModalEditarPrescricao from '../../components/forms/ModalEditarPrescricao';
+import { abrirJanelaImpressao } from '../../utils/gerarImpressaoEtiquetas';
 import './Prescricoes.css';
 
 function Prescricoes({ voltar, nucleos, dietas }) {
@@ -204,11 +205,7 @@ function Prescricoes({ voltar, nucleos, dietas }) {
     if (!confirmar) return;
 
     try {
-      const params = {
-        ...filtros,
-        limit: 1000
-      };
-
+      const params = { ...filtros, limit: 1000 };
       const resposta = await listarPrescricoes(params);
 
       if (!resposta.sucesso || resposta.prescricoes.length === 0) {
@@ -221,265 +218,13 @@ function Prescricoes({ voltar, nucleos, dietas }) {
         restricoes: p.restricoes ? JSON.parse(p.restricoes) : []
       }));
 
-      const janelaImpressao = window.open('', '', 'width=800,height=600');
-      janelaImpressao.document.write(gerarHTMLImpressao(todasPrescricoes));
-      janelaImpressao.document.close();
+      // 👉 USA O UTILITÁRIO CENTRALIZADO
+      abrirJanelaImpressao(todasPrescricoes);
 
     } catch (erro) {
       console.error('Erro ao preparar impressão:', erro);
       alert('Erro ao preparar etiquetas para impressão.');
     }
-  };
-
-  // NOVA FUNÇÃO: Gerar HTML para impressão de etiquetas
-  const gerarHTMLImpressao = (prescricoesParaImprimir) => {
-    const dataFormatada = new Date().toLocaleDateString('pt-BR');
-
-    const css = `
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      
-      body {
-        font-family: Arial, sans-serif;
-        padding: 10mm;
-        background: #f0f0f0;
-      }
-      
-      .etiqueta-visual {
-        width: 10cm;
-        height: 8cm;
-        background: white;
-        padding: 8px 6mm;
-        margin-bottom: 5mm;
-        page-break-after: always;
-        border: 1px solid #ccc;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-      
-      .etiqueta-empresa {
-        text-align: center;
-        font-size: 11px;
-        font-weight: bold;
-        color: #333;
-        padding-bottom: 4px;
-        border-bottom: 1px solid #ddd;
-        margin-bottom: 4px;
-      }
-      
-      .etiqueta-linha-principal {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 4px;
-        padding-bottom: 4px;
-        border-bottom: 2px solid #333;
-      }
-      
-      .etiqueta-nome {
-        font-size: 14px;
-        font-weight: bold;
-        flex: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      
-      .etiqueta-idade {
-        font-size: 11px;
-        font-weight: bold;
-        background: #e9ecef;
-        padding: 2px 6px;
-        border-radius: 3px;
-        margin-left: 8px;
-        white-space: nowrap;
-      }
-      
-      .etiqueta-sem-principal-destaque {
-        background: #fff3cd;
-        padding: 5px 6px;
-        margin-bottom: 6px;
-        border-radius: 3px;
-        border-left: 3px solid #ffc107;
-        display: flex;
-        font-size: 10px;
-        font-weight: bold;
-      }
-      
-      .etiqueta-label-destaque {
-        color: #856404;
-        margin-right: 5px;
-        white-space: nowrap;
-      }
-      
-      .etiqueta-valor-destaque {
-        color: #856404;
-        flex: 1;
-      }
-      
-      .etiqueta-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 3px 6px;
-      }
-      
-      .etiqueta-item {
-        display: flex;
-        font-size: 10px;
-        line-height: 1.2;
-      }
-      
-      .etiqueta-item.full-width {
-        grid-column: 1 / -1;
-      }
-      
-      .etiqueta-item.destaque {
-        font-weight: bold;
-      }
-      
-      .etiqueta-label {
-        font-weight: bold;
-        min-width: 48px;
-        flex-shrink: 0;
-      }
-      
-      .etiqueta-valor {
-        flex: 1;
-        word-wrap: break-word;
-      }
-      
-      .preview-container {
-        margin: 20px;
-        padding: 20px;
-        background: #f0f0f0;
-        border-radius: 5px;
-      }
-      
-      .btn-preview {
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        border: none;
-        border-radius: 4px;
-        margin-right: 10px;
-      }
-      
-      .btn-imprimir-preview {
-        background: #007bff;
-        color: white;
-      }
-      
-      .btn-fechar-preview {
-        background: #6c757d;
-        color: white;
-      }
-      
-      @media print {
-        .preview-container { 
-          display: none; 
-        }
-        .etiqueta-visual {
-          margin-bottom: 0;
-        }
-      }
-    </style>
-    `;
-
-    let html = `
-      <html>
-      <head>
-        <title>Etiquetas de Alimentação - ${dataFormatada}</title>
-        ${css}
-      </head>
-      <body>
-        <div class="preview-container">
-          <h3>Preview de Impressão</h3>
-          <p>Total de ${prescricoesParaImprimir.length} etiqueta(s) - Data: ${dataFormatada}</p>
-          <button onclick="window.print()" class="btn-preview btn-imprimir-preview">
-            Imprimir
-          </button>
-          <button onclick="window.close()" class="btn-preview btn-fechar-preview">
-            Fechar
-          </button>
-        </div>
-    `;
-
-    prescricoesParaImprimir.forEach(prescricao => {
-      html += `
-        <div class="etiqueta-visual">
-          <div class="etiqueta-empresa">Maxima Facility</div>
-          
-          <div class="etiqueta-linha-principal">
-            <div class="etiqueta-nome">${prescricao.nome_paciente}</div>
-            <div class="etiqueta-idade">${prescricao.idade} anos</div>
-          </div>
-
-          ${prescricao.sem_principal ? `
-          <div class="etiqueta-sem-principal-destaque">
-            <span class="etiqueta-label-destaque">SEM PRINCIPAL:</span>
-            <span class="etiqueta-valor-destaque">${prescricao.descricao_sem_principal || ''}</span>
-          </div>` : ''}
-
-          <div class="etiqueta-grid">
-            <div class="etiqueta-item">
-              <span class="etiqueta-label">Mãe:</span>
-              <span class="etiqueta-valor">${prescricao.nome_mae}</span>
-            </div>
-            
-            <div class="etiqueta-item">
-              <span class="etiqueta-label">Atend:</span>
-              <span class="etiqueta-valor">${prescricao.codigo_atendimento}</span>
-            </div>
-            
-            <div class="etiqueta-item">
-              <span class="etiqueta-label">Convênio:</span>
-              <span class="etiqueta-valor">${prescricao.convenio}</span>
-            </div>
-            
-            <div class="etiqueta-item">
-              <span class="etiqueta-label">Leito:</span>
-              <span class="etiqueta-valor">${prescricao.leito}</span>
-            </div>
-            
-            <div class="etiqueta-item destaque">
-              <span class="etiqueta-label">Refeição:</span>
-              <span class="etiqueta-valor">${prescricao.tipo_alimentacao}</span>
-            </div>
-            
-            <div class="etiqueta-item destaque">
-              <span class="etiqueta-label">Dieta:</span>
-              <span class="etiqueta-valor">${prescricao.dieta}</span>
-            </div>
-            
-            ${prescricao.restricoes && prescricao.restricoes.length > 0 ? `
-            <div class="etiqueta-item full-width">
-              <span class="etiqueta-label">Restrição:</span>
-              <span class="etiqueta-valor">${prescricao.restricoes.join(', ')}</span>
-            </div>` : ''}
-            
-            ${prescricao.obs_exclusao ? `
-            <div class="etiqueta-item full-width">
-              <span class="etiqueta-label">Exclusão:</span>
-              <span class="etiqueta-valor">${prescricao.obs_exclusao}</span>
-            </div>` : ''}
-            
-            ${prescricao.obs_acrescimo ? `
-            <div class="etiqueta-item full-width">
-              <span class="etiqueta-label">Acréscimo:</span>
-              <span class="etiqueta-valor">${prescricao.obs_acrescimo}</span>
-            </div>` : ''}
-          </div>
-        </div>
-      `;
-    });
-
-    html += '</body></html>';
-    return html;
   };
 
   const formatarData = (dataString) => {

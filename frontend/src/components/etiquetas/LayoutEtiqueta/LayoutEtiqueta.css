@@ -1,11 +1,18 @@
+/* ========================================
+   LAYOUT DE ETIQUETA - VERSÃO ULTRA-COMPACTA
+   ======================================== */
+
+/* DIMENSÕES DA ETIQUETA */
 .etiqueta-visual {
   width: 10cm;
   height: 8cm;
-  padding: 6px 6mm;
+  padding: 2px 4mm;         /* 👈 MARGEM INTERNA REDUZIDA */
   box-sizing: border-box;
   border: 2px solid #000;
   background: white;
   font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
 }
 
 .modo-preview {
@@ -13,57 +20,61 @@
   margin: 10px;
 }
 
+/* NOME DA EMPRESA */
 .etiqueta-empresa {
   text-align: center;
-  font-size: 16px;
+  font-size: 12px;          /* 👈 TAMANHO FONTE TÍTULO */
   font-weight: bold;
-  margin-bottom: 5px;
-  padding-bottom: 4px;
+  margin-bottom: 2px;       /* 👈 ESPAÇO ABAIXO */
+  padding-bottom: 2px;
   border-bottom: 2px solid #000;
 }
 
+/* LINHA PRINCIPAL: Nome + Idade */
 .etiqueta-linha-principal {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
-  padding-bottom: 5px;
+  margin-bottom: 2px;       /* 👈 ESPAÇO ABAIXO */
+  padding-bottom: 2px;
   border-bottom: 2px solid #000;
 }
 
 .etiqueta-nome {
-  font-size: 13px;
+  font-size: 11px;          /* 👈 TAMANHO FONTE NOME */
   font-weight: bold;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.etiqueta-idade {
-  font-size: 12px;
-  font-weight: bold;
-  background: #000;
-  color: #fff;
-  padding: 2px 6px;
-  border-radius: 3px;
-  margin-left: 8px;
   white-space: nowrap;
 }
 
+.etiqueta-idade {
+  font-size: 9px;           /* 👈 TAMANHO FONTE IDADE */
+  font-weight: bold;
+  background: #000;
+  color: #fff;
+  padding: 1px 4px;         /* 👈 PADDING REDUZIDO */
+  border-radius: 3px;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+/* DESTAQUE SEM PRINCIPAL (Caixa Amarela) */
 .etiqueta-sem-principal-destaque {
   background: #fff3cd;
-  padding: 5px 6px;
-  margin-bottom: 6px;
+  padding: 2px 4px;         /* 👈 PADDING REDUZIDO */
+  margin-bottom: 2px;       /* 👈 ESPAÇO ABAIXO REDUZIDO */
   border-radius: 3px;
   border-left: 3px solid #ffc107;
   display: flex;
-  font-size: 10px;
+  font-size: 8px;           /* 👈 FONTE REDUZIDA */
   font-weight: bold;
 }
 
 .etiqueta-label-destaque {
   color: #856404;
-  margin-right: 5px;
+  margin-right: 4px;
   white-space: nowrap;
 }
 
@@ -72,37 +83,47 @@
   flex: 1;
 }
 
+/* GRID DE INFORMAÇÕES - SEM ESPAÇAMENTO VERTICAL */
 .etiqueta-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px 6px;
+  grid-template-columns: auto 1fr;  /* 👈 LABEL AUTO, VALOR OCUPA RESTO */
+  gap: 0px 3px;             /* 👈 SEM GAP VERTICAL! */
+  font-size: 8px;           /* 👈 TAMANHO FONTE BASE */
+  line-height: 0.9;         /* 👈 ALTURA DE LINHA MÍNIMA */
+  flex: 1;                  /* Ocupa espaço restante */
 }
 
-.etiqueta-item {
-  display: flex;
-  font-size: 10px;
-  line-height: 1.2;
-}
-
-.etiqueta-item.full-width {
-  grid-column: 1 / -1;
-}
-
-.etiqueta-item.destaque {
-  font-weight: bold;
-}
-
+/* LABELS (Mãe:, Convênio:, etc) */
 .etiqueta-label {
   font-weight: bold;
-  min-width: 48px;
-  flex-shrink: 0;
+  white-space: nowrap;      /* Não quebra linha no label */
+  align-self: start;        /* Alinha no topo */
+  padding: 0;
+  margin: 0;
 }
 
+/* VALORES */
 .etiqueta-valor {
-  flex: 1;
   word-wrap: break-word;
+  align-self: start;        /* Alinha no topo */
+  padding: 0;
+  margin: 0;
 }
 
+/* LABELS E VALORES DESTACADOS (Refeição, Dieta) */
+.etiqueta-label.destaque,
+.etiqueta-valor.destaque {
+  font-weight: bold;
+}
+
+/* ITENS QUE OCUPAM LINHA INTEIRA (Restrição, Exclusão, Acréscimo) */
+.etiqueta-label.full-width,
+.etiqueta-valor.full-width {
+  grid-column: 1 / -1;      /* Ocupa todas as colunas */
+  margin-top: 1px;          /* 👈 PEQUENO ESPAÇO ANTES */
+}
+
+/* IMPRESSÃO */
 @media print {
   .etiqueta-visual {
     page-break-after: always;
@@ -114,3 +135,36 @@
     page-break-after: auto;
   }
 }
+
+
+/* ========================================
+   📌 GUIA ULTRA-RÁPIDO DE AJUSTES
+   ========================================
+   
+   🔥 PARA REDUZIR AINDA MAIS ESPAÇOS:
+   linha 8:   padding: 2px 4mm → 1px 3mm
+   linha 24:  margin-bottom: 2px → 1px
+   linha 34:  margin-bottom: 2px → 1px
+   linha 65:  margin-bottom: 2px → 1px
+   linha 87:  gap: 0px 3px → 0px 2px
+   linha 89:  line-height: 0.9 → 0.85
+   
+   📝 PARA AJUSTAR FONTES:
+   linha 22:  font-size: 12px (Título empresa)
+   linha 42:  font-size: 11px (Nome paciente)
+   linha 51:  font-size: 9px (Idade)
+   linha 71:  font-size: 8px (Destaque amarelo)
+   linha 88:  font-size: 8px (Informações gerais)
+   
+   🎯 ESTRUTURA:
+   linha 86:  grid-template-columns: auto 1fr
+   linha 87:  gap: 0px 3px (SEM espaço vertical!)
+   linha 89:  line-height: 0.9 (linhas bem juntas)
+   
+   ⚡ JÁ ESTÁ ULTRA-COMPACTO:
+   - Gap vertical = 0px (linhas coladas!)
+   - Line-height = 0.9 (muito reduzido)
+   - Padding e margins mínimos
+   - Fontes pequenas (8px-12px)
+   
+   ======================================== */
