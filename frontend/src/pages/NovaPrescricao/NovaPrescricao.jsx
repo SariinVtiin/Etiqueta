@@ -33,6 +33,41 @@ function NovaPrescricao({
   const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false);
   const [dadosParaConfirmar, setDadosParaConfirmar] = useState(null);
 
+  // ============================================
+  // FUNÇÃO DE ORDENAÇÃO NATURAL DE LEITOS
+  // ============================================
+  const ordenarLeitosNatural = (leitos) => {
+    return [...leitos].sort((a, b) => {
+      // Extrai números e letras de cada leito
+      const regex = /(\d+)|(\D+)/g;
+      const aParts = String(a).match(regex) || [];
+      const bParts = String(b).match(regex) || [];
+      
+      for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+        const aPart = aParts[i] || '';
+        const bPart = bParts[i] || '';
+        
+        // Se ambos forem números, comparar numericamente
+        const aNum = parseInt(aPart);
+        const bNum = parseInt(bPart);
+        
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          if (aNum !== bNum) {
+            return aNum - bNum;
+          }
+        } else {
+          // Comparação alfabética
+          const comp = aPart.localeCompare(bPart);
+          if (comp !== 0) {
+            return comp;
+          }
+        }
+      }
+      
+      return 0;
+    });
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     
@@ -111,7 +146,9 @@ function NovaPrescricao({
       [refeicao]: {
         ...configRefeicoes[refeicao],
         semPrincipal: !configRefeicoes[refeicao].semPrincipal,
-        descricaoSemPrincipal: ''
+        descricaoSemPrincipal: !configRefeicoes[refeicao].semPrincipal 
+          ? configRefeicoes[refeicao].descricaoSemPrincipal 
+          : ''
       }
     });
   };
@@ -148,8 +185,10 @@ function NovaPrescricao({
 
   const adicionarEtiqueta = (e) => {
     e.preventDefault();
-    
-    if (!formData.cpf || !formData.codigoAtendimento || !formData.convenio || !formData.nomePaciente || !formData.nomeMae || !formData.dataNascimento || !formData.leito) {
+
+    if (!formData.cpf || !formData.codigoAtendimento || !formData.convenio || 
+        !formData.nomePaciente || !formData.nomeMae || !formData.dataNascimento || 
+        !formData.nucleoSelecionado || !formData.leito) {
       alert('Preencha todos os campos obrigatórios!');
       return;
     }
@@ -272,7 +311,12 @@ function NovaPrescricao({
     setDadosParaConfirmar(null);
   };
 
-  const leitosDisponiveis = formData.nucleoSelecionado ? (nucleos[formData.nucleoSelecionado] || []) : [];
+  // ============================================
+  // LEITOS ORDENADOS EM ORDEM CRESCENTE
+  // ============================================
+  const leitosDisponiveis = formData.nucleoSelecionado 
+    ? ordenarLeitosNatural(nucleos[formData.nucleoSelecionado] || [])
+    : [];
 
   return (
     <div className="container">

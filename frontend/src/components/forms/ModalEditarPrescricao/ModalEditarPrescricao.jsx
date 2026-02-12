@@ -23,6 +23,41 @@ function ModalEditarPrescricao({ prescricao, onSalvar, onCancelar, nucleos, diet
 
   const [salvando, setSalvando] = useState(false);
 
+  // ============================================
+  // FUNÇÃO DE ORDENAÇÃO NATURAL DE LEITOS
+  // ============================================
+  const ordenarLeitosNatural = (leitos) => {
+    return [...leitos].sort((a, b) => {
+      // Extrai números e letras de cada leito
+      const regex = /(\d+)|(\D+)/g;
+      const aParts = String(a).match(regex) || [];
+      const bParts = String(b).match(regex) || [];
+      
+      for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+        const aPart = aParts[i] || '';
+        const bPart = bParts[i] || '';
+        
+        // Se ambos forem números, comparar numericamente
+        const aNum = parseInt(aPart);
+        const bNum = parseInt(bPart);
+        
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          if (aNum !== bNum) {
+            return aNum - bNum;
+          }
+        } else {
+          // Comparação alfabética
+          const comp = aPart.localeCompare(bPart);
+          if (comp !== 0) {
+            return comp;
+          }
+        }
+      }
+      
+      return 0;
+    });
+  };
+
   // Preencher formulário com dados da prescrição
   useEffect(() => {
     if (prescricao) {
@@ -76,20 +111,17 @@ function ModalEditarPrescricao({ prescricao, onSalvar, onCancelar, nucleos, diet
     
     if (valor.length === 10) {
       const [dia, mes, ano] = valor.split('/');
+      const dataNasc = new Date(ano, mes - 1, dia);
       const hoje = new Date();
-      const nascimento = new Date(ano, mes - 1, dia);
+      const idade = hoje.getFullYear() - dataNasc.getFullYear();
+      const mesAtual = hoje.getMonth();
+      const mesNasc = dataNasc.getMonth();
       
-      if (nascimento <= hoje) {
-        let idade = hoje.getFullYear() - nascimento.getFullYear();
-        const mesAtual = hoje.getMonth();
-        const mesNasc = nascimento.getMonth();
-        
-        if (mesAtual < mesNasc || (mesAtual === mesNasc && hoje.getDate() < nascimento.getDate())) {
-          idade--;
-        }
-        
-        setFormData(prev => ({ ...prev, idade: String(idade) }));
-      }
+      const idadeFinal = (mesAtual < mesNasc || (mesAtual === mesNasc && hoje.getDate() < dataNasc.getDate())) 
+        ? idade - 1 
+        : idade;
+      
+      setFormData(prev => ({ ...prev, idade: String(idadeFinal) }));
     }
   };
 
@@ -104,53 +136,38 @@ function ModalEditarPrescricao({ prescricao, onSalvar, onCancelar, nucleos, diet
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validações
-    if (!formData.cpf || !formData.codigoAtendimento || !formData.nomePaciente || !formData.nomeMae || !formData.leito || !formData.dieta) {
+    if (!formData.nomePaciente || !formData.nucleo || !formData.leito || !formData.dieta) {
       alert('Preencha todos os campos obrigatórios!');
       return;
     }
-
-    if (formData.codigoAtendimento.length !== 7) {
-      alert('O código de atendimento deve ter exatamente 7 dígitos!');
-      return;
-    }
-
+    
     setSalvando(true);
-
+    
     try {
       // Converter data de DD/MM/AAAA para AAAA-MM-DD
       const [dia, mes, ano] = formData.dataNascimento.split('/');
       const dataFormatada = `${ano}-${mes}-${dia}`;
-
+      
       const dadosAtualizados = {
-        cpf: formData.cpf,
-        codigoAtendimento: formData.codigoAtendimento,
-        convenio: formData.convenio,
-        nomePaciente: formData.nomePaciente,
-        nomeMae: formData.nomeMae,
+        ...formData,
         dataNascimento: dataFormatada,
-        idade: parseInt(formData.idade),
-        nucleo: formData.nucleo,
-        leito: formData.leito,
-        tipoAlimentacao: formData.tipoAlimentacao,
-        dieta: formData.dieta,
-        restricoes: formData.restricoes,
-        semPrincipal: formData.semPrincipal,
-        descricaoSemPrincipal: formData.descricaoSemPrincipal || '',
-        obsExclusao: formData.obsExclusao || '',
-        obsAcrescimo: formData.obsAcrescimo || ''
+        idade: parseInt(formData.idade)
       };
-
-      await onSalvar(prescricao.id, dadosAtualizados);
+      
+      await onSalvar(dadosAtualizados);
     } catch (erro) {
       console.error('Erro ao salvar:', erro);
+      alert('Erro ao salvar prescrição: ' + erro.message);
     } finally {
       setSalvando(false);
     }
   };
 
+  // ============================================
+  // LEITOS ORDENADOS EM ORDEM CRESCENTE
+  // ============================================
   const leitosDisponiveis = formData.nucleo && nucleos[formData.nucleo] 
-    ? nucleos[formData.nucleo] 
+    ? ordenarLeitosNatural(nucleos[formData.nucleo])
     : [];
 
   return (
@@ -251,7 +268,7 @@ function ModalEditarPrescricao({ prescricao, onSalvar, onCancelar, nucleos, diet
               </select>
             </div>
 
-            {/* Leito */}
+            {/* Leito - AGORA COM ORDENAÇÃO */}
             <div className="campo">
               <label>Leito *</label>
               <select name="leito" value={formData.leito} onChange={handleChange}>
@@ -304,7 +321,7 @@ function ModalEditarPrescricao({ prescricao, onSalvar, onCancelar, nucleos, diet
 
             {/* Sem Principal */}
             <div className="campo full-width">
-              <label className="checkbox-label-principal">
+              <label className="checkbox-label">
                 <input
                   type="checkbox"
                   name="semPrincipal"
@@ -319,13 +336,13 @@ function ModalEditarPrescricao({ prescricao, onSalvar, onCancelar, nucleos, diet
                   name="descricaoSemPrincipal"
                   value={formData.descricaoSemPrincipal}
                   onChange={handleChange}
-                  placeholder="Descreva o que é sem principal..."
-                  className="input-sem-principal"
+                  placeholder="Descrição do que substituirá o principal"
+                  style={{ marginTop: '8px' }}
                 />
               )}
             </div>
 
-            {/* Observações */}
+            {/* Observação Exclusão */}
             <div className="campo full-width">
               <label>Observação Exclusão</label>
               <input
@@ -333,10 +350,11 @@ function ModalEditarPrescricao({ prescricao, onSalvar, onCancelar, nucleos, diet
                 name="obsExclusao"
                 value={formData.obsExclusao}
                 onChange={handleChange}
-                placeholder="Ex: s/ açúcar, s/ leite"
+                placeholder="Ex: s/ leite, s/ açúcar"
               />
             </div>
 
+            {/* Observação Acréscimo */}
             <div className="campo full-width">
               <label>Observação Acréscimo</label>
               <input
@@ -344,18 +362,26 @@ function ModalEditarPrescricao({ prescricao, onSalvar, onCancelar, nucleos, diet
                 name="obsAcrescimo"
                 value={formData.obsAcrescimo}
                 onChange={handleChange}
-                placeholder="Ex: c/ suco de laranja"
+                placeholder="Ex: c/ suco, c/ biscoito"
               />
             </div>
           </div>
 
-          {/* Botões */}
-          <div className="modal-acoes-editar">
-            <button type="button" className="btn-cancelar-editar" onClick={onCancelar}>
+          <div className="modal-footer-editar">
+            <button 
+              type="button" 
+              className="btn-cancelar-modal" 
+              onClick={onCancelar}
+              disabled={salvando}
+            >
               Cancelar
             </button>
-            <button type="submit" className="btn-salvar-editar" disabled={salvando}>
-              {salvando ? 'Salvando...' : '✅ Salvar Alterações'}
+            <button 
+              type="submit" 
+              className="btn-salvar-modal"
+              disabled={salvando}
+            >
+              {salvando ? 'Salvando...' : '✓ Salvar Alterações'}
             </button>
           </div>
         </form>
