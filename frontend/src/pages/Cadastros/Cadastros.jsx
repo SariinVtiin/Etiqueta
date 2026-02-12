@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import ImportarAcrescimos from '../../components/configuracoes/ImportarAcrescimos';
 import './Cadastros.css';
 
-function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas }) {
+function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGestaoRestricoes }) {
   const [mostrarImportacao, setMostrarImportacao] = useState(false);
 
   if (mostrarImportacao) {
@@ -54,32 +54,20 @@ function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas }) {
           <button className="card-button">Acessar</button>
         </div>
 
-        {/* NOVO: Acréscimos */}
-        <div className="cadastro-card" onClick={() => setMostrarImportacao(true)}>
-          <div className="card-icon">📥</div>
-          <h3>Acréscimos</h3>
-          <p>Importar planilha de itens de acréscimo</p>
+        {/* NOVO: Restrições Alimentares (substitui o antigo "Tipos de Dieta") */}
+        <div className="cadastro-card" onClick={irParaGestaoRestricoes}>
+          <div className="card-icon">🚫</div>
+          <h3>Restrição Alimentar</h3>
+          <p>Gerenciar restrições para prescrições (HPS, DM, IRC, etc.)</p>
           <button className="card-button">Acessar</button>
         </div>
 
-        {/* Relatórios */}
-        <div className="cadastro-card disabled">
-          <div className="card-icon">📊</div>
-          <h3>Relatórios</h3>
-          <p>Configurações de relatórios e exportações</p>
-          <button className="card-button" disabled>Em Breve</button>
-        </div>
-      </div>
-
-      <div className="cadastros-info">
-        <div className="info-card">
-          <h4>ℹ️ Área Administrativa</h4>
-          <ul>
-            <li>Esta área é restrita a administradores do sistema</li>
-            <li>Alterações aqui afetam todo o sistema</li>
-            <li>Use com cuidado e responsabilidade</li>
-            <li>Todas as ações são registradas em log</li>
-          </ul>
+        {/* Acréscimos */}
+        <div className="cadastro-card" onClick={() => setMostrarImportacao(true)}>
+          <div className="card-icon">📥</div>
+          <h3>Acréscimos</h3>
+          <p>Importar planilha de suplementos e acréscimos</p>
+          <button className="card-button">Importar</button>
         </div>
       </div>
     </div>

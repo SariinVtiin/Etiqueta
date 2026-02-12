@@ -8,7 +8,8 @@ import { criarPrescricao } from '../../services/api';
 
 function NovaPrescricao({ 
   nucleos = {}, 
-  dietas = [], 
+  dietas = [],
+  restricoes = [],
   tiposAlimentacao = [], 
   etiquetas = [], 
   setEtiquetas, 
@@ -398,10 +399,14 @@ function NovaPrescricao({
             <div className="campo">
               <label>RESTRIÇÃO ALIMENTAR (para {refeicao})</label>
               <div className="opcoes-check">
-                {['HPS', 'HPL', 'LAX', 'OBT', 'DM', 'IRC', 'CRUS', 'Pediatria', 'Restrita a Vitamina K'].map(restricao => (
-                  <label key={restricao} className="opcao-check">
-                    <input type="checkbox" checked={configRefeicoes[refeicao]?.restricoes.includes(restricao)} onChange={() => handleRestricaoRefeicao(refeicao, restricao)} />
-                    <span>{restricao}</span>
+                {restricoes.map(restricao => (
+                  <label key={restricao.id} className="opcao-check">
+                    <input 
+                      type="checkbox" 
+                      checked={configRefeicoes[refeicao]?.restricoes.includes(restricao.nome)} 
+                      onChange={() => handleRestricaoRefeicao(refeicao, restricao.nome)} 
+                    />
+                    <span>{restricao.nome}</span>
                   </label>
                 ))}
               </div>

@@ -1,3 +1,4 @@
+// backend/server.js - ARQUIVO COMPLETO ATUALIZADO
 const express = require('express');
 const cors = require('cors');
 const { pool, testarConexao } = require('./config/database');
@@ -7,6 +8,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
 
 // ============================================
 // IMPORTAR ROTAS
@@ -18,28 +20,73 @@ const auditoriaRouter = require('./routes/auditoria');
 const pacientesRouter = require('./routes/pacientes');
 const leitosRouter = require('./routes/leitos');
 const dietasRouter = require('./routes/dietas');
+const restricoesRouter = require('./routes/restricoesRoutes');  // ← NOVO
 const etiquetasRouter = require('./routes/etiquetas');
 const acrescimosRouter = require('./routes/acrescimos');
 
 // ============================================
-// REGISTRAR ROTAS (NOMES CORRETOS!)
+// REGISTRAR ROTAS
 // ============================================
-app.use('/api/auth', authRouter);           // ← CORRIGIDO
-app.use('/api/usuarios', usuariosRouter);   // ← CORRIGIDO
-app.use('/api/prescricoes', prescricoesRouter); // ← CORRIGIDO
-app.use('/api/auditoria', auditoriaRouter); // ← ADICIONADO
-app.use('/api/pacientes', pacientesRouter); // ← CORRIGIDO (movido)
-app.use('/api/leitos', leitosRouter);       // ← CORRIGIDO (movido)
-app.use('/api/dietas', dietasRouter);       // ← CORRIGIDO (movido)
-app.use('/api/etiquetas', etiquetasRouter); // ← CORRIGIDO
+app.use('/api/auth', authRouter);
+app.use('/api/usuarios', usuariosRouter);
+app.use('/api/prescricoes', prescricoesRouter);
+app.use('/api/auditoria', auditoriaRouter);
+app.use('/api/pacientes', pacientesRouter);
+app.use('/api/leitos', leitosRouter);
+app.use('/api/dietas', dietasRouter);
+app.use('/api/restricoes', restricoesRouter);  // ← NOVO
+app.use('/api/etiquetas', etiquetasRouter);
 app.use('/api/acrescimos', acrescimosRouter);
 
 // Testar conexão ao iniciar
 testarConexao();
 
-// Rotas de pacientes
-const pacientesRoutes = require('./routes/pacientes');
-app.use('/api/pacientes', pacientesRoutes);
+/**
+ * GET /api/teste - Endpoint de teste
+ */
+app.get('/api/teste', async (req, res) => {
+  res.json({
+    sucesso: true,
+    mensagem: 'API funcionando!',
+    timestamp: new Date().toISOString()
+  });
+});
+
+/**
+ * GET /api/status - Status do sistema
+ */
+app.get('/api/status', async (req, res) => {
+  try {
+    const [result] = await pool.query('SELECT 1');
+    const bancoOk = result ? true : false;
+    
+    const [pacientes] = await pool.query(
+      'SELECT COUNT(*) AS total FROM pacientes WHERE ativo = TRUE AND data_alta IS NULL'
+    );
+    const [leitos] = await pool.query('SELECT COUNT(*) AS total FROM leitos WHERE ativo = TRUE');
+    const [dietas] = await pool.query('SELECT COUNT(*) AS total FROM dietas WHERE ativa = TRUE');
+    const [restricoes] = await pool.query('SELECT COUNT(*) AS total FROM restricoes_alimentares WHERE ativa = TRUE');  // ← NOVO
+    
+    res.json({
+      sucesso: true,
+      status: 'online',
+      banco: bancoOk ? 'conectado' : 'desconectado',
+      estatisticas: {
+        pacientes_ativos: pacientes[0].total,
+        leitos_cadastrados: leitos[0].total,
+        dietas_disponiveis: dietas[0].total,
+        restricoes_disponiveis: restricoes[0].total  // ← NOVO
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (erro) {
+    res.status(500).json({
+      sucesso: false,
+      status: 'erro',
+      erro: erro.message
+    });
+  }
+});
 
 // ============================================
 // INICIAR SERVIDOR

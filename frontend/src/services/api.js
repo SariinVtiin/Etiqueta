@@ -548,3 +548,98 @@ export const obterEstatisticasAcrescimos = async () => {
   }
   return response.json();
 };
+
+// Adicionar estas funções ao arquivo frontend/src/services/api.js
+
+// ====================================
+// FUNÇÕES DE RESTRIÇÕES ALIMENTARES
+// ====================================
+
+/**
+ * Listar todas as restrições (ativas ou todas)
+ */
+export const listarRestricoes = async (todas = false) => {
+  const url = todas ? `${API_URL}/restricoes?todas=true` : `${API_URL}/restricoes`;
+  const response = await fetch(url, fetchConfigAuth());
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao listar restrições');
+  }
+  return response.json();
+};
+
+/**
+ * Buscar restrição por ID
+ */
+export const buscarRestricao = async (id) => {
+  const response = await fetch(`${API_URL}/restricoes/${id}`, fetchConfigAuth());
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao buscar restrição');
+  }
+  return response.json();
+};
+
+/**
+ * Criar nova restrição
+ */
+export const criarRestricao = async (restricao) => {
+  const response = await fetch(`${API_URL}/restricoes`, {
+    ...fetchConfigAuth(),
+    method: 'POST',
+    body: JSON.stringify(restricao)
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao criar restrição');
+  }
+  return response.json();
+};
+
+/**
+ * Atualizar restrição
+ */
+export const atualizarRestricao = async (id, restricao) => {
+  const response = await fetch(`${API_URL}/restricoes/${id}`, {
+    ...fetchConfigAuth(),
+    method: 'PUT',
+    body: JSON.stringify(restricao)
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao atualizar restrição');
+  }
+  return response.json();
+};
+
+/**
+ * Ativar/Desativar restrição
+ */
+export const toggleRestricaoAtiva = async (id, ativa) => {
+  const response = await fetch(`${API_URL}/restricoes/${id}/toggle`, {
+    ...fetchConfigAuth(),
+    method: 'PATCH',
+    body: JSON.stringify({ ativa })
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao alterar status da restrição');
+  }
+  return response.json();
+};
+
+/**
+ * Reordenar restrições
+ */
+export const reordenarRestricoes = async (restricoes) => {
+  const response = await fetch(`${API_URL}/restricoes/reordenar`, {
+    ...fetchConfigAuth(),
+    method: 'POST',
+    body: JSON.stringify({ restricoes })
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao reordenar restrições');
+  }
+  return response.json();
+};
