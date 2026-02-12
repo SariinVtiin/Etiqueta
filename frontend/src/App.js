@@ -8,7 +8,6 @@ import NovaPrescricao from './pages/NovaPrescricao';
 import Cadastros from './pages/Cadastros';
 import GestaoUsuarios from './pages/GestaoUsuarios';
 import GestaoDietas from './pages/GestaoDietas';
-import PreviewEtiquetas from './pages/PreviewEtiquetas';
 import CentroNotificacoes from './components/common/CentroNotificacoes';
 import { listarLeitos, listarDietas } from './services/api';
 import './App.css';
@@ -306,11 +305,6 @@ function AppContent() {
         />
       )}
 
-      {telaAtual === 'preview' && (
-        <PreviewEtiquetas
-          voltar={irParaNovaPrescricao}
-        />
-      )}
     </div>
   );
 }

@@ -340,6 +340,12 @@
   border-radius: 8px;
 }
 
+.paginacao-info {
+  font-size: 14px;
+  color: #495057;
+  font-weight: 500;
+}
+
 .paginacao-botoes {
   display: flex;
   gap: 10px;
