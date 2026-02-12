@@ -1,10 +1,10 @@
-// frontend/src/contexts/AuthContext.jsx - VERSÃO CORRIGIDA COM IP
+// frontend/src/contexts/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext({});
 
-// ⚠️ IMPORTANTE: Configure a URL da API aqui
-const API_URL = 'http://177.207.236.78:3001'; // ← AJUSTE ESTE IP/PORTA CONFORME SEU BACKEND
+// URL da API - AJUSTE CONFORME SEU BACKEND
+const API_URL = 'http://177.207.236.78:3001';
 
 export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
@@ -33,7 +33,6 @@ export const AuthProvider = ({ children }) => {
           setUsuario(data.usuario);
           setToken(tokenSalvo);
         } else {
-          // Token inválido
           localStorage.removeItem('token');
           setToken(null);
         }
@@ -65,7 +64,6 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.erro || 'Erro ao fazer login');
       }
 
-      // Salvar token
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setUsuario(data.usuario);
