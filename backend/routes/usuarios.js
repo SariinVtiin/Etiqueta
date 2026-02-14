@@ -1,5 +1,5 @@
 // backend/routes/usuarios.js
-// VERSÃO SEM DEPENDÊNCIA DE COLUNAS DE DATA
+// SEGURANÇA: Senha mínima de 8 caracteres
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
@@ -8,13 +8,11 @@ const { autenticar, verificarRole } = require('./auth');
 
 /**
  * GET /api/usuarios - Listar todos os usuários (apenas admin)
- * CORRIGIDO: SEM usar colunas de data que podem não existir
  */
 router.get('/', autenticar, verificarRole(['admin']), async (req, res) => {
   try {
     const { busca } = req.query;
     
-    // APENAS colunas essenciais - SEM datas
     let query = 'SELECT id, nome, email, role, ativo FROM usuarios WHERE 1=1';
     const params = [];
 
@@ -24,7 +22,6 @@ router.get('/', autenticar, verificarRole(['admin']), async (req, res) => {
       params.push(buscaParam, buscaParam);
     }
 
-    // Ordenar por ID (mais recente = maior ID)
     query += ' ORDER BY id DESC';
 
     const [usuarios] = await pool.query(query, params);
@@ -65,6 +62,14 @@ router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
       });
     }
 
+    // SEGURANÇA: Senha mínima de 8 caracteres
+    if (senha.length < 8) {
+      return res.status(400).json({ 
+        sucesso: false, 
+        erro: 'A senha deve ter no mínimo 8 caracteres' 
+      });
+    }
+
     // Verificar se email já existe
     const [usuariosExistentes] = await pool.query(
       'SELECT id FROM usuarios WHERE email = ?',
@@ -81,7 +86,7 @@ router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
     // Hash da senha
     const senhaHash = await bcrypt.hash(senha, 10);
     
-    // Inserir usuário (apenas colunas essenciais)
+    // Inserir usuário
     const [result] = await pool.query(
       'INSERT INTO usuarios (nome, email, senha, role) VALUES (?, ?, ?, ?)',
       [nome, email, senhaHash, role]
@@ -90,7 +95,7 @@ router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
     res.status(201).json({ 
       sucesso: true, 
       mensagem: 'Usuário criado com sucesso',
-      id: result.insertId
+      usuario: { id: result.insertId, nome, email, role }
     });
   } catch (erro) {
     console.error('Erro ao criar usuário:', erro);
@@ -109,7 +114,6 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
     const { id } = req.params;
     const { nome, email, role } = req.body;
     
-    // Validações
     if (!nome || !email || !role) {
       return res.status(400).json({ 
         sucesso: false, 
@@ -117,14 +121,7 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
       });
     }
 
-    if (!['admin', 'nutricionista'].includes(role)) {
-      return res.status(400).json({ 
-        sucesso: false, 
-        erro: 'Role inválido' 
-      });
-    }
-
-    // Verificar se email já existe em outro usuário
+    // Verificar se email já existe para outro usuário
     const [emailExistente] = await pool.query(
       'SELECT id FROM usuarios WHERE email = ? AND id != ?',
       [email, id]
@@ -133,11 +130,10 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
     if (emailExistente.length > 0) {
       return res.status(409).json({ 
         sucesso: false, 
-        erro: 'Email já cadastrado para outro usuário' 
+        erro: 'Email já está sendo usado por outro usuário' 
       });
     }
 
-    // Atualizar usuário
     const [result] = await pool.query(
       'UPDATE usuarios SET nome = ?, email = ?, role = ? WHERE id = ?',
       [nome, email, role, id]
@@ -164,21 +160,12 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
 });
 
 /**
- * DELETE /api/usuarios/:id - Desativar usuário (apenas admin)
+ * POST /api/usuarios/:id/desativar - Desativar usuário (apenas admin)
  */
-router.delete('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
+router.post('/:id/desativar', autenticar, verificarRole(['admin']), async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Não permitir que admin delete a si mesmo
-    if (parseInt(id) === req.usuario.id) {
-      return res.status(403).json({ 
-        sucesso: false, 
-        erro: 'Você não pode desativar sua própria conta' 
-      });
-    }
-
-    // Desativar usuário (soft delete)
     const [result] = await pool.query(
       'UPDATE usuarios SET ativo = FALSE WHERE id = ?',
       [id]
@@ -212,17 +199,16 @@ router.post('/:id/resetar-senha', autenticar, verificarRole(['admin']), async (r
     const { id } = req.params;
     const { novaSenha } = req.body;
     
-    if (!novaSenha || novaSenha.length < 6) {
+    // SEGURANÇA: Senha mínima de 8 caracteres
+    if (!novaSenha || novaSenha.length < 8) {
       return res.status(400).json({ 
         sucesso: false, 
-        erro: 'Nova senha deve ter pelo menos 6 caracteres' 
+        erro: 'Nova senha deve ter pelo menos 8 caracteres' 
       });
     }
 
-    // Hash da nova senha
     const senhaHash = await bcrypt.hash(novaSenha, 10);
     
-    // Atualizar senha
     const [result] = await pool.query(
       'UPDATE usuarios SET senha = ? WHERE id = ?',
       [senhaHash, id]
@@ -255,7 +241,6 @@ router.post('/:id/ativar', autenticar, verificarRole(['admin']), async (req, res
   try {
     const { id } = req.params;
     
-    // Ativar usuário
     const [result] = await pool.query(
       'UPDATE usuarios SET ativo = TRUE WHERE id = ?',
       [id]

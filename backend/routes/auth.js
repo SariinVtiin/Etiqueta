@@ -5,13 +5,33 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
 
-// Chave secreta JWT (em produção, colocar no .env)
+// ===== RATE LIMITING PARA LOGIN =====
+// Proteção contra brute force: máx 5 tentativas por IP a cada 15 minutos
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 5,                    // máx 5 tentativas por janela
+  message: {
+    sucesso: false,
+    erro: 'Muitas tentativas de login. Tente novamente em 15 minutos.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Identificar por IP
+  keyGenerator: (req) => {
+    return req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  }
+});
+
+// Chave secreta JWT
 const JWT_SECRET = process.env.JWT_SECRET || 'sua_chave_secreta_aqui_mude_em_producao';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 /**
- * POST /api/auth/login - Login
+ * POST /api/auth/login - Login (com rate limiting)
  */
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   try {
     const { email, senha } = req.body;
 
@@ -51,7 +71,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign(
       { id: usuario.id, email: usuario.email, role: usuario.role },
       JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }  // ← era '8h' hardcoded
+      { expiresIn: JWT_EXPIRES_IN }
     );
 
     // Atualizar último login
@@ -129,8 +149,6 @@ router.get('/me', async (req, res) => {
  * POST /api/auth/logout - Logout
  */
 router.post('/logout', (req, res) => {
-  // No sistema JWT stateless, o logout é feito no frontend
-  // removendo o token do localStorage
   res.json({ 
     sucesso: true,
     mensagem: 'Logout realizado com sucesso' 

@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import './Login.css';
 
 function Login() {
-  const { login, autenticado } = useAuth(); // ← MUDANÇA 1: Adiciona autenticado
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     senha: ''
@@ -18,13 +18,6 @@ function Login() {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // ← MUDANÇA 2: Adiciona monitoramento de autenticação
-  useEffect(() => {
-    if (autenticado) {
-      console.log('🎉 Usuário autenticado! Redirecionando para o Dashboard...');
-    }
-  }, [autenticado]);
 
   const handleChange = (e) => {
     setFormData({
@@ -46,13 +39,13 @@ function Login() {
     }
 
     const resultado = await login(formData.email, formData.senha);
-    
+
     if (!resultado.sucesso) {
       setErro(resultado.erro);
-      setCarregando(false); // ← Só para o spinner se der erro
+      setCarregando(false);
     }
-    // ← MUDANÇA 3: Não chama setCarregando(false) se login bem-sucedido
-    // O spinner continua mostrando até redirecionar
+    // Se sucesso, AuthContext atualiza o estado → App.js re-renderiza automaticamente
+    // O spinner continua mostrando até a tela trocar
   };
 
   return (
