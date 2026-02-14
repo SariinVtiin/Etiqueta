@@ -643,3 +643,94 @@ export const reordenarRestricoes = async (restricoes) => {
   }
   return response.json();
 };
+
+// ====================================
+// COLAR ESTAS FUNÇÕES NO FINAL DO api.js
+// (antes do último export ou no final do arquivo)
+// ====================================
+
+// ====================================
+// FUNÇÕES DE LEITOS - GESTÃO COMPLETA
+// ====================================
+
+/**
+ * Listar leitos (ativos ou todos)
+ * NOTA: a função listarLeitos() já existe. Substituir por esta versão que aceita parâmetro.
+ */
+export const listarLeitosCompleto = async (todas = false) => {
+  const url = todas ? `${API_URL}/leitos?todas=true` : `${API_URL}/leitos`;
+  const response = await fetch(url, fetchConfigAuth());
+  return handleResponse(response);
+};
+
+/**
+ * Listar setores únicos
+ */
+export const listarSetores = async () => {
+  const response = await fetch(`${API_URL}/leitos/setores`, fetchConfigAuth());
+  return handleResponse(response);
+};
+
+/**
+ * Criar novo leito
+ */
+export const criarLeito = async (leito) => {
+  const response = await fetch(`${API_URL}/leitos`, {
+    ...fetchConfigAuth(),
+    method: 'POST',
+    body: JSON.stringify(leito)
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao criar leito');
+  }
+  return response.json();
+};
+
+/**
+ * Criar leitos em lote
+ */
+export const criarLeitosLote = async (dados) => {
+  const response = await fetch(`${API_URL}/leitos/lote`, {
+    ...fetchConfigAuth(),
+    method: 'POST',
+    body: JSON.stringify(dados)
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao criar leitos em lote');
+  }
+  return response.json();
+};
+
+/**
+ * Atualizar leito
+ */
+export const atualizarLeito = async (id, leito) => {
+  const response = await fetch(`${API_URL}/leitos/${id}`, {
+    ...fetchConfigAuth(),
+    method: 'PUT',
+    body: JSON.stringify(leito)
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao atualizar leito');
+  }
+  return response.json();
+};
+
+/**
+ * Ativar/Desativar leito
+ */
+export const toggleLeitoAtivo = async (id, ativo) => {
+  const response = await fetch(`${API_URL}/leitos/${id}/toggle`, {
+    ...fetchConfigAuth(),
+    method: 'PATCH',
+    body: JSON.stringify({ ativo })
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao alterar status do leito');
+  }
+  return response.json();
+};

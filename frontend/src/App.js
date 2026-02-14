@@ -10,6 +10,7 @@ import Prescricoes from './pages/Prescricoes/Prescricoes';
 import Cadastros from './pages/Cadastros/Cadastros';
 import GestaoUsuarios from './pages/GestaoUsuarios/GestaoUsuarios';
 import GestaoDietas from './pages/GestaoDietas/GestaoDietas';
+import GestaoLeitos from './pages/GestaoLeitos/GestaoLeitos';
 import GestaoRestricoes from './pages/GestaoRestricoes/GestaoRestricoes';
 import CentroNotificacoes from './components/common/CentroNotificacoes/CentroNotificacoes';
 import { listarLeitos, listarDietas, listarRestricoes } from './services/api';
@@ -171,6 +172,14 @@ function App() {
     setTelaAtual('gestaoRestricoes');
   }, [isAdmin]);
 
+  const irParaGestaoLeitos = useCallback(() => {
+    if (!isAdmin()) {
+      alert('Acesso negado! Apenas administradores podem gerenciar leitos.');
+      return;
+    }
+    setTelaAtual('gestaoLeitos');
+  }, [isAdmin]);
+
   // ============================================
   // CALLBACKS PARA ATUALIZAR DADOS
   // ============================================
@@ -196,7 +205,24 @@ function App() {
     }
   };
 
-  // ✅ Removido: adicionarEtiqueta, removerEtiqueta, editarEtiqueta
+  const handleLeitosAlterados = async () => {
+    try {
+      const respostaLeitos = await listarLeitos();
+      if (respostaLeitos.sucesso) {
+        const leitosPorNucleo = {};
+        respostaLeitos.leitos.forEach(leito => {
+          const setor = leito.setor || 'SEM SETOR';
+          if (!leitosPorNucleo[setor]) {
+            leitosPorNucleo[setor] = [];
+          }
+          leitosPorNucleo[setor].push(leito.numero);
+        });
+        setNucleos(leitosPorNucleo);
+      }
+    } catch (erro) {
+      console.error('Erro ao atualizar leitos:', erro);
+    }
+  };
 
   // Logout com confirmação
   const handleLogout = () => {
@@ -271,7 +297,7 @@ function App() {
           </button>
           {isAdmin() && (
             <button
-              className={`menu-btn ${telaAtual === 'cadastros' || telaAtual === 'gestaoUsuarios' || telaAtual === 'gestaoDietas' || telaAtual === 'gestaoRestricoes' ? 'active' : ''}`}
+              className={`menu-btn ${telaAtual === 'cadastros' || telaAtual === 'gestaoUsuarios' || telaAtual === 'gestaoDietas' || telaAtual === 'gestaoRestricoes' || telaAtual === 'gestaoLeitos' ? 'active' : ''}`}
               onClick={irParaCadastros}
             >
               {Icons.settings}
@@ -338,6 +364,7 @@ function App() {
           irParaGestaoUsuarios={irParaGestaoUsuarios}
           irParaGestaoDietas={irParaGestaoDietas}
           irParaGestaoRestricoes={irParaGestaoRestricoes}
+          irParaGestaoLeitos={irParaGestaoLeitos}
         />
       )}
 
@@ -358,6 +385,14 @@ function App() {
           onRestricoesCriadas={handleRestricoesCriadas}
         />
       )}
+
+      {telaAtual === 'gestaoLeitos' && (
+        <GestaoLeitos
+          voltar={irParaCadastros}
+          onLeitosAlterados={handleLeitosAlterados}
+        />
+      )}
+
     </div>
   );
 }

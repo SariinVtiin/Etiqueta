@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import ImportarAcrescimos from '../../components/configuracoes/ImportarAcrescimos';
 import './Cadastros.css';
 
-function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGestaoRestricoes }) {
+function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGestaoRestricoes, irParaGestaoLeitos }) {
   const [mostrarImportacao, setMostrarImportacao] = useState(false);
 
   if (mostrarImportacao) {
@@ -39,11 +39,11 @@ function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGes
         </div>
 
         {/* Setores e Leitos */}
-        <div className="cadastro-card disabled">
+        <div className="cadastro-card" onClick={irParaGestaoLeitos}>
           <div className="card-icon">🏥</div>
-          <h3>Setores e Leitos</h3>
+          <h3>Setores e Leitos</h3>     
           <p>Gerenciar setores hospitalares e leitos</p>
-          <button className="card-button" disabled>Em Breve</button>
+          <button className="card-button">Acessar</button>
         </div>
 
         {/* Tipos de Dieta */}

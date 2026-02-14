@@ -1,0 +1,574 @@
+/* frontend/src/pages/GestaoLeitos/GestaoLeitos.css */
+
+/* ============================================ */
+/* CONTAINER */
+/* ============================================ */
+.gl-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px;
+}
+
+/* ============================================ */
+/* HEADER */
+/* ============================================ */
+.gl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding: 20px 25px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.gl-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #0d9488;
+  font-weight: 600;
+}
+
+.gl-btn-voltar {
+  padding: 10px 20px;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gl-btn-voltar:hover {
+  background: #e5e7eb;
+  transform: translateX(-3px);
+}
+
+/* ============================================ */
+/* BARRA DE AÇÕES */
+/* ============================================ */
+.gl-acoes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.gl-acoes-esquerda {
+  display: flex;
+  gap: 10px;
+}
+
+.gl-acoes-direita {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.gl-btn-novo {
+  padding: 10px 20px;
+  background: #0d9488;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gl-btn-novo:hover {
+  background: #0f766e;
+  transform: translateY(-1px);
+}
+
+.gl-btn-lote {
+  padding: 10px 20px;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gl-btn-lote:hover {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.gl-busca {
+  padding: 10px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  min-width: 220px;
+  transition: border-color 0.2s;
+}
+
+.gl-busca:focus {
+  outline: none;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.gl-select-setor {
+  padding: 10px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  min-width: 180px;
+}
+
+.gl-select-setor:focus {
+  outline: none;
+  border-color: #0d9488;
+}
+
+.gl-filtros {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+  color: #374151;
+}
+
+.gl-filtros label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+/* ============================================ */
+/* RESUMO */
+/* ============================================ */
+.gl-resumo {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.gl-resumo-item {
+  background: white;
+  border-radius: 10px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid #f1f5f9;
+}
+
+.gl-resumo-valor {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0d9488;
+}
+
+.gl-resumo-label {
+  font-size: 0.8125rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ============================================ */
+/* VAZIO */
+/* ============================================ */
+.gl-vazio {
+  text-align: center;
+  padding: 80px 40px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.gl-vazio p {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+.gl-carregando {
+  text-align: center;
+  padding: 60px;
+  font-size: 20px;
+  color: #64748b;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* ============================================ */
+/* LISTA DE SETORES */
+/* ============================================ */
+.gl-setores-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.gl-setor-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.gl-setor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  border-bottom: 1px solid #99f6e4;
+}
+
+.gl-setor-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gl-setor-info h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.gl-setor-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0d9488;
+  background: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.gl-setor-andar {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* ============================================ */
+/* GRID DE LEITOS (CHIPS) */
+/* ============================================ */
+.gl-leitos-grid {
+  padding: 20px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.gl-leito-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.gl-leito-chip:hover {
+  border-color: #0d9488;
+  background: #f0fdfa;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.1);
+}
+
+.gl-leito-chip.gl-inativo {
+  opacity: 0.5;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.gl-leito-numero {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  min-width: 40px;
+}
+
+.gl-leito-acoes {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.gl-leito-chip:hover .gl-leito-acoes {
+  opacity: 1;
+}
+
+.gl-chip-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  line-height: 1;
+}
+
+.gl-chip-btn:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* ============================================ */
+/* MODAL */
+/* ============================================ */
+.gl-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.gl-modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: glModalIn 0.2s ease;
+}
+
+@keyframes glModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.gl-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.gl-modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #0f766e;
+}
+
+.gl-modal-fechar {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  color: #94a3b8;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.gl-modal-fechar:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.gl-modal-form {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.gl-campo label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gl-campo input,
+.gl-campo select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.gl-campo input:focus,
+.gl-campo select:focus {
+  outline: none;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.gl-campo small {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.gl-campo-duplo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.gl-lote-preview {
+  padding: 12px 16px;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0f766e;
+  text-align: center;
+}
+
+.gl-lote-preview strong {
+  color: #0d9488;
+  font-size: 16px;
+}
+
+.gl-lote-erro {
+  color: #dc2626 !important;
+}
+
+.gl-modal-acoes {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+.gl-btn-cancelar {
+  padding: 10px 20px;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gl-btn-cancelar:hover {
+  background: #e5e7eb;
+}
+
+.gl-btn-salvar {
+  padding: 10px 24px;
+  background: #0d9488;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gl-btn-salvar:hover {
+  background: #0f766e;
+}
+
+/* ============================================ */
+/* RESPONSIVO */
+/* ============================================ */
+@media (max-width: 768px) {
+  .gl-container {
+    padding: 20px 15px;
+  }
+
+  .gl-header {
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px 20px;
+  }
+
+  .gl-acoes {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gl-acoes-esquerda,
+  .gl-acoes-direita {
+    flex-wrap: wrap;
+  }
+
+  .gl-busca {
+    min-width: 100%;
+  }
+
+  .gl-select-setor {
+    min-width: 100%;
+  }
+
+  .gl-resumo {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .gl-campo-duplo {
+    grid-template-columns: 1fr;
+  }
+
+  .gl-leitos-grid {
+    padding: 16px;
+    gap: 8px;
+  }
+
+  .gl-leito-acoes {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .gl-header h1 {
+    font-size: 20px;
+  }
+
+  .gl-modal {
+    max-width: 100%;
+    margin: 10px;
+  }
+}
