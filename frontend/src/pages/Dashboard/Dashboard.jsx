@@ -1,4 +1,5 @@
 // frontend/src/pages/Dashboard/Dashboard.jsx
+// ✅ MELHORADO: Visual profissional, dados mais relevantes, melhor UX
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { listarPrescricoes } from '../../services/api';
@@ -18,6 +19,12 @@ const Icons = {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
       <polyline points="17 6 23 6 23 12"/>
+    </svg>
+  ),
+  trendingDown: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+      <polyline points="17 18 23 18 23 12"/>
     </svg>
   ),
   barChart: (
@@ -51,12 +58,16 @@ const Icons = {
       <polyline points="12 6 12 12 16 14"/>
     </svg>
   ),
-  users: (
+  building: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-      <circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
+      <path d="M9 22v-4h6v4"/>
+      <line x1="8" y1="6" x2="8" y2="6"/>
+      <line x1="16" y1="6" x2="16" y2="6"/>
+      <line x1="8" y1="10" x2="8" y2="10"/>
+      <line x1="16" y1="10" x2="16" y2="10"/>
+      <line x1="8" y1="14" x2="8" y2="14"/>
+      <line x1="16" y1="14" x2="16" y2="14"/>
     </svg>
   ),
   utensils: (
@@ -66,19 +77,12 @@ const Icons = {
       <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
     </svg>
   ),
-  building: (
+  users: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
-      <path d="M9 22v-4h6v4"/>
-      <path d="M8 6h.01"/>
-      <path d="M16 6h.01"/>
-      <path d="M12 6h.01"/>
-      <path d="M12 10h.01"/>
-      <path d="M12 14h.01"/>
-      <path d="M16 10h.01"/>
-      <path d="M16 14h.01"/>
-      <path d="M8 10h.01"/>
-      <path d="M8 14h.01"/>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
     </svg>
   ),
   bed: (
@@ -100,6 +104,19 @@ const Icons = {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12"/>
     </svg>
+  ),
+  alertTriangle: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  ),
+  refresh: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 4 23 10 17 10"/>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+    </svg>
   )
 };
 
@@ -107,14 +124,19 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
   const { usuario } = useAuth();
   const [estatisticas, setEstatisticas] = useState({
     totalHoje: 0,
+    totalOntem: 0,
     totalSemana: 0,
     totalMes: 0,
     porSetor: {},
     porDieta: {},
-    ultimasPrescricoes: []
+    porRefeicao: {},
+    ultimasPrescricoes: [],
+    pacientesUnicos: 0,
+    setoresAtivos: 0
   });
   const [carregando, setCarregando] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [atualizadoEm, setAtualizadoEm] = useState(null);
 
   useEffect(() => {
     setMounted(true);
@@ -128,6 +150,10 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
       const hoje = new Date();
       const hojeStr = hoje.toISOString().split('T')[0];
 
+      const ontem = new Date(hoje);
+      ontem.setDate(hoje.getDate() - 1);
+      const ontemStr = ontem.toISOString().split('T')[0];
+
       const inicioSemana = new Date(hoje);
       inicioSemana.setDate(hoje.getDate() - hoje.getDay());
       const inicioSemanaStr = inicioSemana.toISOString().split('T')[0];
@@ -135,47 +161,53 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
       const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
       const inicioMesStr = inicioMes.toISOString().split('T')[0];
 
-      const respostaHoje = await listarPrescricoes({
-        dataInicio: hojeStr,
-        dataFim: hojeStr,
-        limit: 100
-      });
+      const [respostaHoje, respostaOntem, respostaSemana, respostaMes, respostaRecentes] = await Promise.all([
+        listarPrescricoes({ dataInicio: hojeStr, dataFim: hojeStr, limit: 100 }),
+        listarPrescricoes({ dataInicio: ontemStr, dataFim: ontemStr, limit: 100 }),
+        listarPrescricoes({ dataInicio: inicioSemanaStr, limit: 100 }),
+        listarPrescricoes({ dataInicio: inicioMesStr, limit: 100 }),
+        listarPrescricoes({ limit: 8 })
+      ]);
 
-      const respostaSemana = await listarPrescricoes({
-        dataInicio: inicioSemanaStr,
-        limit: 100
-      });
-
-      const respostaMes = await listarPrescricoes({
-        dataInicio: inicioMesStr,
-        limit: 100
-      });
-
-      const respostaRecentes = await listarPrescricoes({
-        limit: 5
-      });
-
+      // Agrupar por setor
       const porSetor = {};
       respostaMes.prescricoes?.forEach(p => {
         const setor = p.nucleo || 'Sem setor';
         porSetor[setor] = (porSetor[setor] || 0) + 1;
       });
 
+      // Agrupar por dieta
       const porDieta = {};
       respostaMes.prescricoes?.forEach(p => {
         const dieta = p.dieta || 'Sem dieta';
         porDieta[dieta] = (porDieta[dieta] || 0) + 1;
       });
 
+      // Agrupar por refeição
+      const porRefeicao = {};
+      respostaMes.prescricoes?.forEach(p => {
+        const refeicao = p.tipo_alimentacao || 'Outro';
+        porRefeicao[refeicao] = (porRefeicao[refeicao] || 0) + 1;
+      });
+
+      // Pacientes únicos hoje
+      const cpfsHoje = new Set();
+      respostaHoje.prescricoes?.forEach(p => cpfsHoje.add(p.cpf));
+
       setEstatisticas({
         totalHoje: respostaHoje.paginacao?.total || 0,
+        totalOntem: respostaOntem.paginacao?.total || 0,
         totalSemana: respostaSemana.paginacao?.total || 0,
         totalMes: respostaMes.paginacao?.total || 0,
         porSetor,
         porDieta,
-        ultimasPrescricoes: respostaRecentes.prescricoes || []
+        porRefeicao,
+        ultimasPrescricoes: respostaRecentes.prescricoes || [],
+        pacientesUnicos: cpfsHoje.size,
+        setoresAtivos: Object.keys(porSetor).length
       });
 
+      setAtualizadoEm(new Date());
     } catch (erro) {
       console.error('Erro ao carregar estatísticas:', erro);
     } finally {
@@ -183,6 +215,9 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
     }
   };
 
+  // ============================================
+  // HELPERS
+  // ============================================
   const formatarData = (dataString) => {
     const data = new Date(dataString);
     return data.toLocaleDateString('pt-BR');
@@ -204,6 +239,19 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
     return nomeCompleto.split(' ')[0];
   };
 
+  const calcularVariacao = (atual, anterior) => {
+    if (anterior === 0) return atual > 0 ? 100 : 0;
+    return Math.round(((atual - anterior) / anterior) * 100);
+  };
+
+  const mediaDiaria = () => {
+    const diasNoMes = new Date().getDate();
+    return diasNoMes > 0 ? Math.round(estatisticas.totalMes / diasNoMes) : 0;
+  };
+
+  // ============================================
+  // RENDER
+  // ============================================
   if (carregando) {
     return (
       <div className="dashboard-page">
@@ -214,6 +262,8 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
       </div>
     );
   }
+
+  const variacao = calcularVariacao(estatisticas.totalHoje, estatisticas.totalOntem);
 
   return (
     <div className={`dashboard-page ${mounted ? 'mounted' : ''}`}>
@@ -226,14 +276,19 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
               {usuario.role === 'admin' ? 'Administrador' : 'Nutricionista'} · Sistema de Nutrição Hospitalar
             </p>
           </div>
-          <div className="header-date">
-            <span className="date-icon">{Icons.calendar}</span>
-            <span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+          <div className="header-right">
+            <button className="btn-atualizar-dash" onClick={carregarEstatisticas} title="Atualizar dados">
+              {Icons.refresh}
+            </button>
+            <div className="header-date">
+              <span className="date-icon">{Icons.calendar}</span>
+              <span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Cards de Estatísticas */}
+      {/* Cards de Estatísticas Principais */}
       <section className="stats-section">
         <div className="stats-grid">
           <div className="stat-card stat-today">
@@ -245,6 +300,12 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
               <span className="stat-value">{estatisticas.totalHoje}</span>
               <span className="stat-desc">prescrições</span>
             </div>
+            {variacao !== 0 && (
+              <div className={`stat-badge ${variacao >= 0 ? 'badge-up' : 'badge-down'}`}>
+                {variacao >= 0 ? Icons.trendingUp : Icons.trendingDown}
+                <span>{variacao > 0 ? '+' : ''}{variacao}%</span>
+              </div>
+            )}
           </div>
 
           <div className="stat-card stat-week">
@@ -271,7 +332,41 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
         </div>
       </section>
 
-      {/* Cards de Ação Rápida */}
+      {/* Mini Cards - Métricas Secundárias */}
+      <section className="mini-stats-section">
+        <div className="mini-stats-grid">
+          <div className="mini-stat-card">
+            <div className="mini-stat-icon icon-pacientes">{Icons.users}</div>
+            <div className="mini-stat-info">
+              <span className="mini-stat-value">{estatisticas.pacientesUnicos}</span>
+              <span className="mini-stat-label">Pacientes hoje</span>
+            </div>
+          </div>
+          <div className="mini-stat-card">
+            <div className="mini-stat-icon icon-setores">{Icons.building}</div>
+            <div className="mini-stat-info">
+              <span className="mini-stat-value">{estatisticas.setoresAtivos}</span>
+              <span className="mini-stat-label">Setores ativos</span>
+            </div>
+          </div>
+          <div className="mini-stat-card">
+            <div className="mini-stat-icon icon-media">{Icons.barChart}</div>
+            <div className="mini-stat-info">
+              <span className="mini-stat-value">{mediaDiaria()}</span>
+              <span className="mini-stat-label">Média/dia mês</span>
+            </div>
+          </div>
+          <div className="mini-stat-card">
+            <div className="mini-stat-icon icon-ontem">{Icons.clock}</div>
+            <div className="mini-stat-info">
+              <span className="mini-stat-value">{estatisticas.totalOntem}</span>
+              <span className="mini-stat-label">Ontem</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Acesso Rápido */}
       <section className="actions-section">
         <h2 className="section-title">Acesso Rápido</h2>
         <div className="actions-grid">
@@ -322,19 +417,27 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
                 <div className="bar-chart">
                   {Object.entries(estatisticas.porSetor)
                     .sort((a, b) => b[1] - a[1])
-                    .slice(0, 5)
+                    .slice(0, 6)
                     .map(([setor, quantidade], index) => {
                       const maxValue = Math.max(...Object.values(estatisticas.porSetor));
                       const percentage = (quantidade / maxValue) * 100;
+                      const percentTotal = estatisticas.totalMes > 0 
+                        ? Math.round((quantidade / estatisticas.totalMes) * 100) 
+                        : 0;
                       return (
                         <div key={setor} className="bar-item" style={{ '--delay': `${index * 0.1}s` }}>
-                          <div className="bar-label">{setor}</div>
+                          <div className="bar-header">
+                            <div className="bar-label">{setor}</div>
+                            <div className="bar-stats">
+                              <span className="bar-count">{quantidade}</span>
+                              <span className="bar-percent">{percentTotal}%</span>
+                            </div>
+                          </div>
                           <div className="bar-track">
                             <div 
                               className="bar-fill"
                               style={{ '--width': `${percentage}%` }}
                             />
-                            <span className="bar-value">{quantidade}</span>
                           </div>
                         </div>
                       );
@@ -360,19 +463,27 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
                 <div className="bar-chart">
                   {Object.entries(estatisticas.porDieta)
                     .sort((a, b) => b[1] - a[1])
-                    .slice(0, 5)
+                    .slice(0, 6)
                     .map(([dieta, quantidade], index) => {
                       const maxValue = Math.max(...Object.values(estatisticas.porDieta));
                       const percentage = (quantidade / maxValue) * 100;
+                      const percentTotal = estatisticas.totalMes > 0 
+                        ? Math.round((quantidade / estatisticas.totalMes) * 100) 
+                        : 0;
                       return (
                         <div key={dieta} className="bar-item" style={{ '--delay': `${index * 0.1}s` }}>
-                          <div className="bar-label">{dieta}</div>
+                          <div className="bar-header">
+                            <div className="bar-label">{dieta}</div>
+                            <div className="bar-stats">
+                              <span className="bar-count">{quantidade}</span>
+                              <span className="bar-percent">{percentTotal}%</span>
+                            </div>
+                          </div>
                           <div className="bar-track">
                             <div 
                               className="bar-fill bar-fill-secondary"
                               style={{ '--width': `${percentage}%` }}
                             />
-                            <span className="bar-value">{quantidade}</span>
                           </div>
                         </div>
                       );
@@ -382,7 +493,53 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
             </div>
           </div>
 
-          {/* Últimas Prescrições */}
+          {/* Distribuição por Refeição */}
+          <div className="data-card">
+            <div className="data-card-header">
+              <div className="data-card-icon icon-refeicao">{Icons.clock}</div>
+              <h3>Por Refeição</h3>
+              <span className="data-card-period">Este mês</span>
+            </div>
+            <div className="chart-container">
+              {Object.entries(estatisticas.porRefeicao).length === 0 ? (
+                <div className="empty-chart">
+                  <p>Nenhum dado disponível</p>
+                </div>
+              ) : (
+                <div className="refeicao-grid">
+                  {Object.entries(estatisticas.porRefeicao)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([refeicao, quantidade], index) => {
+                      const percentTotal = estatisticas.totalMes > 0 
+                        ? Math.round((quantidade / estatisticas.totalMes) * 100) 
+                        : 0;
+                      const emojiMap = {
+                        'Desjejum': '🌅', 'Colação': '🍎', 'Almoço': '🍽️',
+                        'Lanche': '🥪', 'Jantar': '🌙', 'Ceia': '🌛'
+                      };
+                      return (
+                        <div key={refeicao} className="refeicao-item" style={{ '--delay': `${index * 0.08}s` }}>
+                          <div className="refeicao-emoji">{emojiMap[refeicao] || '🍴'}</div>
+                          <div className="refeicao-info">
+                            <span className="refeicao-nome">{refeicao}</span>
+                            <span className="refeicao-count">{quantidade}</span>
+                          </div>
+                          <div className="refeicao-bar-mini">
+                            <div 
+                              className="refeicao-bar-fill"
+                              style={{ '--width': `${percentTotal}%` }}
+                            />
+                          </div>
+                          <span className="refeicao-percent">{percentTotal}%</span>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Atividade Recente */}
           <div className="data-card data-card-wide">
             <div className="data-card-header">
               <div className="data-card-icon">{Icons.clock}</div>
@@ -417,9 +574,14 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
                         Leito {prescricao.leito} · {prescricao.dieta} · {prescricao.tipo_alimentacao}
                       </span>
                     </div>
-                    <div className="recent-time">
-                      <span className="recent-date">{formatarData(prescricao.data_prescricao)}</span>
-                      <span className="recent-hour">{formatarHora(prescricao.data_prescricao)}</span>
+                    <div className="recent-meta">
+                      {prescricao.nucleo && (
+                        <span className="recent-setor">{prescricao.nucleo}</span>
+                      )}
+                      <div className="recent-time">
+                        <span className="recent-date">{formatarData(prescricao.data_prescricao)}</span>
+                        <span className="recent-hour">{formatarHora(prescricao.data_prescricao)}</span>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -435,6 +597,11 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
           <div className="info-header">
             <div className="info-icon">{Icons.info}</div>
             <h3>Informações Importantes</h3>
+            {atualizadoEm && (
+              <span className="info-atualizado">
+                Atualizado {atualizadoEm.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
           </div>
           <ul className="info-list">
             <li>
@@ -443,7 +610,7 @@ function Dashboard({ irParaPrescricoes, irParaNovaPrescricao }) {
             </li>
             <li>
               <span className="info-check">{Icons.check}</span>
-              Etiquetas são impressas pelo administrador do sistema
+              Etiquetas são impressas pela tela de prescrições
             </li>
             <li>
               <span className="info-check">{Icons.check}</span>

@@ -1,4 +1,5 @@
 // frontend/src/App.js
+// ✅ LIMPO: Removido sistema legado de etiquetas/localStorage
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { useAuth } from './contexts/AuthContext';
@@ -66,10 +67,8 @@ function App() {
   const [telaAtual, setTelaAtual] = useState('dashboard');
   const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
 
-  const [etiquetas, setEtiquetas] = useState(() => {
-    const saved = localStorage.getItem('etiquetas');
-    return saved ? JSON.parse(saved) : [];
-  });
+  // ✅ Removido: useState de etiquetas com localStorage
+  // ✅ Removido: useEffect de sync etiquetas → localStorage
 
   const [nucleos, setNucleos] = useState({});
   const [dietas, setDietas] = useState([]);
@@ -133,11 +132,9 @@ function App() {
     carregarDadosBD();
   }, [autenticado]);
 
-  useEffect(() => {
-    localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
-  }, [etiquetas]);
-
-  // Funções de navegação
+  // ============================================
+  // FUNÇÕES DE NAVEGAÇÃO
+  // ============================================
   const irParaDashboard = useCallback(() => setTelaAtual('dashboard'), []);
   const irParaPrescricoes = useCallback(() => setTelaAtual('prescricoes'), []);
   const irParaNovaPrescricao = useCallback(() => setTelaAtual('novaPrescricao'), []);
@@ -174,7 +171,9 @@ function App() {
     setTelaAtual('gestaoRestricoes');
   }, [isAdmin]);
 
-  // Callbacks para atualizar dados
+  // ============================================
+  // CALLBACKS PARA ATUALIZAR DADOS
+  // ============================================
   const handleDietasCriadas = async () => {
     try {
       const resposta = await listarDietas();
@@ -197,22 +196,7 @@ function App() {
     }
   };
 
-  // Funções de etiquetas
-  const adicionarEtiqueta = (novaEtiqueta) => {
-    setEtiquetas([...etiquetas, { ...novaEtiqueta, id: Date.now() }]);
-  };
-
-  const removerEtiqueta = (id) => {
-    setEtiquetas(etiquetas.filter((etiqueta) => etiqueta.id !== id));
-  };
-
-  const editarEtiqueta = (id, etiquetaEditada) => {
-    setEtiquetas(
-      etiquetas.map((etiqueta) =>
-        etiqueta.id === id ? { ...etiqueta, ...etiquetaEditada } : etiqueta
-      )
-    );
-  };
+  // ✅ Removido: adicionarEtiqueta, removerEtiqueta, editarEtiqueta
 
   // Logout com confirmação
   const handleLogout = () => {
@@ -263,7 +247,6 @@ function App() {
           </span>
         </div>
 
-        {/* Menu de Navegação */}
         <nav className="menu-navegacao">
           <button
             className={`menu-btn ${telaAtual === 'dashboard' ? 'active' : ''}`}
@@ -305,9 +288,6 @@ function App() {
             title="Notificações"
           >
             {Icons.bell}
-            {etiquetas.length > 0 && (
-              <span className="notificacoes-badge">{etiquetas.length}</span>
-            )}
           </button>
 
           <button className="btn-logout" onClick={handleLogout}>
@@ -321,7 +301,6 @@ function App() {
       <CentroNotificacoes
         isOpen={notificacoesAbertas}
         onClose={() => setNotificacoesAbertas(false)}
-        etiquetas={etiquetas}
       />
 
       {/* ===== TELAS ===== */}
@@ -335,7 +314,6 @@ function App() {
       {telaAtual === 'novaPrescricao' && (
         <NovaPrescricao
           voltar={irParaDashboard}
-          adicionarEtiqueta={adicionarEtiqueta}
           nucleos={nucleos}
           tiposAlimentacao={tiposAlimentacao}
           dietas={dietas}
@@ -347,9 +325,6 @@ function App() {
       {telaAtual === 'prescricoes' && (
         <Prescricoes
           voltar={irParaDashboard}
-          etiquetas={etiquetas}
-          removerEtiqueta={removerEtiqueta}
-          editarEtiqueta={editarEtiqueta}
           nucleos={nucleos}
           tiposAlimentacao={tiposAlimentacao}
           dietas={dietas}

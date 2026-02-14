@@ -1,8 +1,10 @@
+// frontend/src/components/common/CentroNotificacoes/CentroNotificacoes.jsx
+// ✅ LIMPO: Removido prop etiquetas e bloco de notificação de etiquetas pendentes
 import React, { useState, useEffect, useCallback } from 'react';
 import { listarPrescricoes } from '../../../services/api';
 import './CentroNotificacoes.css';
 
-function CentroNotificacoes({ isOpen, onClose, etiquetas }) {
+function CentroNotificacoes({ isOpen, onClose }) {
   const [notificacoes, setNotificacoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
@@ -47,24 +49,14 @@ function CentroNotificacoes({ isOpen, onClose, etiquetas }) {
             titulo: '⏰ Prescrição próxima de expirar',
             mensagem: `Prescrição #${p.id} de ${p.nome_paciente} expira em ${minutosRestantes} minutos`,
             data: new Date(),
-            acao: () => {} // Poderia abrir a prescrição
+            acao: () => {}
           });
         });
       }
 
-      // 2. Verificar etiquetas pendentes de impressão
-      if (etiquetas && etiquetas.length > 0) {
-        novasNotificacoes.push({
-          id: 'fila-impressao',
-          tipo: 'aviso',
-          titulo: '🖨️ Etiquetas pendentes de impressão',
-          mensagem: `${etiquetas.length} etiqueta(s) aguardando impressão`,
-          data: new Date(),
-          acao: () => {} // Poderia ir para fila de impressão
-        });
-      }
+      // ✅ Removido: Bloco de "etiquetas pendentes de impressão" (sistema legado)
 
-      // 3. Verificar prescrições criadas hoje
+      // 2. Verificar prescrições criadas hoje
       const hojeStr = hoje.toISOString().split('T')[0];
       const respostaHoje = await listarPrescricoes({
         dataInicio: hojeStr,
@@ -83,7 +75,7 @@ function CentroNotificacoes({ isOpen, onClose, etiquetas }) {
         });
       }
 
-      // 4. Adicionar mensagem de boas-vindas se não houver notificações
+      // 3. Mensagem de boas-vindas se não houver notificações
       if (novasNotificacoes.length === 0) {
         novasNotificacoes.push({
           id: 'boas-vindas',
@@ -109,7 +101,7 @@ function CentroNotificacoes({ isOpen, onClose, etiquetas }) {
     } finally {
       setCarregando(false);
     }
-  }, [etiquetas]);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {

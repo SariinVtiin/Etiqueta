@@ -1,4 +1,6 @@
 // frontend/src/pages/NovaPrescricao/NovaPrescricao.jsx
+// ✅ LIMPO: Removido todo o sistema legado de etiquetas/localStorage
+// Agora usa apenas BD via criarPrescricao()
 import React, { useState } from 'react';
 import './NovaPrescricao.css';
 import ModalConfirmacao from '../../components/common/ModalConfirmacao';
@@ -10,12 +12,9 @@ function NovaPrescricao({
   nucleos = {}, 
   dietas = [],
   restricoes = [],
-  tiposAlimentacao = [], 
-  etiquetas = [], 
-  setEtiquetas, 
-  irParaCadastros, 
-  irParaImpressao, 
-  irParaPreview 
+  tiposAlimentacao = [],
+  voltar,
+  carregandoDados
 }) {
   const [formData, setFormData] = useState({
     cpf: '',
@@ -39,7 +38,6 @@ function NovaPrescricao({
   // ============================================
   const ordenarLeitosNatural = (leitos) => {
     return [...leitos].sort((a, b) => {
-      // Extrai números e letras de cada leito
       const regex = /(\d+)|(\D+)/g;
       const aParts = String(a).match(regex) || [];
       const bParts = String(b).match(regex) || [];
@@ -48,27 +46,23 @@ function NovaPrescricao({
         const aPart = aParts[i] || '';
         const bPart = bParts[i] || '';
         
-        // Se ambos forem números, comparar numericamente
         const aNum = parseInt(aPart);
         const bNum = parseInt(bPart);
         
         if (!isNaN(aNum) && !isNaN(bNum)) {
-          if (aNum !== bNum) {
-            return aNum - bNum;
-          }
+          if (aNum !== bNum) return aNum - bNum;
         } else {
-          // Comparação alfabética
           const comp = aPart.localeCompare(bPart);
-          if (comp !== 0) {
-            return comp;
-          }
+          if (comp !== 0) return comp;
         }
       }
-      
       return 0;
     });
   };
 
+  // ============================================
+  // HANDLERS DE FORMULÁRIO
+  // ============================================
   const handleChange = (e) => {
     const { name, value } = e.target;
     
@@ -184,7 +178,10 @@ function NovaPrescricao({
     });
   };
 
-  const adicionarEtiqueta = (e) => {
+  // ============================================
+  // VALIDAÇÃO E SUBMIT
+  // ============================================
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!formData.cpf || !formData.codigoAtendimento || !formData.convenio || 
@@ -229,6 +226,9 @@ function NovaPrescricao({
     setMostrarConfirmacao(true);
   };
 
+  // ============================================
+  // CONFIRMAR E SALVAR NO BD
+  // ============================================
   const confirmarAdicao = async () => {
     try {
       const promessas = dadosParaConfirmar.refeicoes.map(async (refeicao) => {
@@ -259,28 +259,7 @@ function NovaPrescricao({
 
       await Promise.all(promessas);
 
-      const novasEtiquetas = dadosParaConfirmar.refeicoes.map(refeicao => ({
-        id: Date.now() + Math.random(),
-        cpf: dadosParaConfirmar.cpf,
-        codigoAtendimento: dadosParaConfirmar.codigoAtendimento,
-        convenio: dadosParaConfirmar.convenio,
-        nomePaciente: dadosParaConfirmar.nomePaciente,
-        nomeMae: dadosParaConfirmar.nomeMae,
-        dataNascimento: dadosParaConfirmar.dataNascimento,
-        idade: dadosParaConfirmar.idade,
-        nucleo: dadosParaConfirmar.nucleoSelecionado,
-        leito: dadosParaConfirmar.leito,
-        tipoAlimentacao: refeicao.tipo,
-        dieta: refeicao.dieta,
-        restricoes: refeicao.restricoes,
-        semPrincipal: refeicao.semPrincipal,
-        descricaoSemPrincipal: refeicao.descricaoSemPrincipal,
-        obsExclusao: refeicao.obsExclusao,
-        acrescimosIds: refeicao.acrescimosIds
-      }));
-
-      setEtiquetas([...etiquetas, ...novasEtiquetas]);
-      
+      // ✅ Limpar formulário após sucesso
       setFormData({
         cpf: '',
         codigoAtendimento: '',
@@ -322,10 +301,10 @@ function NovaPrescricao({
   return (
     <div className="container">
       <div className="header-principal">
-        <h1>Adicionar Etiquetas</h1>
+        <h1>Nova Prescrição</h1>
       </div>
 
-      <form className="formulario" onSubmit={adicionarEtiqueta}>
+      <form className="formulario" onSubmit={handleSubmit}>
         <FormularioPaciente formData={formData} onChange={handleChange} />
 
         <div className="campo">
@@ -355,44 +334,37 @@ function NovaPrescricao({
           <label>REFEIÇÕES * (selecione uma ou mais)</label>
           <div className="opcoes-check">
             {tiposAlimentacao.map((tipo, index) => (
-              <label key={index} className="opcao-check">
-                <input
-                  type="checkbox"
-                  checked={formData.refeicoesSelecionadas.includes(tipo)}
-                  onChange={() => handleRefeicaoToggle(tipo)}
+              <label key={index} className={`opcao-check ${formData.refeicoesSelecionadas.includes(tipo) ? 'selecionado' : ''}`}>
+                <input 
+                  type="checkbox" 
+                  checked={formData.refeicoesSelecionadas.includes(tipo)} 
+                  onChange={() => handleRefeicaoToggle(tipo)} 
                 />
                 <span>{tipo}</span>
               </label>
             ))}
           </div>
-          {tiposAlimentacao.length === 0 && (
-            <small className="aviso-erro">⚠️ Nenhum tipo de refeição cadastrado</small>
-          )}
         </div>
 
+        {/* Configuração individual de cada refeição selecionada */}
         {formData.refeicoesSelecionadas.map(refeicao => (
           <div key={refeicao} className="config-refeicao">
-            <h3 className="titulo-refeicao">Configuração: {refeicao}</h3>
-            
+            <h3 className="titulo-refeicao">⚙️ Configurar: {refeicao}</h3>
+
             <div className="campo">
               <label>DIETA * (para {refeicao})</label>
-              <div className="opcoes-radio">
-                <label className="opcao-check">
-                  <input type="radio" name={`dieta-${refeicao}`} checked={configRefeicoes[refeicao]?.dieta === 'NORMAL'} onChange={() => handleDietaRefeicao(refeicao, 'NORMAL')} />
-                  <span>NORMAL</span>
-                </label>
-                <label className="opcao-check">
-                  <input type="radio" name={`dieta-${refeicao}`} checked={configRefeicoes[refeicao]?.dieta === 'LIQUIDA'} onChange={() => handleDietaRefeicao(refeicao, 'LIQUIDA')} />
-                  <span>LIQUIDA</span>
-                </label>
-                <label className="opcao-check">
-                  <input type="radio" name={`dieta-${refeicao}`} checked={configRefeicoes[refeicao]?.dieta === 'PASTOSA'} onChange={() => handleDietaRefeicao(refeicao, 'PASTOSA')} />
-                  <span>PASTOSA</span>
-                </label>
-                <label className="opcao-check">
-                  <input type="radio" name={`dieta-${refeicao}`} checked={configRefeicoes[refeicao]?.dieta === 'LIQUIDA PASTOSA'} onChange={() => handleDietaRefeicao(refeicao, 'LIQUIDA PASTOSA')} />
-                  <span>LIQUIDA PASTOSA</span>
-                </label>
+              <div className="opcoes-check">
+                {dietas.map(dieta => (
+                  <label key={dieta.id} className="opcao-check">
+                    <input 
+                      type="radio" 
+                      name={`dieta-${refeicao}`} 
+                      checked={configRefeicoes[refeicao]?.dieta === dieta.nome} 
+                      onChange={() => handleDietaRefeicao(refeicao, dieta.nome)} 
+                    />
+                    <span>{dieta.nome}</span>
+                  </label>
+                ))}
               </div>
             </div>
 
@@ -416,32 +388,55 @@ function NovaPrescricao({
               <label>SEM PRINCIPAL</label>
               <div className="campo-sem-principal">
                 <label className="opcao-check-destaque">
-                  <input type="checkbox" checked={configRefeicoes[refeicao]?.semPrincipal || false} onChange={() => handleSemPrincipalToggle(refeicao)} />
+                  <input 
+                    type="checkbox" 
+                    checked={configRefeicoes[refeicao]?.semPrincipal || false} 
+                    onChange={() => handleSemPrincipalToggle(refeicao)} 
+                  />
                   <span>Paciente NÃO quer o prato principal do cardápio</span>
                 </label>
               </div>
               {configRefeicoes[refeicao]?.semPrincipal && (
-                <input type="text" value={configRefeicoes[refeicao]?.descricaoSemPrincipal || ''} onChange={(e) => handleDescricaoSemPrincipal(refeicao, e.target.value)} placeholder="Descreva o que o paciente quer no lugar do principal" style={{ marginTop: '10px' }} />
+                <input 
+                  type="text" 
+                  value={configRefeicoes[refeicao]?.descricaoSemPrincipal || ''} 
+                  onChange={(e) => handleDescricaoSemPrincipal(refeicao, e.target.value)} 
+                  placeholder="Descreva o que o paciente quer no lugar do principal" 
+                  style={{ marginTop: '10px' }} 
+                />
               )}
             </div>
 
             <div className="campo">
               <label>OBS EXCLUSÃO (o que NÃO quer)</label>
-              <input type="text" value={configRefeicoes[refeicao]?.obsExclusao || ''} onChange={(e) => handleObsExclusao(refeicao, e.target.value)} placeholder="Ex: s/ leite, s/ açúcar" />
+              <input 
+                type="text" 
+                value={configRefeicoes[refeicao]?.obsExclusao || ''} 
+                onChange={(e) => handleObsExclusao(refeicao, e.target.value)} 
+                placeholder="Ex: s/ leite, s/ açúcar" 
+              />
             </div>
 
             <div className="campo">
               <label>ACRÉSCIMOS (o que quer ALÉM do cardápio)</label>
-              <SeletorAcrescimos acrescimosSelecionados={configRefeicoes[refeicao]?.acrescimosIds || []} onChange={(ids) => handleAcrescimosChange(refeicao, ids)} refeicao={refeicao} />
+              <SeletorAcrescimos 
+                acrescimosSelecionados={configRefeicoes[refeicao]?.acrescimosIds || []} 
+                onChange={(ids) => handleAcrescimosChange(refeicao, ids)} 
+                refeicao={refeicao} 
+              />
             </div>
           </div>
         ))}
 
-        <button type="submit" className="btn-adicionar">+ Adicionar à Fila (Enter)</button>
+        <button type="submit" className="btn-adicionar">+ Criar Prescrição (Enter)</button>
       </form>
 
       {mostrarConfirmacao && dadosParaConfirmar && (
-        <ModalConfirmacao dados={dadosParaConfirmar} onConfirmar={confirmarAdicao} onCancelar={cancelarConfirmacao} />
+        <ModalConfirmacao 
+          dados={dadosParaConfirmar} 
+          onConfirmar={confirmarAdicao} 
+          onCancelar={cancelarConfirmacao} 
+        />
       )}
     </div>
   );
