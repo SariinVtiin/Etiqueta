@@ -40,7 +40,7 @@ const fetchConfigAuth = () => ({
 
 export const testarConexao = async () => {
   try {
-    const response = await fetch(`${API_URL}/teste`);
+    const response = await fetch(`${API_URL}/api/teste`);
     return handleResponse(response);
   } catch (erro) {
     console.error('Erro ao testar conexão:', erro);

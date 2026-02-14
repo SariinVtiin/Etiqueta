@@ -11,6 +11,8 @@ import GestaoDietas from './pages/GestaoDietas/GestaoDietas';
 import GestaoRestricoes from './pages/GestaoRestricoes/GestaoRestricoes';
 import { listarLeitos, listarDietas, listarRestricoes } from './services/api';
 
+import { AuthProvider } from './contexts/AuthContext';
+
 function App() {
   const [telaAtual, setTelaAtual] = useState('login');
   const [autenticado, setAutenticado] = useState(false);
@@ -195,7 +197,11 @@ function App() {
   };
 
   if (!autenticado) {
-    return <Login onLoginSucesso={handleLoginSucesso} />;
+    return (
+      <AuthProvider>
+        <Login onLoginSucesso={handleLoginSucesso} />
+      </AuthProvider>
+    );
   }
 
   return (
