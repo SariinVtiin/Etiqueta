@@ -80,7 +80,24 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Tentar registrar logout no backend (fire-and-forget)
+    const tokenAtual = localStorage.getItem('token');
+    if (tokenAtual) {
+      try {
+        await fetch(`${API_URL}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${tokenAtual}`
+          }
+        });
+      } catch (e) {
+        // Não impedir logout se a chamada falhar
+        console.error('Erro ao registrar logout:', e);
+      }
+    }
+
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('usuario');

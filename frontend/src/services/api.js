@@ -734,3 +734,59 @@ export const toggleLeitoAtivo = async (id, ativo) => {
   }
   return response.json();
 };
+
+export const exportarLogsLogin = async (filtros = {}) => {
+  const params = new URLSearchParams();
+  if (filtros.dataInicio) params.append('dataInicio', filtros.dataInicio);
+  if (filtros.dataFim) params.append('dataFim', filtros.dataFim);
+  if (filtros.usuarioId) params.append('usuarioId', filtros.usuarioId);
+  if (filtros.tipoEvento) params.append('tipoEvento', filtros.tipoEvento);
+
+  const queryString = params.toString();
+  const url = `${API_URL}/logs-login/exportar${queryString ? '?' + queryString : ''}`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${getToken()}`
+    }
+  });
+
+  if (!response.ok) {
+    const erro = await response.json().catch(() => ({ erro: 'Erro ao gerar relatório' }));
+    throw new Error(erro.erro || 'Erro ao gerar relatório de logs');
+  }
+
+  // Baixar o arquivo Excel
+  const blob = await response.blob();
+  const urlBlob = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = urlBlob;
+
+  // Extrair nome do arquivo do header ou gerar um
+  const contentDisposition = response.headers.get('Content-Disposition');
+  let nomeArquivo = `logs_login_${filtros.dataInicio}_a_${filtros.dataFim}.xlsx`;
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename="(.+)"/);
+    if (match) nomeArquivo = match[1];
+  }
+
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(urlBlob);
+
+  return { sucesso: true, mensagem: 'Relatório baixado com sucesso!' };
+};
+
+/**
+ * Listar usuários para filtro do relatório de logs
+ */
+export const listarUsuariosLogsLogin = async () => {
+  const response = await fetch(`${API_URL}/logs-login/usuarios`, fetchConfigAuth());
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao listar usuários');
+  }
+  return response.json();
+};

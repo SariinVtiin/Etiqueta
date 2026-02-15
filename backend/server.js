@@ -20,9 +20,10 @@ const auditoriaRouter = require('./routes/auditoria');
 const pacientesRouter = require('./routes/pacientes');
 const leitosRouter = require('./routes/leitos');
 const dietasRouter = require('./routes/dietas');
-const restricoesRouter = require('./routes/restricoesRoutes');  // ← NOVO
+const restricoesRouter = require('./routes/restricoesRoutes');  
 const etiquetasRouter = require('./routes/etiquetas');
 const acrescimosRouter = require('./routes/acrescimos');
+const logsLoginRouter = require('./routes/logsLogin'); 
 
 // ============================================
 // REGISTRAR ROTAS
@@ -34,9 +35,10 @@ app.use('/api/auditoria', auditoriaRouter);
 app.use('/api/pacientes', pacientesRouter);
 app.use('/api/leitos', leitosRouter);
 app.use('/api/dietas', dietasRouter);
-app.use('/api/restricoes', restricoesRouter);  // ← NOVO
+app.use('/api/restricoes', restricoesRouter);  
 app.use('/api/etiquetas', etiquetasRouter);
 app.use('/api/acrescimos', acrescimosRouter);
+app.use('/api/logs-login', logsLoginRouter);
 
 // Testar conexão ao iniciar
 testarConexao();

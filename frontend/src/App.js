@@ -295,15 +295,26 @@ function App() {
             {Icons.plus}
             <span>Nova Prescrição</span>
           </button>
+
+          {/* Botão Cadastros */}
           {isAdmin() && (
             <button
-              className={`menu-btn ${telaAtual === 'cadastros' || telaAtual === 'gestaoUsuarios' || telaAtual === 'gestaoDietas' || telaAtual === 'gestaoRestricoes' || telaAtual === 'gestaoLeitos' ? 'active' : ''}`}
+              className={`menu-btn ${
+                telaAtual === 'cadastros' ||
+                telaAtual === 'gestaoUsuarios' ||
+                telaAtual === 'gestaoDietas' ||
+                telaAtual === 'gestaoRestricoes' ||
+                telaAtual === 'gestaoLeitos'
+                  ? 'active'
+                  : ''
+              }`}
               onClick={irParaCadastros}
             >
               {Icons.settings}
               <span>Cadastros</span>
             </button>
           )}
+
         </nav>
 
         <div className="header-actions">

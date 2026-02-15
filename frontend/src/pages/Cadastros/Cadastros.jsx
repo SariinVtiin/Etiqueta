@@ -1,10 +1,13 @@
 // frontend/src/pages/Cadastros/Cadastros.jsx
+// ATUALIZADO - Com card de Logs de Login
 import React, { useState } from 'react';
 import ImportarAcrescimos from '../../components/configuracoes/ImportarAcrescimos';
+import RelatorioLogin from '../../components/RelatorioLogin/RelatorioLogin';
 import './Cadastros.css';
 
 function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGestaoRestricoes, irParaGestaoLeitos }) {
   const [mostrarImportacao, setMostrarImportacao] = useState(false);
+  const [relatorioLoginAberto, setRelatorioLoginAberto] = useState(false);
 
   if (mostrarImportacao) {
     return (
@@ -54,7 +57,7 @@ function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGes
           <button className="card-button">Acessar</button>
         </div>
 
-        {/* NOVO: Restrições Alimentares (substitui o antigo "Tipos de Dieta") */}
+        {/* Restrições Alimentares */}
         <div className="cadastro-card" onClick={irParaGestaoRestricoes}>
           <div className="card-icon">🚫</div>
           <h3>Restrição Alimentar</h3>
@@ -69,7 +72,21 @@ function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGes
           <p>Importar planilha de suplementos e acréscimos</p>
           <button className="card-button">Importar</button>
         </div>
+
+        {/* Logs de Login */}
+        <div className="cadastro-card" onClick={() => setRelatorioLoginAberto(true)}>
+          <div className="card-icon">🔐</div>
+          <h3>Logs de Login</h3>
+          <p>Gerar relatório Excel com histórico de acessos ao sistema</p>
+          <button className="card-button">Gerar Relatório</button>
+        </div>
       </div>
+
+      {/* Modal do Relatório de Logs de Login */}
+      <RelatorioLogin
+        isOpen={relatorioLoginAberto}
+        onClose={() => setRelatorioLoginAberto(false)}
+      />
     </div>
   );
 }
