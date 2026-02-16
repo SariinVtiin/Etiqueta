@@ -35,7 +35,7 @@
 }
 
 .modal-header-editar h2 {
-  color: #007bff;
+  color: #0d9488;
   font-size: 24px;
   margin: 0;
 }
@@ -99,19 +99,35 @@
 .campo input:focus,
 .campo select:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: #0d9488;
+}
+
+.campo select:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
 .info-idade {
   font-size: 12px;
-  color: #28a745;
+  color: #059669;
   margin-top: 5px;
   font-weight: 500;
 }
 
+.aviso-campo {
+  font-size: 12px;
+  color: #f59e0b;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+/* ============================================
+   RESTRIÇÕES - Grid de Checkboxes
+   ============================================ */
 .restricoes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   margin-top: 5px;
 }
@@ -124,17 +140,20 @@
   background: #f8f9fa;
   border-radius: 6px;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
 }
 
 .checkbox-label:hover {
   background: #e9ecef;
+  border-color: #0d9488;
 }
 
 .checkbox-label input[type="checkbox"] {
   width: 18px;
   height: 18px;
   cursor: pointer;
+  accent-color: #0d9488;
 }
 
 .checkbox-label span {
@@ -143,24 +162,22 @@
   font-weight: 500;
 }
 
-.checkbox-label-principal {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-  font-size: 15px;
-  font-weight: bold;
-  color: #495057;
+/* ============================================
+   SEM PRINCIPAL - Destaque
+   ============================================ */
+.checkbox-destaque {
+  background: #fff7ed;
+  border: 2px solid #fed7aa;
+  padding: 10px 14px;
+  border-radius: 8px;
 }
 
-.checkbox-label-principal input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
+.checkbox-destaque:hover {
+  background: #ffedd5;
+  border-color: #fb923c;
 }
 
 .input-sem-principal {
-  margin-top: 10px;
   padding: 10px 12px;
   border: 2px solid #ffc107;
   border-radius: 6px;
@@ -173,7 +190,10 @@
   border-color: #ff9800;
 }
 
-.modal-acoes-editar {
+/* ============================================
+   FOOTER - Botões de Ação
+   ============================================ */
+.modal-footer-editar {
   display: flex;
   justify-content: flex-end;
   gap: 15px;
@@ -182,8 +202,8 @@
   border-top: 2px solid #dee2e6;
 }
 
-.btn-cancelar-editar,
-.btn-salvar-editar {
+.btn-cancelar-modal,
+.btn-salvar-modal {
   padding: 12px 30px;
   border: none;
   border-radius: 6px;
@@ -193,31 +213,56 @@
   transition: all 0.3s ease;
 }
 
-.btn-cancelar-editar {
+.btn-cancelar-modal {
   background: #6c757d;
   color: white;
 }
 
-.btn-cancelar-editar:hover {
+.btn-cancelar-modal:hover {
   background: #5a6268;
 }
 
-.btn-salvar-editar {
-  background: #28a745;
+.btn-salvar-modal {
+  background: #0d9488;
   color: white;
 }
 
-.btn-salvar-editar:hover:not(:disabled) {
-  background: #218838;
+.btn-salvar-modal:hover:not(:disabled) {
+  background: #0f766e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
 }
 
-.btn-salvar-editar:disabled {
+.btn-salvar-modal:disabled {
   background: #6c757d;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-/* Responsivo */
+/* ============================================
+   SCROLLBAR CUSTOMIZADA
+   ============================================ */
+.modal-content-editar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content-editar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 0 12px 12px 0;
+}
+
+.modal-content-editar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.modal-content-editar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ============================================
+   RESPONSIVO
+   ============================================ */
 @media (max-width: 768px) {
   .modal-overlay-editar {
     padding: 10px;
@@ -247,12 +292,12 @@
     grid-template-columns: 1fr;
   }
 
-  .modal-acoes-editar {
+  .modal-footer-editar {
     flex-direction: column;
   }
 
-  .btn-cancelar-editar,
-  .btn-salvar-editar {
+  .btn-cancelar-modal,
+  .btn-salvar-modal {
     width: 100%;
   }
 }

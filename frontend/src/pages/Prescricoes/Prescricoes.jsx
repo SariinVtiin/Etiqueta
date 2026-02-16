@@ -4,7 +4,7 @@ import { exportarParaExcel, exportarParaPDF, exportarRelatorioDetalhado } from '
 import ModalEditarPrescricao from '../../components/forms/ModalEditarPrescricao';
 import './Prescricoes.css';
 
-function Prescricoes({ voltar, nucleos, dietas }) {
+function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) {
   const [prescricoes, setPrescricoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
@@ -760,7 +760,7 @@ function Prescricoes({ voltar, nucleos, dietas }) {
                       <td>{prescricao.dieta}</td>
                       <td>{prescricao.tipo_alimentacao}</td>
                       <td>{formatarData(prescricao.data_prescricao)}</td>
-                      <td>{formatarHora(prescricao.created_at)}</td>
+                      <td>{formatarHora(prescricao.data_cadastro || prescricao.data_prescricao)}</td>
                       <td>
                         <span className="status-badge ativo">Ativo</span>
                       </td>
@@ -843,7 +843,7 @@ function Prescricoes({ voltar, nucleos, dietas }) {
                               
                               <div className="detalhe-item">
                                 <strong>Criado em:</strong>
-                                <span>{formatarData(prescricao.created_at)} às {formatarHora(prescricao.created_at)}</span>
+                                <span>{formatarData(prescricao.data_cadastro || prescricao.data_prescricao)} às {formatarHora(prescricao.data_cadastro || prescricao.data_prescricao)}</span>
                               </div>
                               <div className="detalhe-item">
                                 <strong>Por:</strong>
@@ -890,12 +890,15 @@ function Prescricoes({ voltar, nucleos, dietas }) {
       {modalEdicaoAberto && prescricaoEditando && (
         <ModalEditarPrescricao
           prescricao={prescricaoEditando}
-          onClose={() => {
+          onCancelar={() => {
             setModalEdicaoAberto(false);
             setPrescricaoEditando(null);
           }}
           onSalvar={handleSalvarEdicao}
+          nucleos={nucleos}
           dietas={dietas}
+          restricoes={restricoes}
+          tiposAlimentacao={tiposAlimentacao}
         />
       )}
     </div>
