@@ -8,7 +8,11 @@ const { autenticar } = require('./auth');
 
 /**
  * FUNÇÃO AUXILIAR: Salvar ou Atualizar Paciente
- * CORRIGIDA para usar UPSERT (INSERT ... ON DUPLICATE KEY UPDATE)
+ * ✅ VERSÃO FINAL:
+ *   - CPF SEMPRE salvo SEM formatação
+ *   - Se CPF existe → ATUALIZA o codigo_atendimento (pode mudar entre internações)
+ *   - Se CPF não existe → INSERE novo paciente
+ *   - Valida se o código não pertence a outro CPF antes de salvar
  */
 async function salvarOuAtualizarPaciente(dados) {
   const {
@@ -21,28 +25,60 @@ async function salvarOuAtualizarPaciente(dados) {
     idade
   } = dados;
 
-  console.log(`Salvando/Atualizando paciente: ${nomePaciente} (CPF: ${cpf})`);
+  const cpfLimpo = cpf.replace(/\D/g, '');
 
   try {
-    await pool.query(
+    // PASSO 1: Verificar se o código de atendimento já pertence a OUTRO paciente
+    const [codigoExistente] = await pool.query(
+      `SELECT cpf, nome_paciente FROM pacientes 
+       WHERE codigo_atendimento = ? 
+       AND REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") != ?`,
+      [codigoAtendimento, cpfLimpo]
+    );
+
+    if (codigoExistente.length > 0) {
+      throw new Error(`Código de atendimento ${codigoAtendimento} já está em uso pelo paciente: ${codigoExistente[0].nome_paciente}`);
+    }
+
+    // PASSO 2: Verificar se o paciente já existe
+    const [pacientesExistentes] = await pool.query(
+      'SELECT id, nome_paciente FROM pacientes WHERE REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") = ?',
+      [cpfLimpo]
+    );
+
+    if (pacientesExistentes.length > 0) {
+      // ✅ Paciente EXISTE → Atualizar código de atendimento e convênio
+      console.log(`🔄 Atualizando paciente existente: ${pacientesExistentes[0].nome_paciente} (CPF: ${cpfLimpo})`);
+      
+      await pool.query(
+        `UPDATE pacientes SET 
+          codigo_atendimento = ?,
+          convenio = ?,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?`,
+        [codigoAtendimento, convenio, pacientesExistentes[0].id]
+      );
+
+      console.log(`✅ Código atualizado para: ${codigoAtendimento}`);
+      return pacientesExistentes[0].id;
+    }
+
+    // PASSO 3: Paciente NÃO existe → Criar novo com CPF limpo
+    console.log(`🆕 Criando novo paciente: ${nomePaciente} (CPF: ${cpfLimpo})`);
+
+    const [resultado] = await pool.query(
       `INSERT INTO pacientes (
         cpf, codigo_atendimento, convenio, nome_paciente, 
         nome_mae, data_nascimento, idade
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE
-        codigo_atendimento = VALUES(codigo_atendimento),
-        convenio = VALUES(convenio),
-        nome_paciente = VALUES(nome_paciente),
-        nome_mae = VALUES(nome_mae),
-        data_nascimento = VALUES(data_nascimento),
-        idade = VALUES(idade),
-        updated_at = CURRENT_TIMESTAMP`,
-      [cpf, codigoAtendimento, convenio, nomePaciente, nomeMae, dataNascimento, idade]
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [cpfLimpo, codigoAtendimento, convenio, nomePaciente, nomeMae, dataNascimento, idade]
     );
 
-    console.log(`✅ Paciente salvo/atualizado com sucesso: ${nomePaciente}`);
+    console.log(`✅ Novo paciente criado! ID: ${resultado.insertId}`);
+    return resultado.insertId;
+
   } catch (erro) {
-    console.error(`❌ Erro ao salvar/atualizar paciente:`, erro);
+    console.error(`❌ Erro ao salvar paciente:`, erro);
     throw erro;
   }
 }

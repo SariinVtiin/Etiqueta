@@ -1,5 +1,5 @@
 // backend/routes/pacientes.js
-// ARQUIVO COMPLETO - Use este arquivo completo
+// ✅ VERSÃO FINAL: Busca por CPF + Verificação de código de atendimento
 
 const express = require('express');
 const router = express.Router();
@@ -15,10 +15,10 @@ router.get('/buscar/:cpf', autenticar, async (req, res) => {
     const { cpf } = req.params;
     const cpfLimpo = cpf.replace(/\D/g, '');
 
-    console.log('Buscando paciente por CPF:', cpfLimpo);
+    console.log('🔍 Buscando paciente por CPF:', cpfLimpo);
 
     const [pacientes] = await pool.query(
-      'SELECT * FROM pacientes WHERE cpf = ?',
+      'SELECT * FROM pacientes WHERE REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") = ?',
       [cpfLimpo]
     );
 
@@ -31,17 +31,30 @@ router.get('/buscar/:cpf', autenticar, async (req, res) => {
 
     const paciente = pacientes[0];
 
+    // Buscar o ÚLTIMO código de atendimento usado nas prescrições
+    const [ultimaPrescricao] = await pool.query(
+      `SELECT codigo_atendimento FROM prescricoes 
+       WHERE REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") = ?
+       ORDER BY data_prescricao DESC, id DESC 
+       LIMIT 1`,
+      [cpfLimpo]
+    );
+
+    const ultimoCodigoAtendimento = ultimaPrescricao.length > 0 
+      ? ultimaPrescricao[0].codigo_atendimento 
+      : paciente.codigo_atendimento;
+
     // Formatar data de nascimento para DD/MM/AAAA
     let dataFormatada = '';
     if (paciente.data_nascimento) {
       const data = new Date(paciente.data_nascimento);
-      const dia = String(data.getDate() + 1).padStart(2, '0');
-      const mes = String(data.getMonth() + 1).padStart(2, '0');
-      const ano = data.getFullYear();
+      const dia = String(data.getUTCDate()).padStart(2, '0');
+      const mes = String(data.getUTCMonth() + 1).padStart(2, '0');
+      const ano = data.getUTCFullYear();
       dataFormatada = `${dia}/${mes}/${ano}`;
     }
 
-    console.log('Paciente encontrado:', paciente.nome_paciente);
+    console.log('✅ Paciente encontrado:', paciente.nome_paciente, '| Último código:', ultimoCodigoAtendimento);
 
     res.json({
       sucesso: true,
@@ -51,17 +64,72 @@ router.get('/buscar/:cpf', autenticar, async (req, res) => {
         nome_mae: paciente.nome_mae,
         data_nascimento: dataFormatada,
         idade: paciente.idade,
-        codigo_atendimento: paciente.codigo_atendimento,
+        codigo_atendimento: ultimoCodigoAtendimento,
         convenio: paciente.convenio
       }
     });
 
   } catch (erro) {
-    console.error('Erro ao buscar paciente por CPF:', erro);
-    res.status(500).json({
-      sucesso: false,
-      erro: 'Erro ao buscar paciente'
+    console.error('❌ Erro ao buscar paciente por CPF:', erro);
+    res.status(500).json({ sucesso: false, erro: 'Erro ao buscar paciente' });
+  }
+});
+
+/**
+ * GET /api/pacientes/verificar-codigo/:codigo - Verificar se código de atendimento já existe
+ * Retorna se o código já está em uso e por qual CPF
+ */
+router.get('/verificar-codigo/:codigo', autenticar, async (req, res) => {
+  try {
+    const { codigo } = req.params;
+    const cpfAtual = req.query.cpf ? req.query.cpf.replace(/\D/g, '') : null;
+
+    console.log('🔍 Verificando código de atendimento:', codigo, '| CPF atual:', cpfAtual);
+
+    // Verificar na tabela pacientes
+    const [pacientes] = await pool.query(
+      `SELECT cpf, nome_paciente FROM pacientes 
+       WHERE codigo_atendimento = ? 
+       AND REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") != ?`,
+      [codigo, cpfAtual || '']
+    );
+
+    if (pacientes.length > 0) {
+      console.log('⚠️ Código já usado por:', pacientes[0].nome_paciente);
+      return res.json({
+        sucesso: true,
+        disponivel: false,
+        mensagem: `Código já utilizado pelo paciente: ${pacientes[0].nome_paciente}`
+      });
+    }
+
+    // Verificar também na tabela prescrições (caso o pacientes tenha sido atualizado)
+    const [prescricoes] = await pool.query(
+      `SELECT cpf, nome_paciente FROM prescricoes 
+       WHERE codigo_atendimento = ? 
+       AND REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") != ?
+       LIMIT 1`,
+      [codigo, cpfAtual || '']
+    );
+
+    if (prescricoes.length > 0) {
+      console.log('⚠️ Código já usado em prescrição por:', prescricoes[0].nome_paciente);
+      return res.json({
+        sucesso: true,
+        disponivel: false,
+        mensagem: `Código já utilizado pelo paciente: ${prescricoes[0].nome_paciente}`
+      });
+    }
+
+    console.log('✅ Código disponível:', codigo);
+    res.json({
+      sucesso: true,
+      disponivel: true
     });
+
+  } catch (erro) {
+    console.error('❌ Erro ao verificar código:', erro);
+    res.status(500).json({ sucesso: false, erro: 'Erro ao verificar código' });
   }
 });
 
@@ -76,12 +144,12 @@ router.get('/', autenticar, async (req, res) => {
     const params = [];
 
     if (busca) {
-      query += ' AND (nome_paciente LIKE ? OR cpf LIKE ?)';
+      query += ' AND (nome_paciente LIKE ? OR cpf LIKE ? OR REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") LIKE ?)';
       const buscaParam = `%${busca}%`;
-      params.push(buscaParam, buscaParam);
+      params.push(buscaParam, buscaParam, buscaParam);
     }
 
-    query += ' ORDER BY data_atualizacao DESC';
+    query += ' ORDER BY updated_at DESC';
 
     const offset = (page - 1) * limit;
     query += ' LIMIT ? OFFSET ?';
@@ -90,10 +158,11 @@ router.get('/', autenticar, async (req, res) => {
     const [pacientes] = await pool.query(query, params);
 
     let countQuery = 'SELECT COUNT(*) as total FROM pacientes WHERE 1=1';
-    const countParams = params.slice(0, -2);
-
+    const countParams = [];
     if (busca) {
-      countQuery += ' AND (nome_paciente LIKE ? OR cpf LIKE ?)';
+      countQuery += ' AND (nome_paciente LIKE ? OR cpf LIKE ? OR REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") LIKE ?)';
+      const buscaParam = `%${busca}%`;
+      countParams.push(buscaParam, buscaParam, buscaParam);
     }
 
     const [countResult] = await pool.query(countQuery, countParams);
@@ -112,10 +181,7 @@ router.get('/', autenticar, async (req, res) => {
 
   } catch (erro) {
     console.error('Erro ao listar pacientes:', erro);
-    res.status(500).json({
-      sucesso: false,
-      erro: 'Erro ao listar pacientes'
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao listar pacientes' });
   }
 });
 
@@ -125,30 +191,22 @@ router.get('/', autenticar, async (req, res) => {
 router.get('/:cpf', autenticar, async (req, res) => {
   try {
     const { cpf } = req.params;
+    const cpfLimpo = cpf.replace(/\D/g, '');
 
     const [pacientes] = await pool.query(
-      'SELECT * FROM pacientes WHERE cpf = ?',
-      [cpf]
+      'SELECT * FROM pacientes WHERE REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") = ?',
+      [cpfLimpo]
     );
 
     if (pacientes.length === 0) {
-      return res.status(404).json({
-        sucesso: false,
-        erro: 'Paciente não encontrado'
-      });
+      return res.status(404).json({ sucesso: false, erro: 'Paciente não encontrado' });
     }
 
-    res.json({
-      sucesso: true,
-      paciente: pacientes[0]
-    });
+    res.json({ sucesso: true, paciente: pacientes[0] });
 
   } catch (erro) {
     console.error('Erro ao buscar paciente:', erro);
-    res.status(500).json({
-      sucesso: false,
-      erro: 'Erro ao buscar paciente'
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao buscar paciente' });
   }
 });
 
@@ -158,37 +216,32 @@ router.get('/:cpf', autenticar, async (req, res) => {
 router.get('/:cpf/prescricoes', autenticar, async (req, res) => {
   try {
     const { cpf } = req.params;
+    const cpfLimpo = cpf.replace(/\D/g, '');
 
     const [pacientes] = await pool.query(
-      'SELECT * FROM pacientes WHERE cpf = ?',
-      [cpf]
+      'SELECT * FROM pacientes WHERE REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") = ?',
+      [cpfLimpo]
     );
 
     if (pacientes.length === 0) {
-      return res.status(404).json({
-        sucesso: false,
-        erro: 'Paciente não encontrado'
-      });
+      return res.status(404).json({ sucesso: false, erro: 'Paciente não encontrado' });
     }
 
     const [prescricoes] = await pool.query(
-      'SELECT * FROM prescricoes WHERE cpf = ? ORDER BY data_prescricao DESC',
-      [cpf]
+      'SELECT * FROM prescricoes WHERE REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") = ? ORDER BY data_prescricao DESC',
+      [cpfLimpo]
     );
 
     res.json({
       sucesso: true,
       paciente: pacientes[0],
-      prescricoes: prescricoes,
+      prescricoes,
       total_prescricoes: prescricoes.length
     });
 
   } catch (erro) {
     console.error('Erro ao buscar prescrições do paciente:', erro);
-    res.status(500).json({
-      sucesso: false,
-      erro: 'Erro ao buscar prescrições do paciente'
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao buscar prescrições do paciente' });
   }
 });
 

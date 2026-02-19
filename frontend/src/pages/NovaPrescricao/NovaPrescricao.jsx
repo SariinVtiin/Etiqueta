@@ -32,6 +32,17 @@ function NovaPrescricao({
   const [configRefeicoes, setConfigRefeicoes] = useState({});
   const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false);
   const [dadosParaConfirmar, setDadosParaConfirmar] = useState(null);
+  const [toast, setToast] = useState({ visivel: false, mensagem: '', tipo: '' });
+
+  // ============================================
+  // TOAST CUSTOMIZADO
+  // ============================================
+  const mostrarToast = (mensagem, tipo = 'sucesso') => {
+    setToast({ visivel: true, mensagem, tipo });
+    setTimeout(() => {
+      setToast({ visivel: false, mensagem: '', tipo: '' });
+    }, 4000);
+  };
 
   // ============================================
   // FUNÇÃO DE ORDENAÇÃO NATURAL DE LEITOS
@@ -64,21 +75,21 @@ function NovaPrescricao({
   // HANDLERS DE FORMULÁRIO
   // ============================================
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (name === 'nucleoSelecionado') {
-      setFormData({
-        ...formData,
-        nucleoSelecionado: value,
-        leito: ''
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
-    }
-  };
+      const { name, value } = e.target;
+      
+      if (name === 'nucleoSelecionado') {
+        setFormData(prev => ({
+          ...prev,
+          nucleoSelecionado: value,
+          leito: ''
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: value
+        }));
+      }
+    };
 
   const handleRefeicaoToggle = (refeicao) => {
     const refeicoesAtuais = [...formData.refeicoesSelecionadas];
@@ -184,6 +195,14 @@ function NovaPrescricao({
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // ✅ NOVO: Bloquear se código de atendimento está duplicado
+    // Buscar o status do código via DOM (verificamos pela mensagem de erro visível)
+    const codigoErro = document.querySelector('[style*="color: rgb(220, 38, 38)"]');
+    if (codigoErro && codigoErro.textContent.includes('Código já utilizado')) {
+      alert('❌ O código de atendimento já está em uso por outro paciente! Corrija antes de continuar.');
+      return;
+    }
+
     if (!formData.cpf || !formData.codigoAtendimento || !formData.convenio || 
         !formData.nomePaciente || !formData.nomeMae || !formData.dataNascimento || 
         !formData.nucleoSelecionado || !formData.leito) {
@@ -276,13 +295,13 @@ function NovaPrescricao({
       setMostrarConfirmacao(false);
       setDadosParaConfirmar(null);
 
-      alert(`✅ ${promessas.length} prescrição(ões) salva(s) com sucesso!`);
+      mostrarToast(`${promessas.length} prescrição(ões) salva(s) com sucesso!`, 'sucesso');
 
       document.querySelector('input[name="cpf"]')?.focus();
 
     } catch (erro) {
       console.error('Erro:', erro);
-      alert(`❌ Erro: ${erro.message}`);
+      mostrarToast(`Erro: ${erro.message}`, 'erro');
     }
   };
 
@@ -431,13 +450,133 @@ function NovaPrescricao({
         <button type="submit" className="btn-adicionar">+ Criar Prescrição (Enter)</button>
       </form>
 
-      {mostrarConfirmacao && dadosParaConfirmar && (
+{mostrarConfirmacao && dadosParaConfirmar && (
         <ModalConfirmacao 
           dados={dadosParaConfirmar} 
           onConfirmar={confirmarAdicao} 
           onCancelar={cancelarConfirmacao} 
         />
       )}
+
+      {/* ✅ Toast Customizado */}
+      {toast.visivel && (
+        <div style={{
+          position: 'fixed',
+          top: '30px',
+          right: '30px',
+          zIndex: 9999,
+          minWidth: '340px',
+          maxWidth: '480px',
+          padding: '0',
+          borderRadius: '12px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.1)',
+          overflow: 'hidden',
+          animation: 'toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          border: toast.tipo === 'sucesso' ? '1px solid #059669' : '1px solid #dc2626',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            padding: '18px 22px',
+            background: toast.tipo === 'sucesso' 
+              ? 'linear-gradient(135deg, #059669, #0d9488)' 
+              : 'linear-gradient(135deg, #dc2626, #b91c1c)',
+            color: '#fff',
+          }}>
+            {/* Ícone */}
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              fontSize: '20px',
+            }}>
+              {toast.tipo === 'sucesso' ? '✓' : '✕'}
+            </div>
+
+            {/* Texto */}
+            <div style={{ flex: 1 }}>
+              <div style={{ 
+                fontWeight: '700', 
+                fontSize: '15px', 
+                marginBottom: '2px',
+                letterSpacing: '0.3px',
+              }}>
+                {toast.tipo === 'sucesso' ? 'Sucesso!' : 'Erro'}
+              </div>
+              <div style={{ 
+                fontSize: '13.5px', 
+                opacity: 0.95,
+                lineHeight: '1.4',
+              }}>
+                {toast.mensagem}
+              </div>
+            </div>
+
+            {/* Botão fechar */}
+            <button 
+              onClick={() => setToast({ visivel: false, mensagem: '', tipo: '' })}
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: 'none',
+                color: '#fff',
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px',
+                flexShrink: 0,
+                transition: 'background 0.2s',
+              }}
+              onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.35)'}
+              onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.2)'}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Barra de progresso */}
+          <div style={{
+            height: '4px',
+            background: toast.tipo === 'sucesso' 
+              ? 'rgba(5, 150, 105, 0.15)' 
+              : 'rgba(220, 38, 38, 0.15)',
+          }}>
+            <div style={{
+              height: '100%',
+              background: toast.tipo === 'sucesso' ? '#059669' : '#dc2626',
+              animation: 'toastProgress 4s linear forwards',
+              borderRadius: '0 0 0 4px',
+            }} />
+          </div>
+        </div>
+      )}
+
+      {/* Animações do Toast */}
+      <style>{`
+        @keyframes toastSlideIn {
+          from {
+            transform: translateX(120%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes toastProgress {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
     </div>
   );
 }

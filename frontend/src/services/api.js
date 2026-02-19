@@ -451,6 +451,10 @@ export const imprimirEtiquetasLote = async (ids) => {
 // PACIENTES - FUNÇÃO NOVA
 // ============================================
 
+/**
+ * Buscar paciente por CPF (auto-completar)
+ * ✅ CORRIGIDO: URL sem /api duplicado
+ */
 export const buscarPacientePorCPF = async (cpf) => {
   try {
     const token = localStorage.getItem('token');
@@ -461,7 +465,8 @@ export const buscarPacientePorCPF = async (cpf) => {
 
     const cpfLimpo = cpf.replace(/\D/g, '');
 
-    const resposta = await fetch(`${API_URL}/api/pacientes/buscar/${cpfLimpo}`, {
+    // ✅ CORRIGIDO: era /api/pacientes/ (duplicava /api)
+    const resposta = await fetch(`${API_URL}/pacientes/buscar/${cpfLimpo}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -481,7 +486,36 @@ export const buscarPacientePorCPF = async (cpf) => {
     return dados;
   } catch (erro) {
     console.error('Erro na busca de paciente:', erro);
+    // Retornar paciente null ao invés de lançar erro (para não quebrar o formulário)
+    if (erro.message && (erro.message.includes('404') || erro.message.includes('Paciente'))) {
+      return { sucesso: false, paciente: null };
+    }
     throw erro;
+  }
+};
+
+/**
+ * Verificar se código de atendimento já está em uso por outro CPF
+ */
+export const verificarCodigoAtendimento = async (codigo, cpfAtual) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Token não encontrado');
+
+    const cpfLimpo = cpfAtual ? cpfAtual.replace(/\D/g, '') : '';
+    
+    const resposta = await fetch(`${API_URL}/pacientes/verificar-codigo/${codigo}?cpf=${cpfLimpo}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    return await resposta.json();
+  } catch (erro) {
+    console.error('Erro ao verificar código:', erro);
+    return { sucesso: false, disponivel: true }; // Em caso de erro, deixa prosseguir
   }
 };
 
