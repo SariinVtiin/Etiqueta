@@ -44,28 +44,37 @@ function ModalConfirmacao({ dados, onConfirmar, onCancelar }) {
             {dados.refeicoes.map((ref, index) => (
               <div key={index} className="refeicao-item">
                 <div className="refeicao-titulo">{ref.tipo}</div>
-                <div className="linha-dado">
-                  <strong>Dieta:</strong> {ref.dieta}
-                </div>
-                {ref.restricoes.length > 0 && (
+
+                {ref.isEspecial ? (
+                  // Refeição especial — mostra contagem de produtos
                   <div className="linha-dado">
-                    <strong>Restrições:</strong> {ref.restricoes.join(', ')}
+                    <strong>Produtos selecionados:</strong>{' '}
+                    {ref.itensEspeciaisIds?.length > 0
+                      ? `${ref.itensEspeciaisIds.length} produto(s)`
+                      : 'Nenhum produto selecionado'}
                   </div>
-                )}
-                {ref.semPrincipal && (
-                  <div className="linha-dado destaque-sem-principal">
-                    <strong>⚠️ SEM PRINCIPAL:</strong> {ref.descricaoSemPrincipal}
-                  </div>
-                )}
-                {ref.obsExclusao && (
-                  <div className="linha-dado">
-                    <strong>Exclusão:</strong> {ref.obsExclusao}
-                  </div>
-                )}
-                {ref.obsAcrescimo && (
-                  <div className="linha-dado">
-                    <strong>Acréscimo:</strong> {ref.obsAcrescimo}
-                  </div>
+                ) : (
+                  // Refeição normal — mostra campos padrão
+                  <>
+                    <div className="linha-dado">
+                      <strong>Dieta:</strong> {ref.dieta}
+                    </div>
+                    {ref.restricoes?.length > 0 && (
+                      <div className="linha-dado">
+                        <strong>Restrições:</strong> {ref.restricoes.join(', ')}
+                      </div>
+                    )}
+                    {ref.semPrincipal && (
+                      <div className="linha-dado destaque-sem-principal">
+                        <strong>⚠️ SEM PRINCIPAL:</strong> {ref.descricaoSemPrincipal}
+                      </div>
+                    )}
+                    {ref.obsExclusao && (
+                      <div className="linha-dado">
+                        <strong>Exclusão:</strong> {ref.obsExclusao}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ))}

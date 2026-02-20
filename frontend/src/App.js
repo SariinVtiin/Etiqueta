@@ -105,8 +105,8 @@ function App() {
         }
 
         const respostaRefeicoes = await listarRefeicoes();
-        if (resultado.sucesso) {
-          setTiposAlimentacao(resultado.refeicoes);
+        if (respostaRefeicoes.sucesso) {
+          setTiposAlimentacao(respostaRefeicoes.refeicoes);
         }
       } catch (erro) {
         console.error('Erro ao carregar dados do BD:', erro);
@@ -194,12 +194,11 @@ function App() {
     }
   };
 
-  // handleRefeicoesCriadas deve ficar assim:
   const handleRefeicoesCriadas = async () => {
     try {
-      const resposta = await listarRefeicoes();
-      if (resposta.sucesso) {
-        setTiposAlimentacao(resposta.refeicoes);
+      const respostaRefeicoes = await listarRefeicoes();
+      if (respostaRefeicoes.sucesso) {
+        setTiposAlimentacao(respostaRefeicoes.refeicoes);
       }
     } catch (erro) {
       console.error('Erro ao atualizar refeições:', erro);

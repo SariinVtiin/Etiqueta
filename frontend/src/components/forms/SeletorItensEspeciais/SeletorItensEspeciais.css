@@ -91,15 +91,17 @@
 /* Item */
 .sie-item {
   display: flex;
+  flex-direction: row;   /* ← garante linha */
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.15s;
   margin-bottom: 2px;
   border: 1px solid transparent;
 }
+
 .sie-item:hover {
   background: #f0fdfa;
 }
@@ -117,20 +119,20 @@
 }
 
 .sie-item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: contents;
+  align-items: center;
+  gap: 8px;
   flex: 1;
 }
 
 .sie-produto {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: #134e4a;
 }
 
 .sie-gramatura {
-  font-size: 12px;
+  font-size: 11px;
   color: #0d9488;
   font-weight: 500;
 }

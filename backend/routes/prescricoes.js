@@ -234,12 +234,10 @@ router.post('/', autenticar, async (req, res) => {
       itensEspeciaisIds  // ✅ ADICIONADO
     } = req.body;
 
-    // Validações
-    if (!cpf || !codigoAtendimento || !nomePaciente || !nomeMae || !leito || !tipoAlimentacao || !dieta) {
-      return res.status(400).json({
-        sucesso: false,
-        erro: 'Campos obrigatórios faltando'
-      });
+    // DEPOIS — dieta só obrigatória se não houver itensEspeciaisIds
+    const temItensEspeciais = itensEspeciaisIds && itensEspeciaisIds.length > 0;
+    if (!tipoAlimentacao || (!dieta && !temItensEspeciais) || !nomePaciente || !cpf) {
+      return res.status(400).json({ sucesso: false, erro: 'Campos obrigatórios faltando' });
     }
 
     // Log para debug

@@ -233,22 +233,43 @@ function NovaPrescricao({
     }
 
     for (const refeicao of formData.refeicoesSelecionadas) {
-      if (!configRefeicoes[refeicao].dieta) {
+      const config = configRefeicoes[refeicao];
+      const refeicaoObj = tiposAlimentacao.find(t => 
+        (typeof t === 'string' ? t : t.nome) === refeicao
+      );
+      const isEspecial = refeicaoObj?.tem_lista_personalizada;
+
+      if (!isEspecial && !config?.dieta) {
         alert(`Selecione a dieta para ${refeicao}!`);
+        return;
+      }
+
+      if (isEspecial && (!config?.itensEspeciaisIds || config.itensEspeciaisIds.length === 0)) {
+        alert(`Selecione pelo menos um produto para ${refeicao}!`);
         return;
       }
     }
 
-    const refeicoes = formData.refeicoesSelecionadas.map(refeicao => ({
-      tipo: refeicao,
-      dieta: configRefeicoes[refeicao].dieta,
-      restricoes: configRefeicoes[refeicao].restricoes,
-      semPrincipal: configRefeicoes[refeicao].semPrincipal,
-      descricaoSemPrincipal: configRefeicoes[refeicao].descricaoSemPrincipal,
-      obsExclusao: configRefeicoes[refeicao].obsExclusao,
-      acrescimosIds: configRefeicoes[refeicao].acrescimosIds,
-      itensEspeciaisIds: configRefeicoes[refeicao].itensEspeciaisIds
-    }));
+    const refeicoes = formData.refeicoesSelecionadas.map(refeicao => {
+      const refeicaoObj = tiposAlimentacao.find(t =>
+        (typeof t === 'string' ? t : t.nome) === refeicao
+      );
+      const isEspecial = refeicaoObj?.tem_lista_personalizada;
+      const config = configRefeicoes[refeicao];
+
+      return {
+        tipo: refeicao,
+        isEspecial: isEspecial || false,
+        refeicaoId: refeicaoObj?.id || null,
+        dieta: config?.dieta || '',
+        restricoes: config?.restricoes || [],
+        semPrincipal: config?.semPrincipal || false,
+        descricaoSemPrincipal: config?.descricaoSemPrincipal || '',
+        obsExclusao: config?.obsExclusao || '',
+        acrescimosIds: config?.acrescimosIds || [],
+        itensEspeciaisIds: config?.itensEspeciaisIds || []
+      };
+    });
 
     setDadosParaConfirmar({
       ...formData,
@@ -278,12 +299,13 @@ function NovaPrescricao({
           nucleo: dadosParaConfirmar.nucleoSelecionado,
           leito: dadosParaConfirmar.leito,
           tipoAlimentacao: refeicao.tipo,
-          dieta: refeicao.dieta,
-          restricoes: refeicao.restricoes,
-          semPrincipal: refeicao.semPrincipal || false,
-          descricaoSemPrincipal: refeicao.descricaoSemPrincipal || '',
-          obsExclusao: refeicao.obsExclusao || '',
-          acrescimosIds: refeicao.acrescimosIds || []
+          dieta: refeicao.isEspecial ? null : refeicao.dieta,        // ← null para especiais
+          restricoes: refeicao.isEspecial ? [] : refeicao.restricoes,
+          semPrincipal: refeicao.isEspecial ? false : (refeicao.semPrincipal || false),
+          descricaoSemPrincipal: refeicao.isEspecial ? '' : (refeicao.descricaoSemPrincipal || ''),
+          obsExclusao: refeicao.isEspecial ? '' : (refeicao.obsExclusao || ''),
+          acrescimosIds: refeicao.isEspecial ? [] : (refeicao.acrescimosIds || []),
+          itensEspeciaisIds: refeicao.isEspecial ? (refeicao.itensEspeciaisIds || []) : [] 
         };
 
         return await criarPrescricao(prescricao);
