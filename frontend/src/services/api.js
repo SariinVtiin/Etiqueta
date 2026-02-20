@@ -824,3 +824,121 @@ export const listarUsuariosLogsLogin = async () => {
   }
   return response.json();
 };
+
+/**
+ * Listar apenas dietas ativas (para uso em prescrições)
+ */
+export const listarDietasAtivas = async () => {
+  const response = await fetch(`${API_URL}/dietas?apenasAtivas=true`, fetchConfigAuth());
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao listar dietas');
+  }
+  return response.json();
+};
+
+// ====================================
+// FUNÇÕES DE REFEIÇÕES
+// Adicionar ao final de frontend/src/services/api.js
+// ====================================
+
+/**
+ * Listar tipos de refeição
+ * @param {boolean} incluirInativas - Se true, retorna também as inativas
+ */
+export const listarRefeicoes = async (incluirInativas = false) => {
+  const response = await fetch(
+    `${API_URL}/refeicoes${incluirInativas ? '?incluirInativas=true' : ''}`,
+    fetchConfigAuth()
+  );
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao listar refeições');
+  }
+  return response.json();
+};
+
+/**
+ * Criar tipo de refeição
+ */
+export const criarRefeicao = async (refeicao) => {
+  const response = await fetch(`${API_URL}/refeicoes`, {
+    ...fetchConfigAuth(), method: 'POST', body: JSON.stringify(refeicao)
+  });
+  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao criar refeição'); }
+  return response.json();
+};
+
+/**
+ * Atualizar tipo de refeição
+ */
+export const atualizarRefeicao = async (id, refeicao) => {
+  const response = await fetch(`${API_URL}/refeicoes/${id}`, {
+    ...fetchConfigAuth(), method: 'PUT', body: JSON.stringify(refeicao)
+  });
+  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao atualizar refeição'); }
+  return response.json();
+};
+
+/**
+ * Ativar/Desativar tipo de refeição
+ */
+export const toggleRefeicaoAtiva = async (id, ativa) => {
+  const response = await fetch(`${API_URL}/refeicoes/${id}/toggle`, {
+    ...fetchConfigAuth(), method: 'PATCH', body: JSON.stringify({ ativa })
+  });
+  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao alterar status'); }
+  return response.json();
+};
+
+export const toggleListaPersonalizada = async (id, tem_lista_personalizada) => {
+  const response = await fetch(`${API_URL}/refeicoes/${id}/toggle-lista`, {
+    ...fetchConfigAuth(), method: 'PATCH', body: JSON.stringify({ tem_lista_personalizada })
+  });
+  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao alterar lista'); }
+  return response.json();
+};
+
+/**
+ * Listar itens ativos de uma refeição especial
+ */
+export const listarItensRefeicao = async (refeicaoId) => {
+  const response = await fetch(`${API_URL}/refeicoes/${refeicaoId}/itens`, fetchConfigAuth());
+  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao listar itens'); }
+  return response.json();
+};
+
+/**
+ * Buscar itens por IDs (para exibir histórico de prescrições)
+ */
+export const buscarItensRefeicaoPorIds = async (ids) => {
+  if (!ids || ids.length === 0) return { sucesso: true, itens: [] };
+  const response = await fetch(`${API_URL}/refeicoes/itens/buscar/${ids.join(',')}`, fetchConfigAuth());
+  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao buscar itens'); }
+  return response.json();
+};
+
+/**
+ * Importar planilha Excel para uma refeição especial
+ */
+export const importarItensRefeicao = async (refeicaoId, arquivo) => {
+  const formData = new FormData();
+  formData.append('arquivo', arquivo);
+
+  const response = await fetch(`${API_URL}/refeicoes/${refeicaoId}/itens/importar`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+    body: formData
+  });
+  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao importar'); }
+  return response.json();
+};
+
+/**
+ * Estatísticas de itens de uma refeição
+ */
+export const buscarEstatisticasItensRefeicao = async (refeicaoId) => {
+  const response = await fetch(`${API_URL}/refeicoes/${refeicaoId}/itens/estatisticas`, fetchConfigAuth());
+  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao buscar estatísticas'); }
+  return response.json();
+};

@@ -230,7 +230,8 @@ router.post('/', autenticar, async (req, res) => {
       descricaoSemPrincipal,
       obsExclusao,
       obsAcrescimo,
-      acrescimosIds  // ✅ ADICIONADO
+      acrescimosIds,
+      itensEspeciaisIds  // ✅ ADICIONADO
     } = req.body;
 
     // Validações
@@ -359,7 +360,8 @@ router.put('/:id', autenticar, async (req, res) => {
       descricaoSemPrincipal,
       obsExclusao,
       obsAcrescimo,
-      acrescimosIds  // ✅ ADICIONADO
+      acrescimosIds,
+      itensEspeciaisIds  // ✅ ADICIONADO
     } = req.body;
 
     await pool.query(
@@ -368,7 +370,7 @@ router.put('/:id', autenticar, async (req, res) => {
         nome_mae = ?, data_nascimento = ?, idade = ?, nucleo = ?, leito = ?,
         tipo_alimentacao = ?, dieta = ?, restricoes = ?, sem_principal = ?,
         descricao_sem_principal = ?, obs_exclusao = ?, obs_acrescimo = ?,
-        acrescimos_ids = ?
+        acrescimos_ids = ?, itens_especiais_ids = ?
       WHERE id = ?`,
       [
         cpf,
@@ -388,6 +390,7 @@ router.put('/:id', autenticar, async (req, res) => {
         obsExclusao || null,
         obsAcrescimo || null,
         acrescimosIds ? JSON.stringify(acrescimosIds) : null,  // ✅ ADICIONADO
+        itensEspeciaisIds ? JSON.stringify(itensEspeciaisIds) : null,
         id
       ]
     );

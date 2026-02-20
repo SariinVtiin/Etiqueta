@@ -4,14 +4,20 @@ const router = express.Router();
 const { pool } = require('../config/database');
 const { autenticar, verificarRole } = require('./auth');
 
-/**
- * GET /api/dietas - Listar todas as dietas
- */
 router.get('/', autenticar, async (req, res) => {
   try {
-    const [dietas] = await pool.query(
-      'SELECT * FROM dietas ORDER BY nome'
-    );
+    const { apenasAtivas } = req.query;
+
+    let query = 'SELECT * FROM dietas';
+    
+    // Se pedir apenas ativas OU não for admin, filtra
+    if (apenasAtivas === 'true') {
+      query += ' WHERE ativa = TRUE';
+    }
+
+    query += ' ORDER BY nome';
+
+    const [dietas] = await pool.query(query);
     
     res.json({ 
       sucesso: true, 
@@ -20,13 +26,9 @@ router.get('/', autenticar, async (req, res) => {
     });
   } catch (erro) {
     console.error('Erro ao buscar dietas:', erro);
-    res.status(500).json({ 
-      sucesso: false, 
-      erro: erro.message 
-    });
+    res.status(500).json({ sucesso: false, erro: erro.message });
   }
 });
-
 /**
  * GET /api/dietas/:id - Buscar dieta por ID
  */

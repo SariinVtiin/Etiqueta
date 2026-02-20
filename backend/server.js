@@ -24,7 +24,7 @@ const restricoesRouter = require('./routes/restricoesRoutes');
 const etiquetasRouter = require('./routes/etiquetas');
 const acrescimosRouter = require('./routes/acrescimos');
 const logsLoginRouter = require('./routes/logsLogin'); 
-
+const tiposRefeicaoRoutes = require('./routes/tiposRefeicaoRoutes');
 // ============================================
 // REGISTRAR ROTAS
 // ============================================
@@ -39,6 +39,7 @@ app.use('/api/restricoes', restricoesRouter);
 app.use('/api/etiquetas', etiquetasRouter);
 app.use('/api/acrescimos', acrescimosRouter);
 app.use('/api/logs-login', logsLoginRouter);
+app.use('/api/refeicoes', tiposRefeicaoRoutes);
 
 // Testar conexão ao iniciar
 testarConexao();

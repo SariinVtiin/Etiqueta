@@ -7,6 +7,7 @@ import ModalConfirmacao from '../../components/common/ModalConfirmacao';
 import FormularioPaciente from '../../components/forms/FormularioPaciente';
 import SeletorAcrescimos from '../../components/forms/SeletorAcrescimos';
 import { criarPrescricao } from '../../services/api';
+import SeletorItensEspeciais from '../../components/forms/SeletorItensEspeciais/SeletorItensEspeciais';
 
 function NovaPrescricao({ 
   nucleos = {}, 
@@ -110,7 +111,8 @@ function NovaPrescricao({
           semPrincipal: false,
           descricaoSemPrincipal: '',
           obsExclusao: '',
-          acrescimosIds: []
+          acrescimosIds: [],
+          itensEspeciaisIds: []  // ← NOVO
         }
       });
     }
@@ -189,6 +191,16 @@ function NovaPrescricao({
     });
   };
 
+  const handleItensEspeciaisChange = (refeicao, ids) => {
+    setConfigRefeicoes({
+      ...configRefeicoes,
+      [refeicao]: {
+        ...configRefeicoes[refeicao],
+        itensEspeciaisIds: ids
+      }
+    });
+  };
+
   // ============================================
   // VALIDAÇÃO E SUBMIT
   // ============================================
@@ -234,7 +246,8 @@ function NovaPrescricao({
       semPrincipal: configRefeicoes[refeicao].semPrincipal,
       descricaoSemPrincipal: configRefeicoes[refeicao].descricaoSemPrincipal,
       obsExclusao: configRefeicoes[refeicao].obsExclusao,
-      acrescimosIds: configRefeicoes[refeicao].acrescimosIds
+      acrescimosIds: configRefeicoes[refeicao].acrescimosIds,
+      itensEspeciaisIds: configRefeicoes[refeicao].itensEspeciaisIds
     }));
 
     setDadosParaConfirmar({
@@ -351,101 +364,128 @@ function NovaPrescricao({
 
         <div className="campo">
           <label>REFEIÇÕES * (selecione uma ou mais)</label>
-          <div className="opcoes-check">
+          <div className="opcoes-check opcoes-check-refeicoes">
             {tiposAlimentacao.map((tipo, index) => (
-              <label key={index} className={`opcao-check ${formData.refeicoesSelecionadas.includes(tipo) ? 'selecionado' : ''}`}>
-                <input 
-                  type="checkbox" 
-                  checked={formData.refeicoesSelecionadas.includes(tipo)} 
-                  onChange={() => handleRefeicaoToggle(tipo)} 
+              <label
+                key={index}
+                className={`opcao-check ${formData.refeicoesSelecionadas.includes(tipo.nome) ? 'selecionado' : ''} ${tipo.tem_lista_personalizada ? 'opcao-check-especial' : ''}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={formData.refeicoesSelecionadas.includes(tipo.nome)}
+                  onChange={() => handleRefeicaoToggle(tipo.nome)}
                 />
-                <span>{tipo}</span>
+                <span>{tipo.nome}{tipo.tem_lista_personalizada ? ' ✦' : ''}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Configuração individual de cada refeição selecionada */}
-        {formData.refeicoesSelecionadas.map(refeicao => (
-          <div key={refeicao} className="config-refeicao">
-            <h3 className="titulo-refeicao">⚙️ Configurar: {refeicao}</h3>
+          {formData.refeicoesSelecionadas.map(refeicao => {
+          // Verificar se esta refeição tem lista personalizada
+          const refeicaoObj = tiposAlimentacao.find(t => t.nome === refeicao);
+          const isEspecial = refeicaoObj?.tem_lista_personalizada;
 
-            <div className="campo">
-              <label>DIETA * (para {refeicao})</label>
-              <div className="opcoes-check">
-                {dietas.map(dieta => (
-                  <label key={dieta.id} className="opcao-check">
-                    <input 
-                      type="radio" 
-                      name={`dieta-${refeicao}`} 
-                      checked={configRefeicoes[refeicao]?.dieta === dieta.nome} 
-                      onChange={() => handleDietaRefeicao(refeicao, dieta.nome)} 
-                    />
-                    <span>{dieta.nome}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+          return (
+            <div key={refeicao} className={`config-refeicao ${isEspecial ? 'config-refeicao-especial' : ''}`}>
+              <h3 className="titulo-refeicao">
+                ⚙️ Configurar: {refeicao}
+                {isEspecial && <span className="badge-lista-especial">✦ Lista Personalizada</span>}
+              </h3>
 
-            <div className="campo">
-              <label>RESTRIÇÃO ALIMENTAR (para {refeicao})</label>
-              <div className="opcoes-check">
-                {restricoes.map(restricao => (
-                  <label key={restricao.id} className="opcao-check">
-                    <input 
-                      type="checkbox" 
-                      checked={configRefeicoes[refeicao]?.restricoes.includes(restricao.nome)} 
-                      onChange={() => handleRestricaoRefeicao(refeicao, restricao.nome)} 
-                    />
-                    <span>{restricao.nome}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="campo">
-              <label>SEM PRINCIPAL</label>
-              <div className="campo-sem-principal">
-                <label className="opcao-check-destaque">
-                  <input 
-                    type="checkbox" 
-                    checked={configRefeicoes[refeicao]?.semPrincipal || false} 
-                    onChange={() => handleSemPrincipalToggle(refeicao)} 
+              {isEspecial ? (
+                /* ── MODO ESPECIAL: só mostra seletor de itens ── */
+                <div className="campo">
+                  <label>PRODUTOS ({refeicao}) *</label>
+                  <SeletorItensEspeciais
+                    refeicaoId={refeicaoObj.id}
+                    itensSelecionados={configRefeicoes[refeicao]?.itensEspeciaisIds || []}
+                    onChange={(ids) => handleItensEspeciaisChange(refeicao, ids)}
                   />
-                  <span>Paciente NÃO quer o prato principal do cardápio</span>
-                </label>
-              </div>
-              {configRefeicoes[refeicao]?.semPrincipal && (
-                <input 
-                  type="text" 
-                  value={configRefeicoes[refeicao]?.descricaoSemPrincipal || ''} 
-                  onChange={(e) => handleDescricaoSemPrincipal(refeicao, e.target.value)} 
-                  placeholder="Descreva o que o paciente quer no lugar do principal" 
-                  style={{ marginTop: '10px' }} 
-                />
+                </div>
+              ) : (
+                /* ── MODO PADRÃO: campos normais ── */
+                <>
+                  <div className="campo">
+                    <label>DIETA * (para {refeicao})</label>
+                    <div className="opcoes-check">
+                      {dietas.map(dieta => (
+                        <label key={dieta.id} className="opcao-check">
+                          <input
+                            type="radio"
+                            name={`dieta-${refeicao}`}
+                            checked={configRefeicoes[refeicao]?.dieta === dieta.nome}
+                            onChange={() => handleDietaRefeicao(refeicao, dieta.nome)}
+                          />
+                          <span>{dieta.nome}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="campo">
+                    <label>RESTRIÇÃO ALIMENTAR (para {refeicao})</label>
+                    <div className="opcoes-check">
+                      {restricoes.map(restricao => (
+                        <label key={restricao.id} className="opcao-check">
+                          <input
+                            type="checkbox"
+                            checked={configRefeicoes[refeicao]?.restricoes.includes(restricao.nome)}
+                            onChange={() => handleRestricaoRefeicao(refeicao, restricao.nome)}
+                          />
+                          <span>{restricao.nome}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="campo">
+                    <label>SEM PRINCIPAL</label>
+                    <div className="campo-sem-principal">
+                      <label className="opcao-check-destaque">
+                        <input
+                          type="checkbox"
+                          checked={configRefeicoes[refeicao]?.semPrincipal || false}
+                          onChange={() => handleSemPrincipalToggle(refeicao)}
+                        />
+                        <span>Paciente NÃO quer o prato principal do cardápio</span>
+                      </label>
+                    </div>
+                    {configRefeicoes[refeicao]?.semPrincipal && (
+                      <input
+                        type="text"
+                        value={configRefeicoes[refeicao]?.descricaoSemPrincipal || ''}
+                        onChange={(e) => handleDescricaoSemPrincipal(refeicao, e.target.value)}
+                        placeholder="Descreva o que o paciente quer no lugar do principal"
+                        style={{ marginTop: '10px' }}
+                      />
+                    )}
+                  </div>
+
+                  <div className="campo">
+                    <label>OBS EXCLUSÃO (o que NÃO quer)</label>
+                    <input
+                      type="text"
+                      value={configRefeicoes[refeicao]?.obsExclusao || ''}
+                      onChange={(e) => handleObsExclusao(refeicao, e.target.value)}
+                      placeholder="Ex: s/ leite, s/ açúcar"
+                    />
+                  </div>
+
+                  <div className="campo">
+                    <label>ACRÉSCIMOS (o que quer ALÉM do cardápio)</label>
+                    <SeletorAcrescimos
+                      acrescimosSelecionados={configRefeicoes[refeicao]?.acrescimosIds || []}
+                      onChange={(ids) => handleAcrescimosChange(refeicao, ids)}
+                      refeicao={refeicao}
+                    />
+                  </div>
+                </>
               )}
             </div>
-
-            <div className="campo">
-              <label>OBS EXCLUSÃO (o que NÃO quer)</label>
-              <input 
-                type="text" 
-                value={configRefeicoes[refeicao]?.obsExclusao || ''} 
-                onChange={(e) => handleObsExclusao(refeicao, e.target.value)} 
-                placeholder="Ex: s/ leite, s/ açúcar" 
-              />
-            </div>
-
-            <div className="campo">
-              <label>ACRÉSCIMOS (o que quer ALÉM do cardápio)</label>
-              <SeletorAcrescimos 
-                acrescimosSelecionados={configRefeicoes[refeicao]?.acrescimosIds || []} 
-                onChange={(ids) => handleAcrescimosChange(refeicao, ids)} 
-                refeicao={refeicao} 
-              />
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         <button type="submit" className="btn-adicionar">+ Criar Prescrição (Enter)</button>
       </form>

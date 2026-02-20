@@ -1,0 +1,217 @@
+/* frontend/src/components/forms/SeletorItensEspeciais/SeletorItensEspeciais.css */
+
+.sie-container {
+  background: #f0fdfa;
+  border: 2px solid #0d9488;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+/* Loading */
+.sie-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  justify-content: center;
+  color: #0d9488;
+  background: #f0fdfa;
+  border: 2px solid #0d9488;
+  border-radius: 10px;
+}
+
+.sie-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #ccfbf1;
+  border-top-color: #0d9488;
+  border-radius: 50%;
+  animation: sie-spin 1s linear infinite;
+}
+
+@keyframes sie-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Sem itens */
+.sie-sem-itens {
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  color: #92400e;
+}
+.sie-sem-itens span { font-size: 28px; display: block; margin-bottom: 8px; }
+.sie-sem-itens p { font-weight: 600; margin: 0 0 4px 0; }
+.sie-sem-itens small { color: #78350f; }
+
+/* Busca */
+.sie-busca {
+  margin-bottom: 12px;
+}
+
+.sie-input-busca {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #99f6e4;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.sie-input-busca:focus {
+  outline: none;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13,148,136,0.15);
+}
+
+/* Lista */
+.sie-lista {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+  background: #fff;
+  padding: 6px;
+}
+
+.sie-lista::-webkit-scrollbar { width: 6px; }
+.sie-lista::-webkit-scrollbar-track { background: #f0fdfa; border-radius: 3px; }
+.sie-lista::-webkit-scrollbar-thumb { background: #5eead4; border-radius: 3px; }
+
+.sie-sem-resultado {
+  text-align: center;
+  padding: 28px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* Item */
+.sie-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+}
+.sie-item:hover {
+  background: #f0fdfa;
+}
+.sie-item-selecionado {
+  background: #ccfbf1 !important;
+  border-color: #5eead4 !important;
+}
+
+.sie-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #0d9488;
+  flex-shrink: 0;
+}
+
+.sie-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.sie-produto {
+  font-size: 14px;
+  font-weight: 600;
+  color: #134e4a;
+}
+
+.sie-gramatura {
+  font-size: 12px;
+  color: #0d9488;
+  font-weight: 500;
+}
+
+/* Resumo */
+.sie-resumo {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 2px solid #99f6e4;
+}
+
+.sie-resumo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #134e4a;
+}
+
+.sie-btn-limpar {
+  background: transparent;
+  border: 1px solid #99f6e4;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #0d9488;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sie-btn-limpar:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* Tags de selecionados */
+.sie-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sie-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0d9488;
+  color: #fff;
+  padding: 4px 8px 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sie-tag-gramatura {
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.sie-tag-remover {
+  background: rgba(255,255,255,0.25);
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 3px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+.sie-tag-remover:hover { background: rgba(255,255,255,0.45); }
+
+/* Info total */
+.sie-info-total {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 11px;
+  color: #5eead4;
+}
+
+@media (max-width: 768px) {
+  .sie-lista { max-height: 200px; }
+}

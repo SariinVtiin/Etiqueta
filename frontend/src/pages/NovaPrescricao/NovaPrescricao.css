@@ -333,3 +333,43 @@
 .container::-webkit-scrollbar-thumb:hover {
   background: #0f766e;
 }
+/* Grade fixa para refeições: 4 por linha no desktop */
+.opcoes-check-refeicoes {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+
+@media (max-width: 768px) {
+  .opcoes-check-refeicoes {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .opcoes-check-refeicoes {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.config-refeicao-especial {
+  border-color: #0d9488;
+  background: #f0fdfa;
+}
+
+.badge-lista-especial {
+  font-size: 12px;
+  background: linear-gradient(135deg, #0d9488, #059669);
+  color: #fff;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-weight: 700;
+  margin-left: 8px;
+}
+
+.opcao-check-especial {
+  border-color: #0d9488 !important;
+  background: #f0fdfa !important;
+}
+.opcao-check-especial span {
+  color: #0d9488 !important;
+  font-weight: 700;
+}

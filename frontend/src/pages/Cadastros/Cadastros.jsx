@@ -5,7 +5,7 @@ import ImportarAcrescimos from '../../components/configuracoes/ImportarAcrescimo
 import RelatorioLogin from '../../components/RelatorioLogin/RelatorioLogin';
 import './Cadastros.css';
 
-function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGestaoRestricoes, irParaGestaoLeitos }) {
+function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGestaoRestricoes, irParaGestaoLeitos, irParaGestaoRefeicoes }) {
   const [mostrarImportacao, setMostrarImportacao] = useState(false);
   const [relatorioLoginAberto, setRelatorioLoginAberto] = useState(false);
 
@@ -80,6 +80,15 @@ function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGes
           <p>Gerar relatório Excel com histórico de acessos ao sistema</p>
           <button className="card-button">Gerar Relatório</button>
         </div>
+
+        {/* Tipos de Refeição */}
+        <div className="cadastro-card" onClick={irParaGestaoRefeicoes}>
+          <div className="card-icon">🍽️</div>
+          <h3>Tipos de Refeição</h3>
+          <p>Gerenciar refeições disponíveis (Desjejum, Almoço, Jantar...)</p>
+          <button className="card-button">Acessar</button>
+        </div>
+
       </div>
 
       {/* Modal do Relatório de Logs de Login */}

@@ -13,7 +13,9 @@ import GestaoDietas from './pages/GestaoDietas/GestaoDietas';
 import GestaoLeitos from './pages/GestaoLeitos/GestaoLeitos';
 import GestaoRestricoes from './pages/GestaoRestricoes/GestaoRestricoes';
 import CentroNotificacoes from './components/common/CentroNotificacoes/CentroNotificacoes';
-import { listarLeitos, listarDietas, listarRestricoes } from './services/api';
+import { listarDietas, listarRestricoes, listarLeitos, listarRefeicoes } from './services/api';
+import GestaoRefeicoes from './pages/GestaoRefeicoes/GestaoRefeicoes';
+
 
 // ===== ÍCONES SVG =====
 const Icons = {
@@ -67,26 +69,11 @@ function App() {
 
   const [telaAtual, setTelaAtual] = useState('dashboard');
   const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
-
-  // ✅ Removido: useState de etiquetas com localStorage
-  // ✅ Removido: useEffect de sync etiquetas → localStorage
-
   const [nucleos, setNucleos] = useState({});
   const [dietas, setDietas] = useState([]);
   const [restricoes, setRestricoes] = useState([]);
   const [carregandoDados, setCarregandoDados] = useState(true);
-
-  const [tiposAlimentacao] = useState(() => {
-    const saved = localStorage.getItem('tiposAlimentacao');
-    return saved ? JSON.parse(saved) : [
-      'Desjejum',
-      'Colação',
-      'Almoço',
-      'Lanche',
-      'Jantar',
-      'Ceia'
-    ];
-  });
+  const [tiposAlimentacao, setTiposAlimentacao] = useState([]);
 
   // Buscar leitos, dietas e restrições do BD ao carregar (somente quando autenticado)
   useEffect(() => {
@@ -109,12 +96,17 @@ function App() {
 
         const respostaDietas = await listarDietas();
         if (respostaDietas.sucesso) {
-          setDietas(respostaDietas.dietas);
+          setDietas(respostaDietas.dietas.filter(d => d.ativa === 1 || d.ativa === true));
         }
 
         const respostaRestricoes = await listarRestricoes();
         if (respostaRestricoes.sucesso) {
           setRestricoes(respostaRestricoes.restricoes);
+        }
+
+        const respostaRefeicoes = await listarRefeicoes();
+        if (resultado.sucesso) {
+          setTiposAlimentacao(resultado.refeicoes);
         }
       } catch (erro) {
         console.error('Erro ao carregar dados do BD:', erro);
@@ -180,6 +172,14 @@ function App() {
     setTelaAtual('gestaoLeitos');
   }, [isAdmin]);
 
+  const irParaGestaoRefeicoes = useCallback(() => {
+  if (!isAdmin()) {
+    alert('Acesso negado! Apenas administradores podem gerenciar refeições.');
+    return;
+  }
+  setTelaAtual('gestaoRefeicoes');
+  }, [isAdmin]);
+
   // ============================================
   // CALLBACKS PARA ATUALIZAR DADOS
   // ============================================
@@ -187,10 +187,22 @@ function App() {
     try {
       const resposta = await listarDietas();
       if (resposta.sucesso) {
-        setDietas(resposta.dietas);
+        setDietas(resposta.dietas.filter(d => d.ativa === 1 || d.ativa === true));
       }
     } catch (erro) {
       console.error('Erro ao atualizar dietas:', erro);
+    }
+  };
+
+  // handleRefeicoesCriadas deve ficar assim:
+  const handleRefeicoesCriadas = async () => {
+    try {
+      const resposta = await listarRefeicoes();
+      if (resposta.sucesso) {
+        setTiposAlimentacao(resposta.refeicoes);
+      }
+    } catch (erro) {
+      console.error('Erro ao atualizar refeições:', erro);
     }
   };
 
@@ -304,7 +316,8 @@ function App() {
                 telaAtual === 'gestaoUsuarios' ||
                 telaAtual === 'gestaoDietas' ||
                 telaAtual === 'gestaoRestricoes' ||
-                telaAtual === 'gestaoLeitos'
+                telaAtual === 'gestaoLeitos' ||
+                telaAtual === 'gestaoRefeicoes'
                   ? 'active'
                   : ''
               }`}
@@ -376,6 +389,7 @@ function App() {
           irParaGestaoDietas={irParaGestaoDietas}
           irParaGestaoRestricoes={irParaGestaoRestricoes}
           irParaGestaoLeitos={irParaGestaoLeitos}
+          irParaGestaoRefeicoes={irParaGestaoRefeicoes}
         />
       )}
 
@@ -401,6 +415,13 @@ function App() {
         <GestaoLeitos
           voltar={irParaCadastros}
           onLeitosAlterados={handleLeitosAlterados}
+        />
+      )}
+
+      {telaAtual === 'gestaoRefeicoes' && (
+        <GestaoRefeicoes
+          voltar={irParaCadastros}
+          onRefeicoesCriadas={handleRefeicoesCriadas}
         />
       )}
 
