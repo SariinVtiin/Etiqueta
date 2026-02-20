@@ -341,9 +341,10 @@ function ModalEditarPrescricao({
               {tiposSafe.length > 0 ? (
                 <select name="tipoAlimentacao" value={formData.tipoAlimentacao} onChange={handleChange}>
                   <option value="">Selecione...</option>
-                  {tiposSafe.map((tipo, index) => (
-                    <option key={index} value={tipo}>{tipo}</option>
-                  ))}
+                    {tiposSafe.map((tipo, index) => {
+                        const valor = typeof tipo === 'object' ? tipo.nome : tipo;
+                        return <option key={index} value={valor}>{valor}</option>;
+                    })}
                 </select>
               ) : (
                 <input
