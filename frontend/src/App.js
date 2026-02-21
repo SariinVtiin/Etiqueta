@@ -15,6 +15,7 @@ import GestaoRestricoes from './pages/GestaoRestricoes/GestaoRestricoes';
 import CentroNotificacoes from './components/common/CentroNotificacoes/CentroNotificacoes';
 import { listarDietas, listarRestricoes, listarLeitos, listarRefeicoes } from './services/api';
 import GestaoRefeicoes from './pages/GestaoRefeicoes/GestaoRefeicoes';
+import GestaoConfiguracoes from './pages/GestaoConfiguracoes/GestaoConfiguracoes';
 
 
 // ===== ÍCONES SVG =====
@@ -180,6 +181,14 @@ function App() {
   setTelaAtual('gestaoRefeicoes');
   }, [isAdmin]);
 
+  const irParaGestaoConfiguracoes = useCallback(() => {
+  if (!isAdmin()) {
+    alert('Acesso negado! Apenas administradores podem acessar as configurações.');
+    return;
+  }
+  setTelaAtual('gestaoConfiguracoes');
+}, [isAdmin]);
+
   // ============================================
   // CALLBACKS PARA ATUALIZAR DADOS
   // ============================================
@@ -316,7 +325,8 @@ function App() {
                 telaAtual === 'gestaoDietas' ||
                 telaAtual === 'gestaoRestricoes' ||
                 telaAtual === 'gestaoLeitos' ||
-                telaAtual === 'gestaoRefeicoes'
+                telaAtual === 'gestaoRefeicoes' ||
+                telaAtual === 'gestaoConfiguracoes'
                   ? 'active'
                   : ''
               }`}
@@ -389,6 +399,7 @@ function App() {
           irParaGestaoRestricoes={irParaGestaoRestricoes}
           irParaGestaoLeitos={irParaGestaoLeitos}
           irParaGestaoRefeicoes={irParaGestaoRefeicoes}
+          irParaGestaoConfiguracoes={irParaGestaoConfiguracoes} 
         />
       )}
 
@@ -423,6 +434,10 @@ function App() {
           onRefeicoesCriadas={handleRefeicoesCriadas}
         />
       )}
+      {telaAtual === 'gestaoConfiguracoes' && (
+        <GestaoConfiguracoes voltar={irParaCadastros} />
+      )}
+
 
     </div>
   );

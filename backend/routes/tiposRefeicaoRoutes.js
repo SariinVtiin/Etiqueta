@@ -49,9 +49,11 @@ router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
       return res.status(400).json({ sucesso: false, erro: 'Já existe uma refeição com este nome' });
     }
 
+    const grupoDia = req.body.grupo_dia === 'atual' ? 'atual' : 'proximo';
+
     const [resultado] = await pool.query(
-      'INSERT INTO tipos_refeicao (nome, descricao, ordem, ativa, tem_lista_personalizada) VALUES (?, ?, ?, 1, 0)',
-      [nome.trim(), descricao?.trim() || null, ordem || 999]
+      'INSERT INTO tipos_refeicao (nome, descricao, ordem, ativa, tem_lista_personalizada, grupo_dia) VALUES (?, ?, ?, 1, 0, ?)',
+      [nome.trim(), descricao?.trim() || null, ordem || 999, grupoDia]
     );
 
     const [nova] = await pool.query('SELECT * FROM tipos_refeicao WHERE id = ?', [resultado.insertId]);
@@ -79,9 +81,11 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
     const [duplicado] = await pool.query('SELECT id FROM tipos_refeicao WHERE nome = ? AND id != ?', [nome.trim(), id]);
     if (duplicado.length > 0) return res.status(400).json({ sucesso: false, erro: 'Já existe outra refeição com este nome' });
 
+    const grupoDia = req.body.grupo_dia === 'atual' ? 'atual' : 'proximo';
+
     await pool.query(
-      'UPDATE tipos_refeicao SET nome = ?, descricao = ?, ordem = ? WHERE id = ?',
-      [nome.trim(), descricao?.trim() || null, ordem || 999, id]
+      'UPDATE tipos_refeicao SET nome = ?, descricao = ?, ordem = ?, grupo_dia = ? WHERE id = ?',
+      [nome.trim(), descricao?.trim() || null, ordem || 999, grupoDia, id]
     );
 
     const [atualizada] = await pool.query('SELECT * FROM tipos_refeicao WHERE id = ?', [id]);

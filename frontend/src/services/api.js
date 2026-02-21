@@ -942,3 +942,31 @@ export const buscarEstatisticasItensRefeicao = async (refeicaoId) => {
   if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao buscar estatísticas'); }
   return response.json();
 };
+
+/**
+ * Buscar todas as configurações do sistema
+ */
+export const buscarConfiguracoes = async () => {
+  const response = await fetch(`${API_URL}/configuracoes`, fetchConfigAuth());
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao buscar configurações');
+  }
+  return response.json();
+};
+
+/**
+ * Atualizar uma configuração do sistema
+ */
+export const atualizarConfiguracao = async (chave, valor) => {
+  const response = await fetch(`${API_URL}/configuracoes/${chave}`, {
+    ...fetchConfigAuth(),
+    method: 'PUT',
+    body: JSON.stringify({ valor })
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao atualizar configuração');
+  }
+  return response.json();
+};

@@ -1,5 +1,5 @@
 // frontend/src/pages/GestaoRefeicoes/GestaoRefeicoes.jsx
-// VERSÃO COMPLETA com suporte a listas personalizadas + import Excel
+// VERSÃO ATUALIZADA: com suporte a grupo_dia (data de consumo)
 import React, { useState, useEffect } from 'react';
 import {
   listarRefeicoes,
@@ -19,14 +19,18 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
   const [refeicaoEditando, setRefeicaoEditando] = useState(null);
   const [filtro, setFiltro] = useState('ativas');
 
-  // Modal de importação
-  const [modalImport, setModalImport] = useState(null); // { refeicao }
+  const [modalImport, setModalImport] = useState(null);
   const [arquivoImport, setArquivoImport] = useState(null);
   const [importando, setImportando] = useState(false);
   const [resultadoImport, setResultadoImport] = useState(null);
-  const [estatisticas, setEstatisticas] = useState({}); // { [refeicaoId]: stats }
+  const [estatisticas, setEstatisticas] = useState({});
 
-  const [formData, setFormData] = useState({ nome: '', descricao: '', ordem: '' });
+  const [formData, setFormData] = useState({
+    nome: '',
+    descricao: '',
+    ordem: '',
+    grupo_dia: 'proximo'  // ← NOVO CAMPO
+  });
 
   useEffect(() => {
     carregarRefeicoes();
@@ -37,10 +41,14 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
     setCarregando(true);
     try {
       const resposta = await listarRefeicoes(filtro === 'todas');
-      const lista = resposta.refeicoes || [];
+      const lista = (resposta.refeicoes || []).map(r => ({
+        ...r,
+        ativa: !!r.ativa,
+        tem_lista_personalizada: !!r.tem_lista_personalizada,
+        grupo_dia: r.grupo_dia || 'proximo'
+      }));
       setRefeicoes(lista);
 
-      // Buscar estatísticas para refeições especiais
       const especiais = lista.filter(r => r.tem_lista_personalizada);
       const statsMap = {};
       await Promise.all(especiais.map(async (r) => {
@@ -63,20 +71,25 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
   // ─── Modal CRUD ───────────────────────────────────────
   const abrirModalNovo = () => {
     setRefeicaoEditando(null);
-    setFormData({ nome: '', descricao: '', ordem: '' });
+    setFormData({ nome: '', descricao: '', ordem: '', grupo_dia: 'proximo' });
     setMostrarModal(true);
   };
 
   const abrirModalEditar = (r) => {
     setRefeicaoEditando(r);
-    setFormData({ nome: r.nome, descricao: r.descricao || '', ordem: r.ordem || '' });
+    setFormData({
+      nome: r.nome,
+      descricao: r.descricao || '',
+      ordem: r.ordem || '',
+      grupo_dia: r.grupo_dia || 'proximo'
+    });
     setMostrarModal(true);
   };
 
   const fecharModal = () => {
     setMostrarModal(false);
     setRefeicaoEditando(null);
-    setFormData({ nome: '', descricao: '', ordem: '' });
+    setFormData({ nome: '', descricao: '', ordem: '', grupo_dia: 'proximo' });
   };
 
   const handleSubmit = async (e) => {
@@ -110,17 +123,15 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
 
   const handleToggleLista = async (r) => {
     const novoStatus = !r.tem_lista_personalizada;
-
     if (novoStatus) {
       if (!window.confirm(
-        `Ativar lista personalizada para "${r.nome}"?\n\nIsso vai substituir as opções padrão (Dieta, Restrições, etc.) por uma lista de produtos importada via planilha Excel.`
+        `Ativar lista personalizada para "${r.nome}"?\n\nIsso vai substituir as opções padrão por uma lista de produtos importada via planilha Excel.`
       )) return;
     } else {
       if (!window.confirm(
         `Desativar lista personalizada de "${r.nome}"?\n\nAs opções padrão voltarão a aparecer nas prescrições.`
       )) return;
     }
-
     try {
       await toggleListaPersonalizada(r.id, novoStatus);
       notificarApp();
@@ -163,6 +174,9 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
     return new Date(data).toLocaleString('pt-BR');
   };
 
+  const labelGrupoDia = (grupo) =>
+    grupo === 'atual' ? '📅 Dia Atual' : '📅 Dia Seguinte';
+
   // ─── RENDER ───────────────────────────────────────────
   return (
     <div className="gr-container">
@@ -188,6 +202,8 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
       <div className="gr-legenda">
         <span className="gr-legenda-item"><span className="gr-badge-normal">Padrão</span> opções normais (Dieta, Restrições, etc.)</span>
         <span className="gr-legenda-item"><span className="gr-badge-especial">Lista ✦</span> substitui tudo por produtos importados</span>
+        <span className="gr-legenda-item"><span className="gr-badge-dia-atual">Dia Atual</span> etiqueta sai com data de hoje</span>
+        <span className="gr-legenda-item"><span className="gr-badge-dia-proximo">Dia Seguinte</span> etiqueta sai com data de amanhã</span>
       </div>
 
       {/* LISTA */}
@@ -207,6 +223,10 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
                   {r.nome}
                   {r.tem_lista_personalizada && <span className="gr-badge-especial">Lista ✦</span>}
                   {!r.ativa && <span className="gr-badge-inativa">Inativa</span>}
+                  {/* ← NOVO: badge do grupo do dia */}
+                  <span className={`gr-badge-grupo ${r.grupo_dia === 'atual' ? 'gr-badge-dia-atual' : 'gr-badge-dia-proximo'}`}>
+                    {labelGrupoDia(r.grupo_dia)}
+                  </span>
                 </div>
                 {r.descricao && <div className="gr-item-descricao">{r.descricao}</div>}
                 <div className="gr-item-meta">
@@ -221,7 +241,6 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
               </div>
 
               <div className="gr-item-acoes">
-                {/* Toggle lista personalizada */}
                 <button
                   className={`gr-btn-lista ${r.tem_lista_personalizada ? 'lista-ativa' : 'lista-inativa'}`}
                   onClick={() => handleToggleLista(r)}
@@ -230,7 +249,6 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
                   {r.tem_lista_personalizada ? '📋 Lista ON' : '📋 Lista OFF'}
                 </button>
 
-                {/* Botão importar (só se lista ativa) */}
                 {r.tem_lista_personalizada && (
                   <button
                     className="gr-btn-importar"
@@ -265,19 +283,78 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
             <form onSubmit={handleSubmit} className="gr-modal-form">
               <div className="gr-campo">
                 <label>Nome *</label>
-                <input type="text" value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} placeholder="Ex: Desjejum, Form. Enteral..." autoFocus />
+                <input
+                  type="text"
+                  value={formData.nome}
+                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  placeholder="Ex: Desjejum, Merenda, Jantar..."
+                  autoFocus
+                />
               </div>
               <div className="gr-campo">
                 <label>Descrição</label>
-                <input type="text" value={formData.descricao} onChange={(e) => setFormData({ ...formData, descricao: e.target.value })} placeholder="Opcional" />
+                <input
+                  type="text"
+                  value={formData.descricao}
+                  onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                  placeholder="Opcional"
+                />
               </div>
               <div className="gr-campo">
                 <label>Ordem de exibição</label>
-                <input type="number" value={formData.ordem} onChange={(e) => setFormData({ ...formData, ordem: e.target.value })} placeholder="Ex: 1, 2, 3..." min="1" />
+                <input
+                  type="number"
+                  value={formData.ordem}
+                  onChange={(e) => setFormData({ ...formData, ordem: e.target.value })}
+                  placeholder="Ex: 1, 2, 3..."
+                  min="1"
+                />
               </div>
+
+              {/* ← NOVO CAMPO: grupo_dia */}
+              <div className="gr-campo">
+                <label>Data de consumo na etiqueta *</label>
+                <div className="gr-grupo-dia-opcoes">
+                  <label className={`gr-radio-opcao ${formData.grupo_dia === 'atual' ? 'selecionado' : ''}`}>
+                    <input
+                      type="radio"
+                      name="grupo_dia"
+                      value="atual"
+                      checked={formData.grupo_dia === 'atual'}
+                      onChange={() => setFormData({ ...formData, grupo_dia: 'atual' })}
+                    />
+                    <div className="gr-radio-conteudo">
+                      <span className="gr-radio-titulo">📅 Dia Atual</span>
+                      <span className="gr-radio-desc">
+                        Se prescrito até o corte: etiqueta sai com <strong>hoje</strong><br />
+                        Se prescrito após o corte: etiqueta sai com <strong>amanhã</strong>
+                      </span>
+                    </div>
+                  </label>
+                  <label className={`gr-radio-opcao ${formData.grupo_dia === 'proximo' ? 'selecionado' : ''}`}>
+                    <input
+                      type="radio"
+                      name="grupo_dia"
+                      value="proximo"
+                      checked={formData.grupo_dia === 'proximo'}
+                      onChange={() => setFormData({ ...formData, grupo_dia: 'proximo' })}
+                    />
+                    <div className="gr-radio-conteudo">
+                      <span className="gr-radio-titulo">📅 Dia Seguinte</span>
+                      <span className="gr-radio-desc">
+                        Se prescrito até o corte: etiqueta sai com <strong>amanhã</strong><br />
+                        Se prescrito após o corte: etiqueta sai com <strong>depois de amanhã</strong>
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
               <div className="gr-modal-acoes">
                 <button type="button" className="gr-btn-cancelar" onClick={fecharModal}>Cancelar</button>
-                <button type="submit" className="gr-btn-salvar">{refeicaoEditando ? 'Salvar Alterações' : 'Criar Refeição'}</button>
+                <button type="submit" className="gr-btn-salvar">
+                  {refeicaoEditando ? 'Salvar Alterações' : 'Criar Refeição'}
+                </button>
               </div>
             </form>
           </div>
@@ -297,7 +374,6 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
             </div>
 
             <div className="gr-modal-body">
-              {/* Estatísticas atuais */}
               {estatisticas[modalImport.id] && (
                 <div className="gr-stats-box">
                   <div className="gr-stat">
@@ -315,7 +391,6 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
                 </div>
               )}
 
-              {/* Upload */}
               <div className="gr-upload-area">
                 <label className="gr-file-label">
                   <input
@@ -335,7 +410,6 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
                 )}
               </div>
 
-              {/* Botão importar */}
               <button
                 className="gr-btn-importar-exec"
                 onClick={handleImportar}
@@ -344,7 +418,6 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
                 {importando ? '⏳ Importando...' : '📥 Importar Planilha'}
               </button>
 
-              {/* Resultado */}
               {resultadoImport && (
                 <div className={`gr-resultado ${resultadoImport.tipo}`}>
                   <strong>{resultadoImport.tipo === 'sucesso' ? '✅' : '❌'} {resultadoImport.mensagem}</strong>
@@ -357,7 +430,6 @@ function GestaoRefeicoes({ voltar, onRefeicoesCriadas }) {
                 </div>
               )}
 
-              {/* Instruções */}
               <div className="gr-instrucoes">
                 <h4>📋 Formato da planilha</h4>
                 <p>A planilha deve ter as colunas (maiúsculas ou minúsculas):</p>

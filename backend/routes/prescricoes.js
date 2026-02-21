@@ -1,18 +1,84 @@
 // backend/routes/prescricoes.js
-// VERSÃO CORRIGIDA: COM SUPORTE COMPLETO A ACRÉSCIMOS
+// VERSÃO ATUALIZADA: Com cálculo automático de data de consumo por refeição
 
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const { autenticar } = require('./auth');
+const { buscarHoraCorte } = require('./configuracoes');
+
+/**
+ * FUNÇÃO: Calcular data de consumo da prescrição
+ * 
+ * Lógica:
+ *   Se criado até hora_corte:
+ *     grupo 'atual'   → hoje
+ *     grupo 'proximo' → amanhã
+ *   Se criado após hora_corte:
+ *     grupo 'atual'   → amanhã
+ *     grupo 'proximo' → depois de amanhã
+ * 
+ * @param {string} tipoAlimentacao - Nome do tipo de refeição
+ * @returns {string} Data no formato YYYY-MM-DD
+ */
+async function calcularDataConsumo(tipoAlimentacao) {
+  try {
+    // Buscar grupo_dia da refeição
+    const [[refeicao]] = await pool.query(
+      'SELECT grupo_dia FROM tipos_refeicao WHERE nome = ? AND ativa = 1',
+      [tipoAlimentacao]
+    );
+
+    const grupoDia = refeicao ? refeicao.grupo_dia : 'proximo';
+
+    // Buscar hora de corte configurada
+    const horaCorteStr = await buscarHoraCorte();
+    const [horaCorteH, horaCorteM] = horaCorteStr.split(':').map(Number);
+
+    // Data e hora atual (horário do servidor)
+    const agora = new Date();
+    const horaAtual = agora.getHours();
+    const minAtual = agora.getMinutes();
+
+    const dentroDoCOrte = (horaAtual < horaCorteH) ||
+      (horaAtual === horaCorteH && minAtual <= horaCorteM);
+
+    // Calcular offset de dias
+    let offsetDias;
+    if (dentroDoCOrte) {
+      offsetDias = grupoDia === 'atual' ? 0 : 1;
+    } else {
+      offsetDias = grupoDia === 'atual' ? 1 : 2;
+    }
+
+    const dataConsumo = new Date(agora);
+    dataConsumo.setDate(dataConsumo.getDate() + offsetDias);
+
+    // Formatar como YYYY-MM-DD
+    const ano = dataConsumo.getFullYear();
+    const mes = String(dataConsumo.getMonth() + 1).padStart(2, '0');
+    const dia = String(dataConsumo.getDate()).padStart(2, '0');
+
+    const dataFormatada = `${ano}-${mes}-${dia}`;
+
+    console.log(`📅 Data de consumo calculada:
+      Refeição: ${tipoAlimentacao} (grupo: ${grupoDia})
+      Hora atual: ${horaAtual}:${String(minAtual).padStart(2,'0')} | Corte: ${horaCorteStr}
+      Dentro do corte: ${dentroDoCOrte} | Offset: +${offsetDias} dia(s)
+      Data consumo: ${dataFormatada}`);
+
+    return dataFormatada;
+
+  } catch (erro) {
+    console.error('❌ Erro ao calcular data de consumo:', erro);
+    // Fallback: data de hoje
+    const hoje = new Date();
+    return `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
+  }
+}
 
 /**
  * FUNÇÃO AUXILIAR: Salvar ou Atualizar Paciente
- * ✅ VERSÃO FINAL:
- *   - CPF SEMPRE salvo SEM formatação
- *   - Se CPF existe → ATUALIZA o codigo_atendimento (pode mudar entre internações)
- *   - Se CPF não existe → INSERE novo paciente
- *   - Valida se o código não pertence a outro CPF antes de salvar
  */
 async function salvarOuAtualizarPaciente(dados) {
   const {
@@ -28,7 +94,6 @@ async function salvarOuAtualizarPaciente(dados) {
   const cpfLimpo = cpf.replace(/\D/g, '');
 
   try {
-    // PASSO 1: Verificar se o código de atendimento já pertence a OUTRO paciente
     const [codigoExistente] = await pool.query(
       `SELECT cpf, nome_paciente FROM pacientes 
        WHERE codigo_atendimento = ? 
@@ -40,16 +105,13 @@ async function salvarOuAtualizarPaciente(dados) {
       throw new Error(`Código de atendimento ${codigoAtendimento} já está em uso pelo paciente: ${codigoExistente[0].nome_paciente}`);
     }
 
-    // PASSO 2: Verificar se o paciente já existe
     const [pacientesExistentes] = await pool.query(
       'SELECT id, nome_paciente FROM pacientes WHERE REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") = ?',
       [cpfLimpo]
     );
 
     if (pacientesExistentes.length > 0) {
-      // ✅ Paciente EXISTE → Atualizar código de atendimento e convênio
       console.log(`🔄 Atualizando paciente existente: ${pacientesExistentes[0].nome_paciente} (CPF: ${cpfLimpo})`);
-      
       await pool.query(
         `UPDATE pacientes SET 
           codigo_atendimento = ?,
@@ -58,14 +120,10 @@ async function salvarOuAtualizarPaciente(dados) {
         WHERE id = ?`,
         [codigoAtendimento, convenio, pacientesExistentes[0].id]
       );
-
-      console.log(`✅ Código atualizado para: ${codigoAtendimento}`);
       return pacientesExistentes[0].id;
     }
 
-    // PASSO 3: Paciente NÃO existe → Criar novo com CPF limpo
     console.log(`🆕 Criando novo paciente: ${nomePaciente} (CPF: ${cpfLimpo})`);
-
     const [resultado] = await pool.query(
       `INSERT INTO pacientes (
         cpf, codigo_atendimento, convenio, nome_paciente, 
@@ -167,10 +225,7 @@ router.get('/', autenticar, async (req, res) => {
 
   } catch (erro) {
     console.error('Erro ao listar prescrições:', erro);
-    res.status(500).json({
-      sucesso: false,
-      erro: 'Erro ao listar prescrições'
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao listar prescrições' });
   }
 });
 
@@ -187,29 +242,20 @@ router.get('/:id', autenticar, async (req, res) => {
     );
 
     if (prescricoes.length === 0) {
-      return res.status(404).json({
-        sucesso: false,
-        erro: 'Prescrição não encontrada'
-      });
+      return res.status(404).json({ sucesso: false, erro: 'Prescrição não encontrada' });
     }
 
-    res.json({
-      sucesso: true,
-      prescricao: prescricoes[0]
-    });
+    res.json({ sucesso: true, prescricao: prescricoes[0] });
 
   } catch (erro) {
     console.error('Erro ao buscar prescrição:', erro);
-    res.status(500).json({
-      sucesso: false,
-      erro: 'Erro ao buscar prescrição'
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao buscar prescrição' });
   }
 });
 
 /**
  * POST /api/prescricoes - Criar nova prescrição
- * ✅ CORRIGIDO: Agora salva acrescimosIds
+ * ✅ ATUALIZADO: Calcula data_prescricao automaticamente com base no grupo_dia da refeição
  */
 router.post('/', autenticar, async (req, res) => {
   try {
@@ -231,42 +277,39 @@ router.post('/', autenticar, async (req, res) => {
       obsExclusao,
       obsAcrescimo,
       acrescimosIds,
-      itensEspeciaisIds  // ✅ ADICIONADO
+      itensEspeciaisIds
     } = req.body;
 
-    // DEPOIS — dieta só obrigatória se não houver itensEspeciaisIds
     const temItensEspeciais = itensEspeciaisIds && itensEspeciaisIds.length > 0;
     if (!tipoAlimentacao || (!dieta && !temItensEspeciais) || !nomePaciente || !cpf) {
       return res.status(400).json({ sucesso: false, erro: 'Campos obrigatórios faltando' });
     }
 
-    // Log para debug
     console.log('📦 Dados recebidos:', {
       cpf,
       nomePaciente,
+      tipoAlimentacao,
       dieta,
       acrescimosIds: acrescimosIds ? `[${acrescimosIds.length} itens]` : 'nenhum'
     });
 
-    // PASSO 1: Salvar/Atualizar paciente
+    // ✅ NOVO: Calcular data de consumo com base na refeição e hora de corte
+    const dataConsumo = await calcularDataConsumo(tipoAlimentacao);
+
+    // Salvar/Atualizar paciente
     await salvarOuAtualizarPaciente({
-      cpf,
-      codigoAtendimento,
-      convenio,
-      nomePaciente,
-      nomeMae,
-      dataNascimento,
-      idade
+      cpf, codigoAtendimento, convenio, nomePaciente, nomeMae, dataNascimento, idade
     });
 
-    // PASSO 2: Criar prescrição (COM acrescimos_ids)
+    // ✅ ATUALIZADO: data_prescricao agora recebe a data de consumo calculada
     const [resultado] = await pool.query(
       `INSERT INTO prescricoes (
         cpf, codigo_atendimento, convenio, nome_paciente, nome_mae,
         data_nascimento, idade, nucleo, leito, tipo_alimentacao, dieta,
         restricoes, sem_principal, descricao_sem_principal,
-        obs_exclusao, obs_acrescimo, acrescimos_ids, usuario_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        obs_exclusao, obs_acrescimo, acrescimos_ids, itens_especiais_ids,
+        data_prescricao, usuario_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         cpf,
         codigoAtendimento,
@@ -284,57 +327,47 @@ router.post('/', autenticar, async (req, res) => {
         descricaoSemPrincipal || null,
         obsExclusao || null,
         obsAcrescimo || null,
-        acrescimosIds ? JSON.stringify(acrescimosIds) : null,  // ✅ ADICIONADO
+        acrescimosIds ? JSON.stringify(acrescimosIds) : null,
+        itensEspeciaisIds ? JSON.stringify(itensEspeciaisIds) : null,
+        dataConsumo,   // ← data de consumo calculada (YYYY-MM-DD)
         req.usuario.id
       ]
     );
 
-    console.log(`✅ Prescrição criada com sucesso! ID: ${resultado.insertId}`);
-    
-    if (acrescimosIds && acrescimosIds.length > 0) {
-      console.log(`📝 Acréscimos salvos: ${acrescimosIds.join(', ')}`);
-    }
+    console.log(`✅ Prescrição criada! ID: ${resultado.insertId} | Data consumo: ${dataConsumo}`);
 
     res.status(201).json({
       sucesso: true,
       mensagem: 'Prescrição criada com sucesso',
-      id: resultado.insertId
+      id: resultado.insertId,
+      dataConsumo  // retornar para o frontend exibir confirmação se precisar
     });
 
   } catch (erro) {
     console.error('Erro ao criar prescrição:', erro);
-    res.status(500).json({
-      sucesso: false,
-      erro: 'Erro ao criar prescrição: ' + erro.message
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao criar prescrição: ' + erro.message });
   }
 });
 
 /**
  * PUT /api/prescricoes/:id - Atualizar prescrição
- * ✅ CORRIGIDO: Agora atualiza acrescimosIds
+ * NOTA: data_prescricao NÃO é recalculada na edição (mantém a data original de consumo)
  */
 router.put('/:id', autenticar, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Buscar prescrição
     const [prescricoes] = await pool.query(
-      'SELECT * FROM prescricoes WHERE id = ?',
-      [id]
+      'SELECT * FROM prescricoes WHERE id = ?', [id]
     );
 
     if (prescricoes.length === 0) {
-      return res.status(404).json({
-        sucesso: false,
-        erro: 'Prescrição não encontrada'
-      });
+      return res.status(404).json({ sucesso: false, erro: 'Prescrição não encontrada' });
     }
 
     const prescricao = prescricoes[0];
 
-    // Validar se pode editar
-    if (!podeEditarOuExcluir(prescricao.data_prescricao)) {
+    if (!podeEditarOuExcluir(prescricao.criado_em)) {
       return res.status(403).json({
         sucesso: false,
         erro: 'Prescrição não pode mais ser editada. Limite: 9h do dia seguinte.'
@@ -342,24 +375,10 @@ router.put('/:id', autenticar, async (req, res) => {
     }
 
     const {
-      cpf,
-      codigoAtendimento,
-      convenio,
-      nomePaciente,
-      nomeMae,
-      dataNascimento,
-      idade,
-      nucleo,
-      leito,
-      tipoAlimentacao,
-      dieta,
-      restricoes,
-      semPrincipal,
-      descricaoSemPrincipal,
-      obsExclusao,
-      obsAcrescimo,
-      acrescimosIds,
-      itensEspeciaisIds  // ✅ ADICIONADO
+      cpf, codigoAtendimento, convenio, nomePaciente, nomeMae,
+      dataNascimento, idade, nucleo, leito, tipoAlimentacao, dieta,
+      restricoes, semPrincipal, descricaoSemPrincipal,
+      obsExclusao, obsAcrescimo, acrescimosIds, itensEspeciaisIds
     } = req.body;
 
     await pool.query(
@@ -371,23 +390,12 @@ router.put('/:id', autenticar, async (req, res) => {
         acrescimos_ids = ?, itens_especiais_ids = ?
       WHERE id = ?`,
       [
-        cpf,
-        codigoAtendimento,
-        convenio,
-        nomePaciente,
-        nomeMae,
-        dataNascimento,
-        idade,
-        nucleo,
-        leito,
-        tipoAlimentacao,
-        dieta,
+        cpf, codigoAtendimento, convenio, nomePaciente, nomeMae,
+        dataNascimento, idade, nucleo, leito, tipoAlimentacao, dieta,
         restricoes ? JSON.stringify(restricoes) : null,
-        semPrincipal || false,
-        descricaoSemPrincipal || null,
-        obsExclusao || null,
-        obsAcrescimo || null,
-        acrescimosIds ? JSON.stringify(acrescimosIds) : null,  // ✅ ADICIONADO
+        semPrincipal || false, descricaoSemPrincipal || null,
+        obsExclusao || null, obsAcrescimo || null,
+        acrescimosIds ? JSON.stringify(acrescimosIds) : null,
         itensEspeciaisIds ? JSON.stringify(itensEspeciaisIds) : null,
         id
       ]
@@ -395,17 +403,11 @@ router.put('/:id', autenticar, async (req, res) => {
 
     console.log(`✅ Prescrição ${id} atualizada com sucesso!`);
 
-    res.json({
-      sucesso: true,
-      mensagem: 'Prescrição atualizada com sucesso'
-    });
+    res.json({ sucesso: true, mensagem: 'Prescrição atualizada com sucesso' });
 
   } catch (erro) {
     console.error('Erro ao atualizar prescrição:', erro);
-    res.status(500).json({
-      sucesso: false,
-      erro: 'Erro ao atualizar prescrição'
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao atualizar prescrição' });
   }
 });
 
@@ -417,20 +419,16 @@ router.delete('/:id', autenticar, async (req, res) => {
     const { id } = req.params;
 
     const [prescricoes] = await pool.query(
-      'SELECT * FROM prescricoes WHERE id = ?',
-      [id]
+      'SELECT * FROM prescricoes WHERE id = ?', [id]
     );
 
     if (prescricoes.length === 0) {
-      return res.status(404).json({
-        sucesso: false,
-        erro: 'Prescrição não encontrada'
-      });
+      return res.status(404).json({ sucesso: false, erro: 'Prescrição não encontrada' });
     }
 
     const prescricao = prescricoes[0];
 
-    if (!podeEditarOuExcluir(prescricao.data_prescricao)) {
+    if (!podeEditarOuExcluir(prescricao.criado_em)) {
       return res.status(403).json({
         sucesso: false,
         erro: 'Prescrição não pode mais ser excluída. Limite: 9h do dia seguinte.'
@@ -439,17 +437,11 @@ router.delete('/:id', autenticar, async (req, res) => {
 
     await pool.query('DELETE FROM prescricoes WHERE id = ?', [id]);
 
-    res.json({
-      sucesso: true,
-      mensagem: 'Prescrição excluída com sucesso'
-    });
+    res.json({ sucesso: true, mensagem: 'Prescrição excluída com sucesso' });
 
   } catch (erro) {
     console.error('Erro ao excluir prescrição:', erro);
-    res.status(500).json({
-      sucesso: false,
-      erro: 'Erro ao excluir prescrição'
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao excluir prescrição' });
   }
 });
 

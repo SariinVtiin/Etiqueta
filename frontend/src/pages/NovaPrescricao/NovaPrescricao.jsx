@@ -237,7 +237,7 @@ function NovaPrescricao({
       const refeicaoObj = tiposAlimentacao.find(t => 
         (typeof t === 'string' ? t : t.nome) === refeicao
       );
-      const isEspecial = refeicaoObj?.tem_lista_personalizada;
+      const isEspecial = !!refeicaoObj?.tem_lista_personalizada;
 
       if (!isEspecial && !config?.dieta) {
         alert(`Selecione a dieta para ${refeicao}!`);

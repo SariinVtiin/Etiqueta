@@ -1,0 +1,261 @@
+/* frontend/src/pages/GestaoConfiguracoes/GestaoConfiguracoes.css */
+
+.gcfg-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.gcfg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.gcfg-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gcfg-btn-voltar {
+  padding: 8px 16px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #475569;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.gcfg-btn-voltar:hover {
+  background: #e2e8f0;
+}
+
+.gcfg-titulo {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.gcfg-subtitulo {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.gcfg-loading {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+  font-size: 15px;
+}
+
+/* ── Cards ── */
+.gcfg-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.gcfg-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.gcfg-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px 24px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.gcfg-card-icone {
+  font-size: 28px;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.gcfg-card-titulo {
+  font-size: 17px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.gcfg-card-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.gcfg-card-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Campo ── */
+.gcfg-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gcfg-campo label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.gcfg-input-hora {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0d9488;
+  width: fit-content;
+  min-width: 120px;
+  transition: border-color 0.2s;
+}
+
+.gcfg-input-hora:focus {
+  outline: none;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+/* ── Explicação visual ── */
+.gcfg-explicacao {
+  background: #f0fdf9;
+  border: 1px solid #99f6e4;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.gcfg-explicacao h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f766e;
+  margin: 0 0 12px 0;
+}
+
+.gcfg-fluxo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gcfg-fluxo-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gcfg-fluxo-grupo strong {
+  font-size: 12px;
+  color: #374151;
+}
+
+.gcfg-fluxo-itens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gcfg-tag {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.gcfg-tag.dia-atual {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.gcfg-tag.dia-proximo {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.gcfg-obs {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 10px 0 0 0;
+}
+
+/* ── Mensagem ── */
+.gcfg-mensagem {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.gcfg-mensagem-sucesso {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.gcfg-mensagem-erro {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* ── Ações ── */
+.gcfg-acoes {
+  display: flex;
+  gap: 10px;
+}
+
+.gcfg-btn-salvar {
+  padding: 10px 24px;
+  background: #0d9488;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gcfg-btn-salvar:hover:not(:disabled) {
+  background: #0f766e;
+}
+
+.gcfg-btn-salvar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gcfg-btn-cancelar {
+  padding: 10px 20px;
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gcfg-btn-cancelar:hover {
+  background: #f9fafb;
+}

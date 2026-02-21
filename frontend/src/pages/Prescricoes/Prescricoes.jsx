@@ -756,7 +756,7 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
                       <td>{prescricao.nome_paciente}</td>
                       <td>{prescricao.cpf}</td>
                       <td>{prescricao.leito}</td>
-                      <td>{prescricao.setor}</td>
+                      <td>{prescricao.nucleo}</td>
                       <td>{prescricao.dieta}</td>
                       <td>{prescricao.tipo_alimentacao}</td>
                       <td>{formatarData(prescricao.data_prescricao)}</td>
