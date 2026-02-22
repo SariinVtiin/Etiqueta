@@ -1,0 +1,366 @@
+/* frontend/src/pages/GestaoRestricoesAcompanhante/GestaoRestricoesAcompanhante.css */
+/* Prefixo: gra- (gestão restrições acompanhante) */
+
+.gra-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.gra-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 20px 30px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.gra-header h1 {
+  color: #0d9488;
+  font-size: 24px;
+  margin: 0;
+}
+
+.gra-btn-voltar {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gra-btn-voltar:hover {
+  background: #4b5563;
+}
+
+/* Info Box */
+.gra-info-box {
+  background: #f0fdfa;
+  border-left: 4px solid #0d9488;
+  padding: 14px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.gra-info-box p {
+  color: #115e59;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Ações */
+.gra-acoes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.gra-btn-novo {
+  background: #0d9488;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gra-btn-novo:hover {
+  background: #0f766e;
+  transform: translateY(-1px);
+}
+
+.gra-filtros {
+  display: flex;
+  gap: 15px;
+}
+
+.gra-filtros label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.gra-filtros input[type="radio"] {
+  accent-color: #0d9488;
+}
+
+/* Tabela */
+.gra-tabela-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.gra-tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.gra-tabela thead th {
+  background: #0d9488;
+  color: white;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gra-tabela tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  color: #374151;
+}
+
+.gra-tabela tbody tr:hover {
+  background: #f0fdfa;
+}
+
+.gra-tabela tbody tr.gra-inativa {
+  opacity: 0.5;
+  background: #f9fafb;
+}
+
+.gra-nome {
+  font-weight: 600;
+}
+
+.gra-descricao {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.gra-status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gra-status.ativa {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.gra-status.inativa {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.gra-acoes-celula {
+  display: flex;
+  gap: 8px;
+}
+
+.gra-btn-editar,
+.gra-btn-toggle {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.gra-btn-editar {
+  background: #dbeafe;
+}
+
+.gra-btn-editar:hover {
+  background: #bfdbfe;
+}
+
+.gra-btn-toggle.desativar {
+  background: #fee2e2;
+}
+
+.gra-btn-toggle.desativar:hover {
+  background: #fecaca;
+}
+
+.gra-btn-toggle.ativar {
+  background: #d1fae5;
+}
+
+.gra-btn-toggle.ativar:hover {
+  background: #a7f3d0;
+}
+
+/* Vazio */
+.gra-vazio {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.gra-vazio p {
+  font-size: 18px;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.gra-carregando {
+  text-align: center;
+  padding: 60px;
+  font-size: 18px;
+  color: #6b7280;
+}
+
+/* Modal */
+.gra-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.gra-modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.gra-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: #f0fdfa;
+  border-bottom: 2px solid #0d9488;
+}
+
+.gra-modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #0d9488;
+}
+
+.gra-modal-fechar {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.gra-modal-fechar:hover {
+  background: #e5e7eb;
+}
+
+.gra-modal form {
+  padding: 24px;
+}
+
+.gra-modal-campo {
+  margin-bottom: 18px;
+}
+
+.gra-modal-campo label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.gra-modal-campo input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.gra-modal-campo input:focus {
+  outline: none;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.gra-modal-botoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.gra-btn-cancelar {
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gra-btn-cancelar:hover {
+  background: #d1d5db;
+}
+
+.gra-btn-salvar {
+  background: #0d9488;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gra-btn-salvar:hover {
+  background: #0f766e;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .gra-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .gra-acoes {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .gra-modal {
+    width: 95%;
+  }
+}

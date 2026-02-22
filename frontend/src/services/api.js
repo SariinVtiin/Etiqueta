@@ -970,3 +970,71 @@ export const atualizarConfiguracao = async (chave, valor) => {
   }
   return response.json();
 };
+
+// ============================================
+// COLAR NO FINAL DO arquivo frontend/src/services/api.js
+// FUNÇÕES DE RESTRIÇÕES DO ACOMPANHANTE
+// ============================================
+
+/**
+ * Listar restrições do acompanhante (ativas ou todas)
+ */
+export const listarRestricoesAcompanhante = async (todas = false) => {
+  const url = todas
+    ? `${API_URL}/restricoes-acompanhante?todas=true`
+    : `${API_URL}/restricoes-acompanhante`;
+  const response = await fetch(url, fetchConfigAuth());
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao listar restrições do acompanhante');
+  }
+  return response.json();
+};
+
+/**
+ * Criar restrição do acompanhante
+ */
+export const criarRestricaoAcompanhante = async (restricao) => {
+  const response = await fetch(`${API_URL}/restricoes-acompanhante`, {
+    ...fetchConfigAuth(),
+    method: 'POST',
+    body: JSON.stringify(restricao)
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao criar restrição');
+  }
+  return response.json();
+};
+
+/**
+ * Atualizar restrição do acompanhante
+ */
+export const atualizarRestricaoAcompanhante = async (id, restricao) => {
+  const response = await fetch(`${API_URL}/restricoes-acompanhante/${id}`, {
+    ...fetchConfigAuth(),
+    method: 'PUT',
+    body: JSON.stringify(restricao)
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao atualizar restrição');
+  }
+  return response.json();
+};
+
+/**
+ * Ativar/Desativar restrição do acompanhante
+ */
+export const toggleRestricaoAcompanhanteAtiva = async (id, ativa) => {
+  const response = await fetch(`${API_URL}/restricoes-acompanhante/${id}/toggle`, {
+    ...fetchConfigAuth(),
+    method: 'PATCH',
+    body: JSON.stringify({ ativa })
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao alterar status');
+  }
+  return response.json();
+};

@@ -5,7 +5,7 @@ import ImportarAcrescimos from '../../components/configuracoes/ImportarAcrescimo
 import RelatorioLogin from '../../components/RelatorioLogin/RelatorioLogin';
 import './Cadastros.css';
 
-function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGestaoRestricoes, irParaGestaoLeitos, irParaGestaoRefeicoes }) {
+function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGestaoRestricoes, irParaGestaoLeitos, irParaGestaoRefeicoes, irParaGestaoRestricoesAcompanhante}) {
   const [mostrarImportacao, setMostrarImportacao] = useState(false);
   const [relatorioLoginAberto, setRelatorioLoginAberto] = useState(false);
 
@@ -86,6 +86,14 @@ function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGes
           <div className="card-icon">🍽️</div>
           <h3>Tipos de Refeição</h3>
           <p>Gerenciar refeições disponíveis (Desjejum, Almoço, Jantar...)</p>
+          <button className="card-button">Acessar</button>
+        </div>
+
+        {/* Restrições do Acompanhante */}
+        <div className="cadastro-card" onClick={irParaGestaoRestricoesAcompanhante}>
+          <div className="card-icon">👤</div>
+          <h3>Restrições do Acompanhante</h3>
+          <p>Gerenciar restrições para acompanhantes (Diabético, Sem Lactose...)</p>
           <button className="card-button">Acessar</button>
         </div>
 

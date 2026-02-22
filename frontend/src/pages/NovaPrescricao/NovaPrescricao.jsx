@@ -8,6 +8,7 @@ import FormularioPaciente from '../../components/forms/FormularioPaciente';
 import SeletorAcrescimos from '../../components/forms/SeletorAcrescimos';
 import { criarPrescricao } from '../../services/api';
 import SeletorItensEspeciais from '../../components/forms/SeletorItensEspeciais/SeletorItensEspeciais';
+import SecaoAcompanhante from '../../components/forms/SecaoAcompanhante/SecaoAcompanhante';
 
 function NovaPrescricao({ 
   nucleos = {}, 
@@ -27,7 +28,12 @@ function NovaPrescricao({
     idade: '',
     nucleoSelecionado: '',
     leito: '',
-    refeicoesSelecionadas: []
+    refeicoesSelecionadas: [],
+    temAcompanhante: false,
+    tipoAcompanhante: '',
+    acompanhanteRefeicoes: [],
+    acompanhanteRestricoesIds: [],
+    acompanhanteObsLivre: ''
   });
 
   const [configRefeicoes, setConfigRefeicoes] = useState({});
@@ -201,6 +207,13 @@ function NovaPrescricao({
     });
   };
 
+  const handleAcompanhanteChange = (dadosAcompanhante) => {
+    setFormData(prev => ({
+      ...prev,
+      ...dadosAcompanhante
+    }));
+  };
+
   // ============================================
   // VALIDAÇÃO E SUBMIT
   // ============================================
@@ -305,7 +318,12 @@ function NovaPrescricao({
           descricaoSemPrincipal: refeicao.isEspecial ? '' : (refeicao.descricaoSemPrincipal || ''),
           obsExclusao: refeicao.isEspecial ? '' : (refeicao.obsExclusao || ''),
           acrescimosIds: refeicao.isEspecial ? [] : (refeicao.acrescimosIds || []),
-          itensEspeciaisIds: refeicao.isEspecial ? (refeicao.itensEspeciaisIds || []) : [] 
+          itensEspeciaisIds: refeicao.isEspecial ? (refeicao.itensEspeciaisIds || []) : [],
+          temAcompanhante: dadosParaConfirmar.temAcompanhante || false,
+          tipoAcompanhante: dadosParaConfirmar.tipoAcompanhante || null,
+          acompanhanteRefeicoes: dadosParaConfirmar.acompanhanteRefeicoes || [],
+          acompanhanteRestricoesIds: dadosParaConfirmar.acompanhanteRestricoesIds || [],
+          acompanhanteObsLivre: dadosParaConfirmar.acompanhanteObsLivre || ''
         };
 
         return await criarPrescricao(prescricao);
@@ -324,7 +342,12 @@ function NovaPrescricao({
         idade: '',
         nucleoSelecionado: '',
         leito: '',
-        refeicoesSelecionadas: []
+        refeicoesSelecionadas: [],
+        temAcompanhante: false,
+        tipoAcompanhante: '',
+        acompanhanteRefeicoes: [],
+        acompanhanteRestricoesIds: [],
+        acompanhanteObsLivre: ''
       });
       setConfigRefeicoes({});
       setMostrarConfirmacao(false);
@@ -508,6 +531,12 @@ function NovaPrescricao({
             </div>
           );
         })}
+
+        {/* ===== SEÇÃO ACOMPANHANTE ===== */}
+        <SecaoAcompanhante
+          dados={formData}
+          onChange={handleAcompanhanteChange}
+        />
 
         <button type="submit" className="btn-adicionar">+ Criar Prescrição (Enter)</button>
       </form>

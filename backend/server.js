@@ -26,6 +26,7 @@ const acrescimosRouter = require('./routes/acrescimos');
 const logsLoginRouter = require('./routes/logsLogin'); 
 const tiposRefeicaoRoutes = require('./routes/tiposRefeicaoRoutes');
 const { router: configuracoesRouter } = require('./routes/configuracoes');
+const restricoesAcompanhanteRouter = require('./routes/restricoesAcompanhante');
 // ============================================
 // REGISTRAR ROTAS
 // ============================================
@@ -42,6 +43,7 @@ app.use('/api/acrescimos', acrescimosRouter);
 app.use('/api/logs-login', logsLoginRouter);
 app.use('/api/refeicoes', tiposRefeicaoRoutes);
 app.use('/api/configuracoes', configuracoesRouter);
+app.use('/api/restricoes-acompanhante', restricoesAcompanhanteRouter);
 
 // Testar conexão ao iniciar
 testarConexao();

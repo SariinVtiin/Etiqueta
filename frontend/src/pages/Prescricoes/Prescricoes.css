@@ -568,3 +568,56 @@
     padding: 8px 14px;
   }
 }
+
+/* ============================================
+   ADICIONAR ao CSS do Prescricoes.css
+   ============================================ */
+
+/* Badge de Acompanhante na tabela */
+.status-badge.acompanhante {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.status-badge.sem-acomp {
+  color: #d1d5db;
+  font-size: 14px;
+}
+
+/* Seção de Acompanhante nos detalhes expandidos */
+.detalhe-acompanhante {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: #fffbeb;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+}
+
+.detalhe-acompanhante h5 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #92400e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #fde68a;
+}
+
+.detalhe-acompanhante .detalhes-grid {
+  gap: 6px 12px;
+}
+
+.detalhe-acompanhante .detalhe-item {
+  padding: 4px 0;
+}
+
+.detalhe-acompanhante .detalhe-item strong {
+  color: #92400e;
+}

@@ -277,7 +277,12 @@ router.post('/', autenticar, async (req, res) => {
       obsExclusao,
       obsAcrescimo,
       acrescimosIds,
-      itensEspeciaisIds
+      itensEspeciaisIds,
+      temAcompanhante,
+      tipoAcompanhante,
+      acompanhanteRefeicoes,
+      acompanhanteRestricoesIds,
+      acompanhanteObsLivre
     } = req.body;
 
     const temItensEspeciais = itensEspeciaisIds && itensEspeciaisIds.length > 0;
@@ -290,6 +295,8 @@ router.post('/', autenticar, async (req, res) => {
       nomePaciente,
       tipoAlimentacao,
       dieta,
+      temAcompanhante: temAcompanhante || false,
+      tipoAcompanhante: tipoAcompanhante || null,
       acrescimosIds: acrescimosIds ? `[${acrescimosIds.length} itens]` : 'nenhum'
     });
 
@@ -301,15 +308,17 @@ router.post('/', autenticar, async (req, res) => {
       cpf, codigoAtendimento, convenio, nomePaciente, nomeMae, dataNascimento, idade
     });
 
-    // ✅ ATUALIZADO: data_prescricao agora recebe a data de consumo calculada
+    // ✅ ATUALIZADO: INSERT com campos do acompanhante
     const [resultado] = await pool.query(
       `INSERT INTO prescricoes (
         cpf, codigo_atendimento, convenio, nome_paciente, nome_mae,
         data_nascimento, idade, nucleo, leito, tipo_alimentacao, dieta,
         restricoes, sem_principal, descricao_sem_principal,
         obs_exclusao, obs_acrescimo, acrescimos_ids, itens_especiais_ids,
+        tem_acompanhante, tipo_acompanhante, acompanhante_refeicoes,
+        acompanhante_restricoes_ids, acompanhante_obs_livre,
         data_prescricao, usuario_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         cpf,
         codigoAtendimento,
@@ -329,23 +338,28 @@ router.post('/', autenticar, async (req, res) => {
         obsAcrescimo || null,
         acrescimosIds ? JSON.stringify(acrescimosIds) : null,
         itensEspeciaisIds ? JSON.stringify(itensEspeciaisIds) : null,
-        dataConsumo,   // ← data de consumo calculada (YYYY-MM-DD)
+        // ✅ NOVOS CAMPOS
+        temAcompanhante || false,
+        tipoAcompanhante || null,
+        acompanhanteRefeicoes ? JSON.stringify(acompanhanteRefeicoes) : null,
+        acompanhanteRestricoesIds ? JSON.stringify(acompanhanteRestricoesIds) : null,
+        acompanhanteObsLivre || null,
+        dataConsumo,
         req.usuario.id
       ]
     );
 
-    console.log(`✅ Prescrição criada! ID: ${resultado.insertId} | Data consumo: ${dataConsumo}`);
+    console.log(`✅ Prescrição criada! ID: ${resultado.insertId} | Acompanhante: ${temAcompanhante ? 'SIM' : 'NÃO'}`);
 
     res.status(201).json({
       sucesso: true,
       mensagem: 'Prescrição criada com sucesso',
-      id: resultado.insertId,
-      dataConsumo  // retornar para o frontend exibir confirmação se precisar
+      id: resultado.insertId
     });
 
   } catch (erro) {
     console.error('Erro ao criar prescrição:', erro);
-    res.status(500).json({ sucesso: false, erro: 'Erro ao criar prescrição: ' + erro.message });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao criar prescrição' });
   }
 });
 

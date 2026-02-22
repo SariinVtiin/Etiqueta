@@ -16,6 +16,8 @@ import CentroNotificacoes from './components/common/CentroNotificacoes/CentroNot
 import { listarDietas, listarRestricoes, listarLeitos, listarRefeicoes } from './services/api';
 import GestaoRefeicoes from './pages/GestaoRefeicoes/GestaoRefeicoes';
 import GestaoConfiguracoes from './pages/GestaoConfiguracoes/GestaoConfiguracoes';
+import GestaoRestricoesAcompanhante from './pages/GestaoRestricoesAcompanhante/GestaoRestricoesAcompanhante';
+import { listarRestricoesAcompanhante } from './services/api';  // adicionar ao import existente
 
 
 // ===== ÍCONES SVG =====
@@ -75,6 +77,7 @@ function App() {
   const [restricoes, setRestricoes] = useState([]);
   const [carregandoDados, setCarregandoDados] = useState(true);
   const [tiposAlimentacao, setTiposAlimentacao] = useState([]);
+  const [restricoesAcompanhante, setRestricoesAcompanhante] = useState([]);
 
   // Buscar leitos, dietas e restrições do BD ao carregar (somente quando autenticado)
   useEffect(() => {
@@ -103,6 +106,11 @@ function App() {
         const respostaRestricoes = await listarRestricoes();
         if (respostaRestricoes.sucesso) {
           setRestricoes(respostaRestricoes.restricoes);
+        }
+
+        const respostaRestAcomp = await listarRestricoesAcompanhante();
+        if (respostaRestAcomp.sucesso) {
+          setRestricoesAcompanhante(respostaRestAcomp.restricoes);
         }
 
         const respostaRefeicoes = await listarRefeicoes();
@@ -187,7 +195,15 @@ function App() {
     return;
   }
   setTelaAtual('gestaoConfiguracoes');
-}, [isAdmin]);
+  }, [isAdmin]);
+
+  const irParaGestaoRestricoesAcompanhante = useCallback(() => {
+  if (!isAdmin()) {
+    alert('Acesso negado! Apenas administradores.');
+    return;
+  }
+  setTelaAtual('gestaoRestricoesAcompanhante');
+  }, [isAdmin]);
 
   // ============================================
   // CALLBACKS PARA ATUALIZAR DADOS
@@ -241,6 +257,17 @@ function App() {
       }
     } catch (erro) {
       console.error('Erro ao atualizar leitos:', erro);
+    }
+  };
+
+  const handleRestricoesAcompanhanteCriadas = async () => {
+    try {
+      const resposta = await listarRestricoesAcompanhante();
+      if (resposta.sucesso) {
+        setRestricoesAcompanhante(resposta.restricoes);
+      }
+    } catch (erro) {
+      console.error('Erro ao atualizar restrições do acompanhante:', erro);
     }
   };
 
@@ -326,7 +353,8 @@ function App() {
                 telaAtual === 'gestaoRestricoes' ||
                 telaAtual === 'gestaoLeitos' ||
                 telaAtual === 'gestaoRefeicoes' ||
-                telaAtual === 'gestaoConfiguracoes'
+                telaAtual === 'gestaoConfiguracoes' ||
+                telaAtual === 'gestaoRestricoesAcompanhante'
                   ? 'active'
                   : ''
               }`}
@@ -400,6 +428,7 @@ function App() {
           irParaGestaoLeitos={irParaGestaoLeitos}
           irParaGestaoRefeicoes={irParaGestaoRefeicoes}
           irParaGestaoConfiguracoes={irParaGestaoConfiguracoes} 
+          irParaGestaoRestricoesAcompanhante={irParaGestaoRestricoesAcompanhante}
         />
       )}
 
@@ -438,6 +467,12 @@ function App() {
         <GestaoConfiguracoes voltar={irParaCadastros} />
       )}
 
+      {telaAtual === 'gestaoRestricoesAcompanhante' && (
+        <GestaoRestricoesAcompanhante
+          voltar={irParaCadastros}
+          onRestricoesCriadas={handleRestricoesAcompanhanteCriadas}
+        />
+      )}
 
     </div>
   );

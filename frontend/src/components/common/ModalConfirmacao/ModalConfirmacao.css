@@ -1,155 +1,500 @@
-.modal-overlay {
+/* frontend/src/components/common/ModalConfirmacao/ModalConfirmacao.css */
+/* REESCRITO: Paleta teal, layout profissional, sem emojis */
+/* Prefixo: mc- (modal confirmação) */
+
+/* ============================================
+   OVERLAY
+   ============================================ */
+.mc-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
   padding: 20px;
+  animation: mc-fadeIn 0.2s ease;
 }
 
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  max-width: 700px;
+@keyframes mc-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ============================================
+   CONTAINER PRINCIPAL
+   ============================================ */
+.mc-container {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 720px;
   width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
-  padding: 30px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  animation: mc-slideUp 0.3s ease;
+  overflow: hidden;
 }
 
-.modal-content h2 {
-  color: #ff9800;
-  margin-top: 0;
-  margin-bottom: 25px;
+@keyframes mc-slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.mc-header {
+  padding: 24px 28px 20px;
+  background: linear-gradient(135deg, #0d9488, #059669);
+  color: #fff;
   text-align: center;
-  border-bottom: 3px solid #ff9800;
-  padding-bottom: 15px;
 }
 
-.dados-confirmacao {
-  margin-bottom: 25px;
-}
-
-.secao-dados {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.secao-dados h3 {
-  color: #007bff;
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 18px;
-}
-
-.linha-dado {
-  padding: 8px 0;
-  font-size: 15px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.linha-dado:last-child {
-  border-bottom: none;
-}
-
-.linha-dado strong {
-  color: #333;
-  display: inline-block;
-  width: 180px;
-}
-
-.refeicao-item {
-  background: white;
-  padding: 15px;
-  border-radius: 6px;
-  margin-bottom: 15px;
-  border-left: 4px solid #007bff;
-}
-
-.refeicao-item:last-child {
-  margin-bottom: 0;
-}
-
-.refeicao-titulo {
-  font-size: 16px;
-  font-weight: bold;
-  color: #007bff;
+.mc-header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
   margin-bottom: 10px;
 }
 
-.modal-acoes {
+.mc-header-icon svg {
+  stroke: #fff;
+}
+
+.mc-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.mc-header-sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  opacity: 0.85;
+  font-weight: 400;
+}
+
+/* ============================================
+   BODY (scroll)
+   ============================================ */
+.mc-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ============================================
+   SEÇÕES
+   ============================================ */
+.mc-secao {
+  margin-bottom: 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.mc-secao:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.mc-secao-titulo {
   display: flex;
-  gap: 15px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0d9488;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mc-secao-titulo svg {
+  stroke: #0d9488;
+  flex-shrink: 0;
+}
+
+/* Badge de contagem */
+.mc-badge {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  margin-top: 25px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 11px;
+  background: #0d9488;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: auto;
 }
 
-.btn-cancelar-modal,
-.btn-confirmar-modal {
-  padding: 15px 30px;
+.mc-badge-acomp {
+  background: #f59e0b;
+  color: #000;
+}
+
+/* ============================================
+   GRID DE DADOS
+   ============================================ */
+.mc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mc-dado {
+  padding: 10px 14px;
+  background: #f8fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.mc-dado-full {
+  grid-column: 1 / -1;
+}
+
+.mc-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 3px;
+}
+
+.mc-valor {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  word-break: break-word;
+}
+
+.mc-valor-destaque {
+  font-weight: 700;
+  color: #0d9488;
+}
+
+/* ============================================
+   CARDS DE REFEIÇÃO
+   ============================================ */
+.mc-refeicoes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mc-refeicao-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.2s ease;
+}
+
+.mc-refeicao-card:hover {
+  border-color: #0d9488;
+}
+
+.mc-refeicao-especial {
+  border-color: #c084fc;
+}
+
+.mc-refeicao-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f0fdfa;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.mc-refeicao-especial .mc-refeicao-header {
+  background: #faf5ff;
+}
+
+.mc-refeicao-numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0d9488;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.mc-refeicao-especial .mc-refeicao-numero {
+  background: #9333ea;
+}
+
+.mc-refeicao-nome {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.mc-tag-especial {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f3e8ff;
+  color: #7c3aed;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mc-refeicao-detalhes {
+  padding: 10px 14px;
+}
+
+.mc-detalhe-linha {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.mc-detalhe-linha:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.mc-detalhe-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  min-width: 80px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.mc-detalhe-valor {
+  font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+  flex: 1;
+}
+
+.mc-detalhe-destaque {
+  font-weight: 700;
+  color: #0d9488;
+}
+
+/* Alerta (Sem Principal) */
+.mc-detalhe-alerta {
+  background: #fef3c7;
+  margin: 4px -14px;
+  padding: 8px 14px !important;
+  border-bottom: none !important;
+  border-radius: 0;
+}
+
+.mc-detalhe-alerta .mc-detalhe-label {
+  color: #92400e;
+  font-weight: 700;
+}
+
+.mc-detalhe-alerta .mc-detalhe-valor {
+  color: #92400e;
+}
+
+/* Tags de restrição inline */
+.mc-tag-restricao {
+  display: inline-block;
+  padding: 2px 8px;
+  margin: 2px 4px 2px 0;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Tags de refeição do acompanhante */
+.mc-tags-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.mc-tag-refeicao {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 5px;
+  background: #ccfbf1;
+  color: #0d9488;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ============================================
+   SEÇÃO ACOMPANHANTE (destaque diferente)
+   ============================================ */
+.mc-secao-acompanhante {
+  background: #fffbeb;
+  margin-left: -28px;
+  margin-right: -28px;
+  padding: 20px 28px;
+  border-bottom: none;
+  border-top: 2px solid #f59e0b;
+}
+
+.mc-secao-acompanhante .mc-secao-titulo {
+  color: #b45309;
+}
+
+.mc-secao-acompanhante .mc-secao-titulo svg {
+  stroke: #b45309;
+}
+
+.mc-secao-acompanhante .mc-dado {
+  background: #fff;
+  border-color: #fde68a;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.mc-footer {
+  display: flex;
+  gap: 12px;
+  padding: 20px 28px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.mc-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
   border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: bold;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
-.btn-cancelar-modal {
-  background: #6c757d;
-  color: white;
+.mc-btn svg {
+  flex-shrink: 0;
 }
 
-.btn-cancelar-modal:hover {
-  background: #5a6268;
+/* Botão Cancelar */
+.mc-btn-cancelar {
+  background: #fff;
+  color: #374151;
+  border: 2px solid #d1d5db;
 }
 
-.btn-confirmar-modal {
-  background: #28a745;
-  color: white;
+.mc-btn-cancelar:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
 }
 
-.btn-confirmar-modal:hover {
-  background: #218838;
+.mc-btn-cancelar svg {
+  stroke: #374151;
 }
 
-/* Responsivo para mobile */
-@media (max-width: 768px) {
-  .modal-content {
-    padding: 20px;
+/* Botão Confirmar */
+.mc-btn-confirmar {
+  background: #0d9488;
+  color: #fff;
+}
+
+.mc-btn-confirmar:hover {
+  background: #0f766e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+}
+
+.mc-btn-confirmar svg {
+  stroke: #fff;
+}
+
+/* ============================================
+   RESPONSIVO
+   ============================================ */
+@media (max-width: 640px) {
+  .mc-container {
+    max-height: 95vh;
+    border-radius: 12px;
   }
-  
-  .linha-dado strong {
-    width: 120px;
-    font-size: 14px;
+
+  .mc-header {
+    padding: 20px 20px 16px;
   }
-  
-  .modal-acoes {
+
+  .mc-header h2 {
+    font-size: 17px;
+  }
+
+  .mc-body {
+    padding: 18px 20px;
+  }
+
+  .mc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mc-footer {
     flex-direction: column;
+    padding: 16px 20px;
   }
-  
-  .btn-cancelar-modal,
-  .btn-confirmar-modal {
+
+  .mc-btn {
     width: 100%;
   }
-}
 
-.destaque-sem-principal {
-  background: #fff3cd;
-  padding: 8px;
-  border-radius: 4px;
-  border-left: 4px solid #ffc107;
-  margin: 5px 0;
-}
+  .mc-secao-acompanhante {
+    margin-left: -20px;
+    margin-right: -20px;
+    padding: 18px 20px;
+  }
 
-.destaque-sem-principal strong {
-  color: #856404;
+  .mc-refeicao-header {
+    flex-wrap: wrap;
+  }
+
+  .mc-tag-especial {
+    margin-left: 34px;
+  }
+
+  .mc-detalhe-linha {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .mc-detalhe-label {
+    min-width: unset;
+  }
 }

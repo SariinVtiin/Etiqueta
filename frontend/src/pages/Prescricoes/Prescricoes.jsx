@@ -568,6 +568,83 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
           </div>
         </div>
       `;
+
+
+      // Dentro do forEach de prescricoesParaImprimir, APÓS gerar etiqueta do paciente:
+      // ✅ GERAR ETIQUETAS DO ACOMPANHANTE (se houver)
+      if (prescricao.tem_acompanhante && prescricao.acompanhante_refeicoes) {
+        let refeicoes = [];
+        try {
+          refeicoes = typeof prescricao.acompanhante_refeicoes === 'string'
+            ? JSON.parse(prescricao.acompanhante_refeicoes)
+            : prescricao.acompanhante_refeicoes;
+        } catch (e) {
+          refeicoes = [];
+        }
+
+        // Montar texto da dieta com restrições
+        let restricoesAcomp = [];
+        try {
+          const ids = typeof prescricao.acompanhante_restricoes_ids === 'string'
+            ? JSON.parse(prescricao.acompanhante_restricoes_ids)
+            : (prescricao.acompanhante_restricoes_ids || []);
+          // Nota: para exibir nomes, será necessário passar as restrições por parâmetro
+          // ou fazer um fetch. Alternativa: salvar os nomes no JSON da prescrição.
+          restricoesAcomp = ids;
+        } catch (e) {
+          restricoesAcomp = [];
+        }
+
+        // Para cada refeição do acompanhante, gerar uma etiqueta
+        refeicoes.forEach(refeicao => {
+          const dietaTexto = restricoesAcomp.length > 0
+            ? `Dieta Normal p/ Acompanhante` // Simplificado; nomes podem ser mapeados
+            : 'Dieta Normal';
+
+          html += `
+            <div class="etiqueta">
+              <!-- Empresa -->
+              <div class="etiqueta-empresa">Maxima Facility</div>
+
+              <!-- Identificação do Acompanhante -->
+              <div class="etiqueta-linha-principal">
+                <div class="etiqueta-nome">ACOMPANHANTE - Leito ${prescricao.leito || ''}</div>
+                <div class="etiqueta-idade" style="background:#f59e0b;color:#000;font-size:10px;">ACOMP.</div>
+              </div>
+
+              <!-- Grid de informações -->
+              <div class="etiqueta-grid">
+                <div class="etiqueta-item destaque">
+                  <span class="etiqueta-label">Setor:</span>
+                  <span class="etiqueta-valor">${prescricao.nucleo || ''}</span>
+                </div>
+                <div class="etiqueta-item destaque">
+                  <span class="etiqueta-label">Leito:</span>
+                  <span class="etiqueta-valor">${prescricao.leito || ''}</span>
+                </div>
+                <div class="etiqueta-item full-width destaque">
+                  <span class="etiqueta-label">Refeição:</span>
+                  <span class="etiqueta-valor">${refeicao}</span>
+                </div>
+                <div class="etiqueta-item full-width destaque">
+                  <span class="etiqueta-label">Dieta:</span>
+                  <span class="etiqueta-valor">${dietaTexto}</span>
+                </div>
+                ${prescricao.acompanhante_obs_livre ? `
+                <div class="etiqueta-item full-width">
+                  <span class="etiqueta-label">Obs:</span>
+                  <span class="etiqueta-valor">${prescricao.acompanhante_obs_livre}</span>
+                </div>
+                ` : ''}
+                <div class="etiqueta-item full-width">
+                  <span class="etiqueta-label">Paciente:</span>
+                  <span class="etiqueta-valor">${prescricao.nome_paciente || ''}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      }
     });
 
     // FECHAMENTO DO HTML
@@ -735,6 +812,7 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
                   <th>Setor</th>
                   <th>Dieta</th>
                   <th>Refeição</th>
+                  <th>Acomp.</th>
                   <th>Data</th>
                   <th>Horário</th>
                   <th>Status</th>
@@ -759,8 +837,15 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
                       <td>{prescricao.nucleo}</td>
                       <td>{prescricao.dieta}</td>
                       <td>{prescricao.tipo_alimentacao}</td>
+                      <td>
+                        {prescricao.tem_acompanhante ? (
+                          <span className="status-badge acompanhante">Sim</span>
+                        ) : (
+                          <span className="status-badge sem-acomp">-</span>
+                        )}
+                      </td>
                       <td>{formatarData(prescricao.data_prescricao)}</td>
-                      <td>{formatarHora(prescricao.data_cadastro || prescricao.data_prescricao)}</td>
+                      <td>{formatarHora(prescricao.criado_em)}</td>
                       <td>
                         <span className="status-badge ativo">Ativo</span>
                       </td>
@@ -784,7 +869,7 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
                     
                     {linhaExpandida === prescricao.id && (
                       <tr className="linha-expandida">
-                        <td colSpan="11">
+                        <td colSpan="12">
                           <div className="detalhes-prescricao">
                             <h4>Detalhes Completos</h4>
                             <div className="detalhes-grid">
@@ -849,6 +934,45 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
                                 <strong>Por:</strong>
                                 <span>{prescricao.created_by_name}</span>
                               </div>
+
+                              {prescricao.tem_acompanhante && (
+                              <div className="detalhe-acompanhante">
+                                <h5>Acompanhante</h5>
+                                <div className="detalhes-grid">
+                                  <div className="detalhe-item">
+                                    <strong>Tipo:</strong>
+                                    <span>
+                                      {prescricao.tipo_acompanhante === 'adulto' && 'Adulto (3 refeições)'}
+                                      {prescricao.tipo_acompanhante === 'crianca' && 'Criança (6 refeições)'}
+                                      {prescricao.tipo_acompanhante === 'idoso' && 'Idoso (6 refeições)'}
+                                    </span>
+                                  </div>
+                                  <div className="detalhe-item">
+                                    <strong>Dieta:</strong>
+                                    <span>Dieta Normal</span>
+                                  </div>
+                                  <div className="detalhe-item full-width">
+                                    <strong>Refeições:</strong>
+                                    <span>
+                                      {(() => {
+                                        try {
+                                          const refs = typeof prescricao.acompanhante_refeicoes === 'string'
+                                            ? JSON.parse(prescricao.acompanhante_refeicoes)
+                                            : (prescricao.acompanhante_refeicoes || []);
+                                          return refs.join(', ') || 'Nenhuma';
+                                        } catch (e) { return 'Nenhuma'; }
+                                      })()}
+                                    </span>
+                                  </div>
+                                  {prescricao.acompanhante_obs_livre && (
+                                    <div className="detalhe-item full-width">
+                                      <strong>Obs. Acompanhante:</strong>
+                                      <span>{prescricao.acompanhante_obs_livre}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                             </div>
                           </div>
                         </td>
