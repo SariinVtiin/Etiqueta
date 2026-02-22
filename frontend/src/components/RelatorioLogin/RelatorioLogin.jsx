@@ -68,7 +68,7 @@ function RelatorioLogin({ isOpen, onClose }) {
     setMensagem(null);
 
     try {
-      const resultado = await exportarLogsLogin(filtros);
+      await exportarLogsLogin(filtros);
       setMensagem({ tipo: 'sucesso', texto: 'Relatório Excel gerado e baixado com sucesso!' });
     } catch (erro) {
       console.error('Erro ao gerar relatório:', erro);

@@ -57,11 +57,11 @@ function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGes
           <button className="card-button">Acessar</button>
         </div>
 
-        {/* Restrições Alimentares */}
+        {/* Condições Nutricionais */}
         <div className="cadastro-card" onClick={irParaGestaoRestricoes}>
-          <div className="card-icon">🚫</div>
-          <h3>Restrição Alimentar</h3>
-          <p>Gerenciar restrições para prescrições (HPS, DM, IRC, etc.)</p>
+          <div className="card-icon">🩺</div>
+          <h3>Condição Nutricional</h3>
+          <p>Gerenciar condições nutricionais para prescrições (HPS, DM, IRC, etc.)</p>
           <button className="card-button">Acessar</button>
         </div>
 
@@ -89,11 +89,11 @@ function Cadastros({ voltar, irParaGestaoUsuarios, irParaGestaoDietas, irParaGes
           <button className="card-button">Acessar</button>
         </div>
 
-        {/* Restrições do Acompanhante */}
+        {/* Condições Nutricionais do Acompanhante */}
         <div className="cadastro-card" onClick={irParaGestaoRestricoesAcompanhante}>
           <div className="card-icon">👤</div>
-          <h3>Restrições do Acompanhante</h3>
-          <p>Gerenciar restrições para acompanhantes (Diabético, Sem Lactose...)</p>
+          <h3>Cond. Nutricionais do Acompanhante</h3>
+          <p>Gerenciar condições nutricionais para acompanhantes (Diabético, Sem Lactose...)</p>
           <button className="card-button">Acessar</button>
         </div>
 

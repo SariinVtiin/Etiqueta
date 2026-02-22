@@ -1,5 +1,5 @@
 // frontend/src/services/relatorios.js
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -299,5 +299,393 @@ export const exportarRelatorioDetalhado = (prescricoes) => {
   } catch (erro) {
     console.error('Erro ao gerar relatório detalhado:', erro);
     return { sucesso: false, erro: 'Erro ao gerar relatório detalhado' };
+  }
+};
+
+/**
+ * Gerar Mapa de Refeição em Excel (v2)
+ * Com cores no leito, bordas por paciente, tipo de dieta nas refeições, e data de consumo
+ */
+export const gerarMapaRefeicao = (prescricoes, filtros = {}) => {
+  try {
+    if (!prescricoes || prescricoes.length === 0) {
+      return { sucesso: false, erro: 'Nenhuma prescrição para gerar mapa.' };
+    }
+
+    const ORDEM_REFEICOES = ['Merenda', 'Jantar', 'Ceia', 'Desjejum', 'Colação', 'Almoço'];
+
+    // Cores por núcleo/setor para a célula do leito
+    const CORES_NUCLEO = {
+      'INTERNAÇÃO':      'D5F5E3',  // verde claro
+      'UTI ADULTO':      'FADBD8',  // vermelho claro
+      'UTI PEDIÁTRICA':  'FCF3CF',  // amarelo claro
+      'UDT':             'D6EAF8',  // azul claro
+      'TMO':             'E8DAEF',  // roxo claro
+    };
+    const COR_PADRAO = 'F2F3F4'; // cinza claro (para setores não mapeados)
+
+    // =============================================
+    // 1. AGRUPAR prescrições por paciente + data
+    // =============================================
+    const grupos = {};
+
+    prescricoes.forEach(p => {
+      const dataStr = new Date(p.data_prescricao).toLocaleDateString('pt-BR');
+      const chave = `${p.cpf}_${dataStr}`;
+
+      if (!grupos[chave]) {
+        grupos[chave] = {
+          data: dataStr,
+          cpf: p.cpf,
+          leito: p.leito || '',
+          nucleo: p.nucleo || '',
+          nomePaciente: p.nome_paciente || '',
+          idade: p.idade || '',
+          convenio: p.convenio || '',
+          codigoAtendimento: p.codigo_atendimento || '',
+          refeicoes: {}
+        };
+      }
+
+      const tipoRefeicao = p.tipo_alimentacao || '';
+      grupos[chave].refeicoes[tipoRefeicao] = {
+        dieta: p.dieta || '',
+        restricoes: Array.isArray(p.restricoes)
+          ? p.restricoes
+          : (p.restricoes ? (typeof p.restricoes === 'string' ? JSON.parse(p.restricoes) : []) : []),
+        semPrincipal: p.sem_principal,
+        descricaoSemPrincipal: p.descricao_sem_principal || '',
+        obsExclusao: p.obs_exclusao || '',
+        obsAcrescimo: p.obs_acrescimo || '',
+        acrescimosIds: p.acrescimos_ids || '',
+        itensEspeciaisIds: p.itens_especiais_ids || '',
+        temAcompanhante: p.tem_acompanhante,
+        tipoAcompanhante: p.tipo_acompanhante || ''
+      };
+
+      if (p.leito) grupos[chave].leito = p.leito;
+      if (p.nucleo) grupos[chave].nucleo = p.nucleo;
+    });
+
+    // =============================================
+    // 2. MONTAR DADOS
+    // =============================================
+    const wb = XLSX.utils.book_new();
+
+    // Cabeçalho (agora com Data Consumo)
+    const COLUNAS = [
+      'Data Consumo',      // A
+      'Leito',             // B
+      'Cond. Nutricional', // C
+      'Convênio',          // D
+      'Restrições',        // E
+      '',                  // F (gap)
+      'Merenda',           // G
+      'Jantar',            // H
+      'Ceia',              // I
+      'Desjejum',          // J
+      'Colação',           // K
+      'Almoço'             // L
+    ];
+
+    const linhas = [COLUNAS];
+
+    // Metadados de estilo: para cada linha, guardar info de formatação
+    // formato: { linhaIdx, tipo: 'cabecalho' | 'linha1' | 'linha2' | 'acomp' | 'vazio', nucleo, inicioBloco, fimBloco }
+    const metaLinhas = [{ tipo: 'cabecalho' }];
+
+    // Ordenar por núcleo + leito
+    const gruposOrdenados = Object.values(grupos).sort((a, b) => {
+      const nucleoComp = (a.nucleo || '').localeCompare(b.nucleo || '');
+      if (nucleoComp !== 0) return nucleoComp;
+      return (parseInt(a.leito) || 0) - (parseInt(b.leito) || 0);
+    });
+
+    gruposOrdenados.forEach(grupo => {
+      const refeicaoKeys = Object.keys(grupo.refeicoes);
+      const primeiraDieta = refeicaoKeys.length > 0
+        ? grupo.refeicoes[refeicaoKeys[0]].dieta
+        : '';
+
+      // Coletar restrições
+      const todasRestricoes = new Set();
+      const restricoesPorRefeicao = {};
+      let todasObsExclusao = [];
+      let todosAcrescimos = [];
+
+      refeicaoKeys.forEach(tipo => {
+        const ref = grupo.refeicoes[tipo];
+        if (ref.restricoes && ref.restricoes.length > 0) {
+          ref.restricoes.forEach(r => todasRestricoes.add(r));
+        }
+        if (ref.semPrincipal && ref.descricaoSemPrincipal) {
+          todasRestricoes.add(ref.descricaoSemPrincipal);
+        }
+        const restricoesMeal = [];
+        if (ref.restricoes && ref.restricoes.length > 0) restricoesMeal.push(...ref.restricoes);
+        if (ref.obsExclusao) restricoesMeal.push(ref.obsExclusao);
+        restricoesPorRefeicao[tipo] = restricoesMeal.join(', ');
+        if (ref.obsExclusao) todasObsExclusao.push(ref.obsExclusao);
+        if (ref.obsAcrescimo) todosAcrescimos.push(ref.obsAcrescimo);
+      });
+
+      const restricoesTexto = Array.from(todasRestricoes).join(', ');
+      const inicioBloco = linhas.length; // índice da linha1
+
+      // ── LINHA 1: Data + Leito + Dieta + Convênio + Restrições + Refeições ──
+      const linha1 = [
+        grupo.data,                                     // Data Consumo
+        `${grupo.nucleo} ${grupo.leito}`.trim(),        // Leito
+        primeiraDieta,                                   // Cond. Nutricional
+        grupo.convenio,                                  // Convênio
+        restricoesTexto,                                 // Restrições
+        '',                                              // gap
+      ];
+
+      ORDEM_REFEICOES.forEach(tipoRef => {
+        if (grupo.refeicoes[tipoRef]) {
+          const ref = grupo.refeicoes[tipoRef];
+          let descricao = `${tipoRef} Paciente`;
+
+          if (grupo.convenio && grupo.convenio.toUpperCase() !== 'SUS') {
+            descricao = `${tipoRef} Pac. ${grupo.convenio}`;
+          } else if (grupo.convenio && grupo.convenio.toUpperCase() === 'SUS') {
+            descricao = `${tipoRef} Paciente SUS`;
+          }
+
+          if (ref.itensEspeciaisIds && ref.itensEspeciaisIds.length > 0) {
+            descricao = `${tipoRef} Pac. c/sachê`;
+          }
+
+          // Adicionar tipo da dieta na célula da refeição
+          if (ref.dieta) {
+            descricao += `\n${ref.dieta}`;
+          }
+
+          linha1.push(descricao);
+        } else {
+          linha1.push('-');
+        }
+      });
+
+      linhas.push(linha1);
+      metaLinhas.push({ tipo: 'linha1', nucleo: grupo.nucleo });
+
+      // ── LINHA 2: Nome.Idade + Acréscimos + Restrições por refeição ──
+      const linha2 = [
+        '',                                               // Data (vazio na linha2)
+        `${grupo.nomePaciente}.${grupo.idade}a`,          // Nome
+        '',                                               // vazio
+        todosAcrescimos.join(', '),                       // Acréscimos
+        todasObsExclusao.join(', '),                      // Obs Exclusão
+        '',                                               // gap
+      ];
+
+      ORDEM_REFEICOES.forEach(tipoRef => {
+        linha2.push(grupo.refeicoes[tipoRef] ? (restricoesPorRefeicao[tipoRef] || '') : '');
+      });
+
+      linhas.push(linha2);
+      metaLinhas.push({ tipo: 'linha2', nucleo: grupo.nucleo });
+
+      // ── LINHA ACOMPANHANTE (se houver) ──
+      const temAcomp = refeicaoKeys.some(tipo => grupo.refeicoes[tipo].temAcompanhante);
+      if (temAcomp) {
+        const tipoAcomp = refeicaoKeys
+          .map(tipo => grupo.refeicoes[tipo].tipoAcompanhante)
+          .find(t => t) || 'adulto';
+
+        const linhaAcomp = [
+          '',
+          `ACOMP. ${grupo.nucleo} ${grupo.leito}`.trim(),
+          'Normal',
+          grupo.convenio,
+          `Acompanhante ${tipoAcomp}`,
+          '',
+        ];
+
+        ORDEM_REFEICOES.forEach(tipoRef => {
+          linhaAcomp.push(
+            (grupo.refeicoes[tipoRef] && grupo.refeicoes[tipoRef].temAcompanhante)
+              ? `${tipoRef} Acomp.\nNormal`
+              : '-'
+          );
+        });
+
+        linhas.push(linhaAcomp);
+        metaLinhas.push({ tipo: 'acomp', nucleo: grupo.nucleo });
+      }
+
+      const fimBloco = linhas.length - 1; // índice da última linha do bloco
+
+      // Guardar início/fim do bloco nas metaLinhas correspondentes
+      for (let i = inicioBloco; i <= fimBloco; i++) {
+        metaLinhas[i].inicioBloco = inicioBloco;
+        metaLinhas[i].fimBloco = fimBloco;
+      }
+    });
+
+    // =============================================
+    // 3. CRIAR WORKSHEET
+    // =============================================
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+
+    // Largura das colunas
+    ws['!cols'] = [
+      { wch: 12 },  // Data Consumo
+      { wch: 16 },  // Leito
+      { wch: 18 },  // Cond. Nutricional
+      { wch: 12 },  // Convênio
+      { wch: 25 },  // Restrições
+      { wch: 2 },   // gap
+      { wch: 24 },  // Merenda
+      { wch: 24 },  // Jantar
+      { wch: 24 },  // Ceia
+      { wch: 24 },  // Desjejum
+      { wch: 24 },  // Colação
+      { wch: 24 },  // Almoço
+    ];
+
+    // =============================================
+    // 4. APLICAR ESTILOS
+    // =============================================
+    const totalCols = COLUNAS.length; // 12 colunas (A-L)
+    const colLetras = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+
+    // -- Estilo do Cabeçalho (linha 1) --
+    const estiloCabecalho = {
+      font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11, name: 'Arial' },
+      fill: { fgColor: { rgb: '0D9488' } },  // teal do sistema
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+      border: {
+        top:    { style: 'thin', color: { rgb: '000000' } },
+        bottom: { style: 'thin', color: { rgb: '000000' } },
+        left:   { style: 'thin', color: { rgb: '000000' } },
+        right:  { style: 'thin', color: { rgb: '000000' } },
+      }
+    };
+
+    for (let c = 0; c < totalCols; c++) {
+      const celRef = colLetras[c] + '1';
+      if (ws[celRef]) {
+        ws[celRef].s = estiloCabecalho;
+      }
+    }
+
+    // -- Estilos por linha de dados --
+    for (let r = 1; r < metaLinhas.length; r++) {
+      const meta = metaLinhas[r];
+      const rowNum = r + 1; // Excel é 1-indexed e já temos cabeçalho na 1
+
+      // Determinar cor do leito
+      const corNucleo = CORES_NUCLEO[meta.nucleo] || COR_PADRAO;
+
+      // Determinar se é linha de borda superior/inferior do bloco
+      const ehTopBloco = (r === meta.inicioBloco);
+      const ehBottomBloco = (r === meta.fimBloco);
+
+      for (let c = 0; c < totalCols; c++) {
+        const celRef = colLetras[c] + rowNum;
+        if (!ws[celRef]) {
+          ws[celRef] = { t: 's', v: '' };
+        }
+
+        // Estilo base
+        const estilo = {
+          font: { sz: 10, name: 'Arial' },
+          alignment: { vertical: 'center', wrapText: true },
+          border: {}
+        };
+
+        // === BORDAS EXTERNAS DO BLOCO ===
+        // Borda superior no topo do bloco
+        if (ehTopBloco) {
+          estilo.border.top = { style: 'medium', color: { rgb: '333333' } };
+        }
+        // Borda inferior no fundo do bloco
+        if (ehBottomBloco) {
+          estilo.border.bottom = { style: 'medium', color: { rgb: '333333' } };
+        }
+        // Borda esquerda na primeira coluna
+        if (c === 0) {
+          estilo.border.left = { style: 'medium', color: { rgb: '333333' } };
+        }
+        // Borda direita na última coluna
+        if (c === totalCols - 1) {
+          estilo.border.right = { style: 'medium', color: { rgb: '333333' } };
+        }
+
+        // Bordas internas finas
+        if (!estilo.border.top) {
+          estilo.border.top = { style: 'thin', color: { rgb: 'CCCCCC' } };
+        }
+        if (!estilo.border.bottom) {
+          estilo.border.bottom = { style: 'thin', color: { rgb: 'CCCCCC' } };
+        }
+        if (!estilo.border.left) {
+          estilo.border.left = { style: 'thin', color: { rgb: 'CCCCCC' } };
+        }
+        if (!estilo.border.right) {
+          estilo.border.right = { style: 'thin', color: { rgb: 'CCCCCC' } };
+        }
+
+        // === COR DA CÉLULA DO LEITO (coluna B = index 1) ===
+        if (c === 1) {
+          estilo.fill = { fgColor: { rgb: corNucleo } };
+          estilo.font = { ...estilo.font, bold: true };
+        }
+
+        // === ESTILOS POR TIPO DE LINHA ===
+        if (meta.tipo === 'linha1') {
+          // Linha 1: dados principais - fonte normal
+          if (c >= 6) { // colunas de refeição
+            estilo.alignment.horizontal = 'center';
+          }
+        } else if (meta.tipo === 'linha2') {
+          // Linha 2: nome/detalhes - fonte menor, itálico
+          estilo.font = { ...estilo.font, sz: 9, italic: true, color: { rgb: '555555' } };
+          if (c === 1) { // nome do paciente
+            estilo.font = { ...estilo.font, bold: true, italic: false, color: { rgb: '000000' } };
+            estilo.fill = { fgColor: { rgb: corNucleo } };
+          }
+        } else if (meta.tipo === 'acomp') {
+          // Linha acompanhante: fundo amarelo claro
+          estilo.fill = { fgColor: { rgb: 'FFF9C4' } };
+          estilo.font = { ...estilo.font, sz: 9, italic: true };
+          if (c === 1) {
+            estilo.font = { ...estilo.font, bold: true };
+          }
+          if (c >= 6) {
+            estilo.alignment.horizontal = 'center';
+          }
+        }
+
+        ws[celRef].s = estilo;
+      }
+    }
+
+    // Altura das linhas (para wrapText funcionar bem)
+    ws['!rows'] = [];
+    for (let r = 0; r < linhas.length; r++) {
+      if (r === 0) {
+        ws['!rows'].push({ hpt: 30 }); // cabeçalho mais alto
+      } else {
+        ws['!rows'].push({ hpt: 28 }); // linhas de dados
+      }
+    }
+
+    // =============================================
+    // 5. GERAR ARQUIVO
+    // =============================================
+    XLSX.utils.book_append_sheet(wb, ws, 'Mapa de Refeição');
+
+    const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+    const nomeArquivo = `mapa_refeicao_${dataAtual}.xlsx`;
+    XLSX.writeFile(wb, nomeArquivo);
+
+    return { sucesso: true, mensagem: 'Mapa de refeição gerado com sucesso!' };
+  } catch (erro) {
+    console.error('Erro ao gerar mapa de refeição:', erro);
+    return { sucesso: false, erro: 'Erro ao gerar mapa de refeição' };
   }
 };

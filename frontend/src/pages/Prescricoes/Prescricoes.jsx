@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { listarPrescricoes, deletarPrescricao, atualizarPrescricao } from '../../services/api';
-import { exportarParaExcel, exportarParaPDF, exportarRelatorioDetalhado } from '../../services/relatorios';
+import { exportarParaExcel, exportarParaPDF, exportarRelatorioDetalhado, gerarMapaRefeicao } from '../../services/relatorios';
 import ModalEditarPrescricao from '../../components/forms/ModalEditarPrescricao';
 import './Prescricoes.css';
 
@@ -168,7 +168,7 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
     }
   };
 
-  const handleRelatorioDetalhado = () => {
+const handleRelatorioDetalhado = () => {
     if (prescricoes.length === 0) {
       alert('Nenhuma prescrição para gerar relatório.');
       return;
@@ -181,6 +181,53 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
       alert(resultado.erro);
     }
   };
+
+  const handleGerarMapa = async () => {
+    if (prescricoes.length === 0) {
+      alert('Nenhuma prescrição encontrada para gerar mapa.');
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `Será gerado o mapa de refeição com base nos filtros atuais.\nTotal de registros filtrados: ${paginacao.total}\n\nDeseja continuar?`
+    );
+
+    if (!confirmar) return;
+
+    try {
+      const params = {
+        ...filtros,
+        limit: 5000
+      };
+
+      const resposta = await listarPrescricoes(params);
+
+      if (!resposta.sucesso || resposta.prescricoes.length === 0) {
+        alert('Nenhuma prescrição encontrada para gerar mapa.');
+        return;
+      }
+
+      const todasPrescricoes = resposta.prescricoes.map(p => ({
+        ...p,
+        restricoes: p.restricoes ? JSON.parse(p.restricoes) : []
+      }));
+
+      const resultado = gerarMapaRefeicao(todasPrescricoes, filtros);
+
+      if (resultado.sucesso) {
+        alert(resultado.mensagem);
+      } else {
+        alert(resultado.erro);
+      }
+    } catch (erro) {
+      console.error('Erro ao gerar mapa de refeição:', erro);
+      alert('Erro ao gerar mapa de refeição.');
+    }
+  };
+
+  // ============================================
+  // SISTEMA DE IMPRESSÃO DE ETIQUETAS - CONSOLIDADO
+  // ============================================
 
   // ============================================
   // SISTEMA DE IMPRESSÃO DE ETIQUETAS - CONSOLIDADO
@@ -542,10 +589,10 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
               <span class="etiqueta-valor">${prescricao.dieta || '-'}</span>
             </div>
             
-            <!-- Restrições (se houver) -->
+            <!-- Condições Nutricionais (se houver) -->
             ${prescricao.restricoes && prescricao.restricoes.length > 0 ? `
             <div class="etiqueta-item full-width">
-              <span class="etiqueta-label">Restrição:</span>
+              <span class="etiqueta-label">Cond. Nutricional:</span>
               <span class="etiqueta-valor">${prescricao.restricoes.join(', ')}</span>
             </div>
             ` : ''}
@@ -582,13 +629,13 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
           refeicoes = [];
         }
 
-        // Montar texto da dieta com restrições
+        // Montar texto da dieta com condições nutricionais
         let restricoesAcomp = [];
         try {
           const ids = typeof prescricao.acompanhante_restricoes_ids === 'string'
             ? JSON.parse(prescricao.acompanhante_restricoes_ids)
             : (prescricao.acompanhante_restricoes_ids || []);
-          // Nota: para exibir nomes, será necessário passar as restrições por parâmetro
+          // Nota: para exibir nomes, será necessário passar as condições nutricionais por parâmetro
           // ou fazer um fetch. Alternativa: salvar os nomes no JSON da prescrição.
           restricoesAcomp = ids;
         } catch (e) {
@@ -780,6 +827,9 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
           <button className="btn-exportar detalhado" onClick={handleRelatorioDetalhado}>
             📈 Relatório Detalhado
           </button>
+          <button className="btn-exportar mapa" onClick={handleGerarMapa}>
+            🗺️ Gerar Mapa
+          </button>
         </div>
       </div>
 
@@ -900,7 +950,7 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
                               
                               {prescricao.restricoes && prescricao.restricoes.length > 0 && (
                                 <div className="detalhe-item full-width">
-                                  <strong>Restrições:</strong>
+                                  <strong>Cond. Nutricionais:</strong>
                                   <span>{prescricao.restricoes.join(', ')}</span>
                                 </div>
                               )}

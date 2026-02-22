@@ -1,17 +1,17 @@
-// backend/routes/restricoesRoutes.js - VERSÃO CORRIGIDA
+// backend/routes/condicoesRoutes.js - VERSÃO CORRIGIDA
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const { autenticar, verificarRole } = require('./auth'); // ← CAMINHO CORRIGIDO
 
 // ====================================
-// LISTAR TODAS AS RESTRIÇÕES (ativas ou todas)
+// LISTAR TODAS AS CONDIÇÕES NUTRICIONAIS (ativas ou todas)
 // ====================================
 router.get('/', autenticar, async (req, res) => {
   try {
     const { todas } = req.query;
     
-    let query = 'SELECT * FROM restricoes_alimentares';
+    let query = 'SELECT * FROM condicoes_nutricionais';
     
     // Se não for admin ou não pedir "todas", mostrar só ativas
     if (!todas || req.usuario.role !== 'admin') {
@@ -20,56 +20,56 @@ router.get('/', autenticar, async (req, res) => {
     
     query += ' ORDER BY ordem ASC, nome ASC';
     
-    const [restricoes] = await pool.query(query);
+    const [condicoes] = await pool.query(query);
     
     res.json({
       sucesso: true,
-      restricoes,
-      total: restricoes.length
+      restricoes: condicoes,
+      total: condicoes.length
     });
   } catch (erro) {
-    console.error('❌ Erro ao listar restrições:', erro);
+    console.error('❌ Erro ao listar condições nutricionais:', erro);
     res.status(500).json({
       sucesso: false,
-      erro: 'Erro ao buscar restrições alimentares'
+      erro: 'Erro ao buscar condições nutricionais'
     });
   }
 });
 
 // ====================================
-// BUSCAR RESTRIÇÃO POR ID
+// BUSCAR Condição nutricional POR ID
 // ====================================
 router.get('/:id', autenticar, async (req, res) => {
   try {
     const { id } = req.params;
     
-    const [restricoes] = await pool.query(
-      'SELECT * FROM restricoes_alimentares WHERE id = ?',
+    const [condicoes] = await pool.query(
+      'SELECT * FROM condicoes_nutricionais WHERE id = ?',
       [id]
     );
     
-    if (restricoes.length === 0) {
+    if (condicoes.length === 0) {
       return res.status(404).json({
         sucesso: false,
-        erro: 'Restrição não encontrada'
+        erro: 'Condição nutricional não encontrada'
       });
     }
     
     res.json({
       sucesso: true,
-      restricao: restricoes[0]
+      restricao: condicoes[0]
     });
   } catch (erro) {
-    console.error('❌ Erro ao buscar restrição:', erro);
+    console.error('❌ Erro ao buscar Condição nutricional:', erro);
     res.status(500).json({
       sucesso: false,
-      erro: 'Erro ao buscar restrição'
+      erro: 'Erro ao buscar Condição nutricional'
     });
   }
 });
 
 // ====================================
-// CRIAR NOVA RESTRIÇÃO (SOMENTE ADMIN)
+// CRIAR NOVA Condição nutricional (SOMENTE ADMIN)
 // ====================================
 router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
   try {
@@ -79,54 +79,54 @@ router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
     if (!nome || nome.trim() === '') {
       return res.status(400).json({
         sucesso: false,
-        erro: 'Nome da restrição é obrigatório'
+        erro: 'Nome da condição nutricional é obrigatório'
       });
     }
     
     // Verificar duplicidade
     const [existente] = await pool.query(
-      'SELECT id FROM restricoes_alimentares WHERE nome = ?',
+      'SELECT id FROM condicoes_nutricionais WHERE nome = ?',
       [nome.trim()]
     );
     
     if (existente.length > 0) {
       return res.status(400).json({
         sucesso: false,
-        erro: 'Já existe uma restrição com este nome'
+        erro: 'Já existe uma condição nutricional com este nome'
       });
     }
     
     // Inserir
     const [resultado] = await pool.query(
-      `INSERT INTO restricoes_alimentares (nome, descricao, ordem, ativa) 
+      `INSERT INTO condicoes_nutricionais (nome, descricao, ordem, ativa) 
        VALUES (?, ?, ?, TRUE)`,
       [nome.trim(), descricao?.trim() || null, ordem || 999]
     );
     
-    // Buscar restrição criada
+    // Buscar Condição nutricional criada
     const [novaRestricao] = await pool.query(
-      'SELECT * FROM restricoes_alimentares WHERE id = ?',
+      'SELECT * FROM condicoes_nutricionais WHERE id = ?',
       [resultado.insertId]
     );
     
-    console.log(`✅ Restrição criada: ${nome} (ID: ${resultado.insertId})`);
+    console.log(`✅ Condição nutricional criada: ${nome} (ID: ${resultado.insertId})`);
     
     res.status(201).json({
       sucesso: true,
-      mensagem: 'Restrição criada com sucesso',
+      mensagem: 'Condição nutricional criada com sucesso',
       restricao: novaRestricao[0]
     });
   } catch (erro) {
-    console.error('❌ Erro ao criar restrição:', erro);
+    console.error('❌ Erro ao criar Condição nutricional:', erro);
     res.status(500).json({
       sucesso: false,
-      erro: 'Erro ao criar restrição alimentar'
+      erro: 'Erro ao criar condição nutricional'
     });
   }
 });
 
 // ====================================
-// ATUALIZAR RESTRIÇÃO (SOMENTE ADMIN)
+// ATUALIZAR Condição nutricional (SOMENTE ADMIN)
 // ====================================
 router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
   try {
@@ -135,14 +135,14 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
     
     // Verificar se existe
     const [existe] = await pool.query(
-      'SELECT id FROM restricoes_alimentares WHERE id = ?',
+      'SELECT id FROM condicoes_nutricionais WHERE id = ?',
       [id]
     );
     
     if (existe.length === 0) {
       return res.status(404).json({
         sucesso: false,
-        erro: 'Restrição não encontrada'
+        erro: 'Condição nutricional não encontrada'
       });
     }
     
@@ -150,55 +150,55 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
     if (!nome || nome.trim() === '') {
       return res.status(400).json({
         sucesso: false,
-        erro: 'Nome da restrição é obrigatório'
+        erro: 'Nome da Condição nutricional é obrigatório'
       });
     }
     
     // Verificar duplicidade (exceto a própria)
     const [duplicado] = await pool.query(
-      'SELECT id FROM restricoes_alimentares WHERE nome = ? AND id != ?',
+      'SELECT id FROM condicoes_nutricionais WHERE nome = ? AND id != ?',
       [nome.trim(), id]
     );
     
     if (duplicado.length > 0) {
       return res.status(400).json({
         sucesso: false,
-        erro: 'Já existe outra restrição com este nome'
+        erro: 'Já existe outra condição nutricional com este nome'
       });
     }
     
     // Atualizar
     await pool.query(
-      `UPDATE restricoes_alimentares 
+      `UPDATE condicoes_nutricionais 
        SET nome = ?, descricao = ?, ordem = ?
        WHERE id = ?`,
       [nome.trim(), descricao?.trim() || null, ordem || 999, id]
     );
     
-    // Buscar restrição atualizada
+    // Buscar Condição nutricional atualizada
     const [restricaoAtualizada] = await pool.query(
-      'SELECT * FROM restricoes_alimentares WHERE id = ?',
+      'SELECT * FROM condicoes_nutricionais WHERE id = ?',
       [id]
     );
     
-    console.log(`✅ Restrição atualizada: ${nome} (ID: ${id})`);
+    console.log(`✅ Condição nutricional atualizada: ${nome} (ID: ${id})`);
     
     res.json({
       sucesso: true,
-      mensagem: 'Restrição atualizada com sucesso',
+      mensagem: 'Condição nutricional atualizada com sucesso',
       restricao: restricaoAtualizada[0]
     });
   } catch (erro) {
-    console.error('❌ Erro ao atualizar restrição:', erro);
+    console.error('❌ Erro ao atualizar Condição nutricional:', erro);
     res.status(500).json({
       sucesso: false,
-      erro: 'Erro ao atualizar restrição'
+      erro: 'Erro ao atualizar Condição nutricional'
     });
   }
 });
 
 // ====================================
-// ATIVAR/DESATIVAR RESTRIÇÃO (SOMENTE ADMIN)
+// ATIVAR/DESATIVAR Condição nutricional (SOMENTE ADMIN)
 // ====================================
 router.patch('/:id/toggle', autenticar, verificarRole(['admin']), async (req, res) => {
   try {
@@ -207,61 +207,61 @@ router.patch('/:id/toggle', autenticar, verificarRole(['admin']), async (req, re
     
     // Verificar se existe
     const [existe] = await pool.query(
-      'SELECT id, nome FROM restricoes_alimentares WHERE id = ?',
+      'SELECT id, nome FROM condicoes_nutricionais WHERE id = ?',
       [id]
     );
     
     if (existe.length === 0) {
       return res.status(404).json({
         sucesso: false,
-        erro: 'Restrição não encontrada'
+        erro: 'Condição nutricional não encontrada'
       });
     }
     
     // Atualizar status
     await pool.query(
-      'UPDATE restricoes_alimentares SET ativa = ? WHERE id = ?',
+      'UPDATE condicoes_nutricionais SET ativa = ? WHERE id = ?',
       [ativa ? 1 : 0, id]
     );
     
-    console.log(`✅ Restrição ${ativa ? 'ativada' : 'desativada'}: ${existe[0].nome}`);
+    console.log(`✅ Condição nutricional ${ativa ? 'ativada' : 'desativada'}: ${existe[0].nome}`);
     
     res.json({
       sucesso: true,
-      mensagem: `Restrição ${ativa ? 'ativada' : 'desativada'} com sucesso`
+      mensagem: `Condição nutricional ${ativa ? 'ativada' : 'desativada'} com sucesso`
     });
   } catch (erro) {
     console.error('❌ Erro ao alterar status:', erro);
     res.status(500).json({
       sucesso: false,
-      erro: 'Erro ao alterar status da restrição'
+      erro: 'Erro ao alterar status da condição nutricional'
     });
   }
 });
 
 // ====================================
-// REORDENAR RESTRIÇÕES (SOMENTE ADMIN)
+// REORDENAR CONDIÇÕES NUTRICIONAIS (SOMENTE ADMIN)
 // ====================================
 router.post('/reordenar', autenticar, verificarRole(['admin']), async (req, res) => {
   try {
-    const { restricoes } = req.body; // Array de { id, ordem }
+    const { condicoes } = req.body; // Array de { id, ordem }
     
-    if (!Array.isArray(restricoes) || restricoes.length === 0) {
+    if (!Array.isArray(condicoes) || condicoes.length === 0) {
       return res.status(400).json({
         sucesso: false,
-        erro: 'Lista de restrições inválida'
+        erro: 'Lista de condições inválida'
       });
     }
     
-    // Atualizar ordem de cada restrição
-    for (const restricao of restricoes) {
+    // Atualizar ordem de cada Condição nutricional
+    for (const restricao of condicoes) {
       await pool.query(
-        'UPDATE restricoes_alimentares SET ordem = ? WHERE id = ?',
+        'UPDATE condicoes_nutricionais SET ordem = ? WHERE id = ?',
         [restricao.ordem, restricao.id]
       );
     }
     
-    console.log('✅ Ordem das restrições atualizada');
+    console.log('✅ Ordem das condições nutricionais atualizada');
     
     res.json({
       sucesso: true,
@@ -271,7 +271,7 @@ router.post('/reordenar', autenticar, verificarRole(['admin']), async (req, res)
     console.error('❌ Erro ao reordenar:', erro);
     res.status(500).json({
       sucesso: false,
-      erro: 'Erro ao reordenar restrições'
+      erro: 'Erro ao reordenar condições nutricionais'
     });
   }
 });

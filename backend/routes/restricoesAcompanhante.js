@@ -1,5 +1,5 @@
 // backend/routes/restricoesAcompanhante.js
-// CRUD completo para restrições do acompanhante (cadastro próprio, separado das restrições de paciente)
+// CRUD completo para restrições do condições nutricionais do acompanhante (cadastro próprio, separado das restrições de paciente)
 
 const express = require('express');
 const router = express.Router();
@@ -7,13 +7,13 @@ const { pool } = require('../config/database');
 const { autenticar, verificarRole } = require('./auth');
 
 // ====================================
-// LISTAR RESTRIÇÕES DO ACOMPANHANTE
+// LISTAR condições nutricionais do acompanhante
 // ====================================
 router.get('/', autenticar, async (req, res) => {
   try {
     const { todas } = req.query;
 
-    let query = 'SELECT * FROM restricoes_acompanhante';
+    let query = 'SELECT * FROM condicoes_nutricionais_acompanhante';
 
     // Se não for admin ou não pedir "todas", só ativas
     if (!todas || req.usuario.role !== 'admin') {
@@ -30,13 +30,13 @@ router.get('/', autenticar, async (req, res) => {
       total: restricoes.length
     });
   } catch (erro) {
-    console.error('❌ Erro ao listar restrições do acompanhante:', erro);
-    res.status(500).json({ sucesso: false, erro: 'Erro ao buscar restrições do acompanhante' });
+    console.error('❌ Erro ao listar condições nutricionais do acompanhante:', erro);
+    res.status(500).json({ sucesso: false, erro: 'Erro ao buscar condições nutricionais do acompanhante' });
   }
 });
 
 // ====================================
-// CRIAR RESTRIÇÃO (SOMENTE ADMIN)
+// CRIAR condição nutricional (SOMENTE ADMIN)
 // ====================================
 router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
   try {
@@ -48,45 +48,45 @@ router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
 
     // Verificar duplicidade
     const [existente] = await pool.query(
-      'SELECT id FROM restricoes_acompanhante WHERE nome = ?',
+      'SELECT id FROM condicoes_nutricionais_acompanhante WHERE nome = ?',
       [nome.trim()]
     );
 
     if (existente.length > 0) {
-      return res.status(400).json({ sucesso: false, erro: 'Já existe uma restrição com este nome' });
+      return res.status(400).json({ sucesso: false, erro: 'Já existe uma condição nutricional com este nome' });
     }
 
     const [resultado] = await pool.query(
-      'INSERT INTO restricoes_acompanhante (nome, descricao, ordem, ativa) VALUES (?, ?, ?, TRUE)',
+      'INSERT INTO condicoes_nutricionais_acompanhante (nome, descricao, ordem, ativa) VALUES (?, ?, ?, TRUE)',
       [nome.trim(), descricao?.trim() || null, ordem || 999]
     );
 
-    const [nova] = await pool.query('SELECT * FROM restricoes_acompanhante WHERE id = ?', [resultado.insertId]);
+    const [nova] = await pool.query('SELECT * FROM condicoes_nutricionais_acompanhante WHERE id = ?', [resultado.insertId]);
 
-    console.log(`✅ Restrição acompanhante criada: ${nome} (ID: ${resultado.insertId})`);
+    console.log(`✅ condição nutricional acompanhante criada: ${nome} (ID: ${resultado.insertId})`);
 
     res.status(201).json({
       sucesso: true,
-      mensagem: 'Restrição do acompanhante criada com sucesso',
+      mensagem: 'condição nutricional do acompanhante criada com sucesso',
       restricao: nova[0]
     });
   } catch (erro) {
-    console.error('❌ Erro ao criar restrição do acompanhante:', erro);
-    res.status(500).json({ sucesso: false, erro: 'Erro ao criar restrição' });
+    console.error('❌ Erro ao criar condição nutricional do acompanhante:', erro);
+    res.status(500).json({ sucesso: false, erro: 'Erro ao criar condição nutricional' });
   }
 });
 
 // ====================================
-// ATUALIZAR RESTRIÇÃO (SOMENTE ADMIN)
+// ATUALIZAR condição nutricional (SOMENTE ADMIN)
 // ====================================
 router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, descricao, ordem } = req.body;
 
-    const [existe] = await pool.query('SELECT id FROM restricoes_acompanhante WHERE id = ?', [id]);
+    const [existe] = await pool.query('SELECT id FROM condicoes_nutricionais_acompanhante WHERE id = ?', [id]);
     if (existe.length === 0) {
-      return res.status(404).json({ sucesso: false, erro: 'Restrição não encontrada' });
+      return res.status(404).json({ sucesso: false, erro: 'condição nutricional não encontrada' });
     }
 
     if (!nome || nome.trim() === '') {
@@ -95,54 +95,54 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
 
     // Verificar duplicidade (excluindo a própria)
     const [duplicado] = await pool.query(
-      'SELECT id FROM restricoes_acompanhante WHERE nome = ? AND id != ?',
+      'SELECT id FROM condicoes_nutricionais_acompanhante WHERE nome = ? AND id != ?',
       [nome.trim(), id]
     );
 
     if (duplicado.length > 0) {
-      return res.status(400).json({ sucesso: false, erro: 'Já existe outra restrição com este nome' });
+      return res.status(400).json({ sucesso: false, erro: 'Já existe outra condição nutricional com este nome' });
     }
 
     await pool.query(
-      'UPDATE restricoes_acompanhante SET nome = ?, descricao = ?, ordem = ? WHERE id = ?',
+      'UPDATE condicoes_nutricionais_acompanhante SET nome = ?, descricao = ?, ordem = ? WHERE id = ?',
       [nome.trim(), descricao?.trim() || null, ordem || 999, id]
     );
 
-    const [atualizada] = await pool.query('SELECT * FROM restricoes_acompanhante WHERE id = ?', [id]);
+    const [atualizada] = await pool.query('SELECT * FROM condicoes_nutricionais_acompanhante WHERE id = ?', [id]);
 
-    console.log(`✅ Restrição acompanhante atualizada: ${nome} (ID: ${id})`);
+    console.log(`✅ condição nutricional acompanhante atualizada: ${nome} (ID: ${id})`);
 
     res.json({
       sucesso: true,
-      mensagem: 'Restrição atualizada com sucesso',
+      mensagem: 'condição nutricional atualizada com sucesso',
       restricao: atualizada[0]
     });
   } catch (erro) {
-    console.error('❌ Erro ao atualizar restrição do acompanhante:', erro);
-    res.status(500).json({ sucesso: false, erro: 'Erro ao atualizar restrição' });
+    console.error('❌ Erro ao atualizar condição nutricional do acompanhante:', erro);
+    res.status(500).json({ sucesso: false, erro: 'Erro ao atualizar condição nutricional' });
   }
 });
 
 // ====================================
-// ATIVAR/DESATIVAR RESTRIÇÃO (SOMENTE ADMIN)
+// ATIVAR/DESATIVAR condição nutricional (SOMENTE ADMIN)
 // ====================================
 router.patch('/:id/toggle', autenticar, verificarRole(['admin']), async (req, res) => {
   try {
     const { id } = req.params;
     const { ativa } = req.body;
 
-    const [existe] = await pool.query('SELECT id, nome FROM restricoes_acompanhante WHERE id = ?', [id]);
+    const [existe] = await pool.query('SELECT id, nome FROM condicoes_nutricionais_acompanhante WHERE id = ?', [id]);
     if (existe.length === 0) {
-      return res.status(404).json({ sucesso: false, erro: 'Restrição não encontrada' });
+      return res.status(404).json({ sucesso: false, erro: 'Condição nutricional não encontrada' });
     }
 
-    await pool.query('UPDATE restricoes_acompanhante SET ativa = ? WHERE id = ?', [ativa ? 1 : 0, id]);
+    await pool.query('UPDATE condicoes_nutricionais_acompanhante SET ativa = ? WHERE id = ?', [ativa ? 1 : 0, id]);
 
-    console.log(`✅ Restrição acompanhante ${ativa ? 'ativada' : 'desativada'}: ${existe[0].nome}`);
+    console.log(`✅ Condição nutricional acompanhante ${ativa ? 'ativada' : 'desativada'}: ${existe[0].nome}`);
 
     res.json({
       sucesso: true,
-      mensagem: `Restrição ${ativa ? 'ativada' : 'desativada'} com sucesso`
+      mensagem: `Condição nutricional ${ativa ? 'ativada' : 'desativada'} com sucesso`
     });
   } catch (erro) {
     console.error('❌ Erro ao alterar status:', erro);

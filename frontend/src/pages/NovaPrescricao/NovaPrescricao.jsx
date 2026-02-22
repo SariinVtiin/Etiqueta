@@ -470,7 +470,7 @@ function NovaPrescricao({
                   </div>
 
                   <div className="campo">
-                    <label>RESTRIÇÃO ALIMENTAR (para {refeicao})</label>
+                    <label>CONDIÇÃO NUTRICIONAL (para {refeicao})</label>
                     <div className="opcoes-check">
                       {restricoes.map(restricao => (
                         <label key={restricao.id} className="opcao-check">

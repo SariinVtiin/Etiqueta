@@ -8,7 +8,7 @@ function ModalEditarPrescricao({
   onCancelar, 
   nucleos, 
   dietas, 
-  restricoes,        // ✅ NOVO: Restrições dinâmicas do BD
+  restricoes,        // ✅ Condições nutricionais dinâmicas do BD
   tiposAlimentacao   // ✅ NOVO: Tipos de alimentação dinâmicos
 }) {
   // Proteção contra props undefined
@@ -368,9 +368,9 @@ function ModalEditarPrescricao({
               </select>
             </div>
 
-            {/* Restrições - ✅ AGORA DINÂMICAS DO BD */}
+            {/* Condições Nutricionais - ✅ DINÂMICAS DO BD */}
             <div className="campo full-width">
-              <label>Restrições Alimentares</label>
+              <label>Condições Nutricionais</label>
               <div className="restricoes-grid">
                 {restricoesSafe.length > 0 ? (
                   restricoesSafe.map(restricao => (
@@ -384,7 +384,7 @@ function ModalEditarPrescricao({
                     </label>
                   ))
                 ) : (
-                  <span className="aviso-campo">Nenhuma restrição cadastrada</span>
+                  <span className="aviso-campo">Nenhuma condição nutricional cadastrada</span>
                 )}
               </div>
             </div>

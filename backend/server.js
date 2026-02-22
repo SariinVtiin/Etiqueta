@@ -20,7 +20,7 @@ const auditoriaRouter = require('./routes/auditoria');
 const pacientesRouter = require('./routes/pacientes');
 const leitosRouter = require('./routes/leitos');
 const dietasRouter = require('./routes/dietas');
-const restricoesRouter = require('./routes/restricoesRoutes');  
+const restricoesRouter = require('./routes/condicoesRoutes');  
 const etiquetasRouter = require('./routes/etiquetas');
 const acrescimosRouter = require('./routes/acrescimos');
 const logsLoginRouter = require('./routes/logsLogin'); 
@@ -72,7 +72,7 @@ app.get('/api/status', async (req, res) => {
     );
     const [leitos] = await pool.query('SELECT COUNT(*) AS total FROM leitos WHERE ativo = TRUE');
     const [dietas] = await pool.query('SELECT COUNT(*) AS total FROM dietas WHERE ativa = TRUE');
-    const [restricoes] = await pool.query('SELECT COUNT(*) AS total FROM restricoes_alimentares WHERE ativa = TRUE');  // ← NOVO
+    const [restricoes] = await pool.query('SELECT COUNT(*) AS total FROM condicoes_nutricionais WHERE ativa = TRUE');  // ← NOVO
     
     res.json({
       sucesso: true,

@@ -398,7 +398,7 @@ export const listarEtiquetasPendentes = async () => {
  * @param {Object} etiqueta - Dados da etiqueta
  * @param {string} etiqueta.leito - Número do leito
  * @param {string} etiqueta.dieta - Nome da dieta
- * @param {string} [etiqueta.obs1] - Observação 1 (ex: restrições)
+ * @param {string} [etiqueta.obs1] - Observação 1 (ex: condições nutricionais)
  * @param {string} [etiqueta.obs2] - Observação 2 (ex: exclusões)
  * @param {string} [etiqueta.obs3] - Observação 3 (ex: acréscimos)
  * @param {string} [etiqueta.usuario] - Nome do usuário que criou
@@ -534,9 +534,6 @@ export const deletarEtiqueta = async (id) => {
   return response.json();
 };
 
-// frontend/src/services/api.js
-// ADICIONAR ESTAS FUNÇÕES NO FINAL DO ARQUIVO
-
 // ====================================
 // FUNÇÕES DE ACRÉSCIMOS
 // ====================================
@@ -583,39 +580,37 @@ export const obterEstatisticasAcrescimos = async () => {
   return response.json();
 };
 
-// Adicionar estas funções ao arquivo frontend/src/services/api.js
-
 // ====================================
-// FUNÇÕES DE RESTRIÇÕES ALIMENTARES
+// FUNÇÕES DE CONDIÇÕES NUTRICIONAIS
 // ====================================
 
 /**
- * Listar todas as restrições (ativas ou todas)
+ * Listar todas as condições nutricionais (ativas ou todas)
  */
 export const listarRestricoes = async (todas = false) => {
   const url = todas ? `${API_URL}/restricoes?todas=true` : `${API_URL}/restricoes`;
   const response = await fetch(url, fetchConfigAuth());
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar restrições');
+    throw new Error(erro.erro || 'Erro ao listar condições nutricionais');
   }
   return response.json();
 };
 
 /**
- * Buscar restrição por ID
+ * Buscar condição nutricional por ID
  */
 export const buscarRestricao = async (id) => {
   const response = await fetch(`${API_URL}/restricoes/${id}`, fetchConfigAuth());
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao buscar restrição');
+    throw new Error(erro.erro || 'Erro ao buscar condição nutricional');
   }
   return response.json();
 };
 
 /**
- * Criar nova restrição
+ * Criar nova condição nutricional
  */
 export const criarRestricao = async (restricao) => {
   const response = await fetch(`${API_URL}/restricoes`, {
@@ -625,13 +620,13 @@ export const criarRestricao = async (restricao) => {
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao criar restrição');
+    throw new Error(erro.erro || 'Erro ao criar condição nutricional');
   }
   return response.json();
 };
 
 /**
- * Atualizar restrição
+ * Atualizar condição nutricional
  */
 export const atualizarRestricao = async (id, restricao) => {
   const response = await fetch(`${API_URL}/restricoes/${id}`, {
@@ -641,13 +636,13 @@ export const atualizarRestricao = async (id, restricao) => {
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao atualizar restrição');
+    throw new Error(erro.erro || 'Erro ao atualizar condição nutricional');
   }
   return response.json();
 };
 
 /**
- * Ativar/Desativar restrição
+ * Ativar/Desativar condição nutricional
  */
 export const toggleRestricaoAtiva = async (id, ativa) => {
   const response = await fetch(`${API_URL}/restricoes/${id}/toggle`, {
@@ -657,13 +652,13 @@ export const toggleRestricaoAtiva = async (id, ativa) => {
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao alterar status da restrição');
+    throw new Error(erro.erro || 'Erro ao alterar status da condição nutricional');
   }
   return response.json();
 };
 
 /**
- * Reordenar restrições
+ * Reordenar condições nutricionais
  */
 export const reordenarRestricoes = async (restricoes) => {
   const response = await fetch(`${API_URL}/restricoes/reordenar`, {
@@ -673,15 +668,10 @@ export const reordenarRestricoes = async (restricoes) => {
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao reordenar restrições');
+    throw new Error(erro.erro || 'Erro ao reordenar condições nutricionais');
   }
   return response.json();
 };
-
-// ====================================
-// COLAR ESTAS FUNÇÕES NO FINAL DO api.js
-// (antes do último export ou no final do arquivo)
-// ====================================
 
 // ====================================
 // FUNÇÕES DE LEITOS - GESTÃO COMPLETA
@@ -689,7 +679,6 @@ export const reordenarRestricoes = async (restricoes) => {
 
 /**
  * Listar leitos (ativos ou todos)
- * NOTA: a função listarLeitos() já existe. Substituir por esta versão que aceita parâmetro.
  */
 export const listarLeitosCompleto = async (todas = false) => {
   const url = todas ? `${API_URL}/leitos?todas=true` : `${API_URL}/leitos`;
@@ -839,7 +828,6 @@ export const listarDietasAtivas = async () => {
 
 // ====================================
 // FUNÇÕES DE REFEIÇÕES
-// Adicionar ao final de frontend/src/services/api.js
 // ====================================
 
 /**
@@ -972,12 +960,11 @@ export const atualizarConfiguracao = async (chave, valor) => {
 };
 
 // ============================================
-// COLAR NO FINAL DO arquivo frontend/src/services/api.js
-// FUNÇÕES DE RESTRIÇÕES DO ACOMPANHANTE
+// FUNÇÕES DE CONDIÇÕES NUTRICIONAIS DO ACOMPANHANTE
 // ============================================
 
 /**
- * Listar restrições do acompanhante (ativas ou todas)
+ * Listar condições nutricionais do acompanhante (ativas ou todas)
  */
 export const listarRestricoesAcompanhante = async (todas = false) => {
   const url = todas
@@ -986,13 +973,13 @@ export const listarRestricoesAcompanhante = async (todas = false) => {
   const response = await fetch(url, fetchConfigAuth());
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar restrições do acompanhante');
+    throw new Error(erro.erro || 'Erro ao listar condições nutricionais do acompanhante');
   }
   return response.json();
 };
 
 /**
- * Criar restrição do acompanhante
+ * Criar condição nutricional do acompanhante
  */
 export const criarRestricaoAcompanhante = async (restricao) => {
   const response = await fetch(`${API_URL}/restricoes-acompanhante`, {
@@ -1002,13 +989,13 @@ export const criarRestricaoAcompanhante = async (restricao) => {
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao criar restrição');
+    throw new Error(erro.erro || 'Erro ao criar condição nutricional');
   }
   return response.json();
 };
 
 /**
- * Atualizar restrição do acompanhante
+ * Atualizar condição nutricional do acompanhante
  */
 export const atualizarRestricaoAcompanhante = async (id, restricao) => {
   const response = await fetch(`${API_URL}/restricoes-acompanhante/${id}`, {
@@ -1018,13 +1005,13 @@ export const atualizarRestricaoAcompanhante = async (id, restricao) => {
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao atualizar restrição');
+    throw new Error(erro.erro || 'Erro ao atualizar condição nutricional');
   }
   return response.json();
 };
 
 /**
- * Ativar/Desativar restrição do acompanhante
+ * Ativar/Desativar condição nutricional do acompanhante
  */
 export const toggleRestricaoAcompanhanteAtiva = async (id, ativa) => {
   const response = await fetch(`${API_URL}/restricoes-acompanhante/${id}/toggle`, {
@@ -1034,7 +1021,7 @@ export const toggleRestricaoAcompanhanteAtiva = async (id, ativa) => {
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao alterar status');
+    throw new Error(erro.erro || 'Erro ao alterar status da condição nutricional');
   }
   return response.json();
 };

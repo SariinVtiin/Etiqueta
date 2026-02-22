@@ -11,12 +11,12 @@ import Cadastros from './pages/Cadastros/Cadastros';
 import GestaoUsuarios from './pages/GestaoUsuarios/GestaoUsuarios';
 import GestaoDietas from './pages/GestaoDietas/GestaoDietas';
 import GestaoLeitos from './pages/GestaoLeitos/GestaoLeitos';
-import GestaoRestricoes from './pages/GestaoRestricoes/GestaoRestricoes';
+import GestaoCondicoes from './pages/GestaoCondicoes/GestaoCondicoes';
 import CentroNotificacoes from './components/common/CentroNotificacoes/CentroNotificacoes';
 import { listarDietas, listarRestricoes, listarLeitos, listarRefeicoes } from './services/api';
 import GestaoRefeicoes from './pages/GestaoRefeicoes/GestaoRefeicoes';
 import GestaoConfiguracoes from './pages/GestaoConfiguracoes/GestaoConfiguracoes';
-import GestaoRestricoesAcompanhante from './pages/GestaoRestricoesAcompanhante/GestaoRestricoesAcompanhante';
+import GestaoCondicoesAcompanhante from './pages/GestaoCondicoesAcompanhante/GestaoCondicoesAcompanhante';
 import { listarRestricoesAcompanhante } from './services/api';  // adicionar ao import existente
 
 
@@ -77,9 +77,9 @@ function App() {
   const [restricoes, setRestricoes] = useState([]);
   const [carregandoDados, setCarregandoDados] = useState(true);
   const [tiposAlimentacao, setTiposAlimentacao] = useState([]);
-  const [restricoesAcompanhante, setRestricoesAcompanhante] = useState([]);
+  const [, setRestricoesAcompanhante] = useState([]); // eslint-disable-line no-unused-vars
 
-  // Buscar leitos, dietas e restrições do BD ao carregar (somente quando autenticado)
+  // Buscar leitos, dietas e condições nutricionais do BD ao carregar (somente quando autenticado)
   useEffect(() => {
     if (!autenticado) return;
 
@@ -167,7 +167,7 @@ function App() {
 
   const irParaGestaoRestricoes = useCallback(() => {
     if (!isAdmin()) {
-      alert('Acesso negado! Apenas administradores podem gerenciar restrições.');
+      alert('Acesso negado! Apenas administradores podem gerenciar condições nutricionais.');
       return;
     }
     setTelaAtual('gestaoRestricoes');
@@ -197,12 +197,12 @@ function App() {
   setTelaAtual('gestaoConfiguracoes');
   }, [isAdmin]);
 
-  const irParaGestaoRestricoesAcompanhante = useCallback(() => {
+  const irParaGestaoCondicoesAcompanhante = useCallback(() => {
   if (!isAdmin()) {
     alert('Acesso negado! Apenas administradores.');
     return;
   }
-  setTelaAtual('gestaoRestricoesAcompanhante');
+  setTelaAtual('GestaoCondicoesAcompanhante');
   }, [isAdmin]);
 
   // ============================================
@@ -237,7 +237,7 @@ function App() {
         setRestricoes(resposta.restricoes);
       }
     } catch (erro) {
-      console.error('Erro ao atualizar restrições:', erro);
+      console.error('Erro ao atualizar condições nutricionais:', erro);
     }
   };
 
@@ -267,7 +267,7 @@ function App() {
         setRestricoesAcompanhante(resposta.restricoes);
       }
     } catch (erro) {
-      console.error('Erro ao atualizar restrições do acompanhante:', erro);
+      console.error('Erro ao atualizar condições nutricionais do acompanhante:', erro);
     }
   };
 
@@ -354,7 +354,7 @@ function App() {
                 telaAtual === 'gestaoLeitos' ||
                 telaAtual === 'gestaoRefeicoes' ||
                 telaAtual === 'gestaoConfiguracoes' ||
-                telaAtual === 'gestaoRestricoesAcompanhante'
+                telaAtual === 'GestaoCondicoesAcompanhante'
                   ? 'active'
                   : ''
               }`}
@@ -428,7 +428,7 @@ function App() {
           irParaGestaoLeitos={irParaGestaoLeitos}
           irParaGestaoRefeicoes={irParaGestaoRefeicoes}
           irParaGestaoConfiguracoes={irParaGestaoConfiguracoes} 
-          irParaGestaoRestricoesAcompanhante={irParaGestaoRestricoesAcompanhante}
+          irParaGestaoCondicoesAcompanhante={irParaGestaoCondicoesAcompanhante}
         />
       )}
 
@@ -444,7 +444,7 @@ function App() {
       )}
 
       {telaAtual === 'gestaoRestricoes' && (
-        <GestaoRestricoes
+        <GestaoCondicoes
           voltar={irParaCadastros}
           onRestricoesCriadas={handleRestricoesCriadas}
         />
@@ -467,8 +467,8 @@ function App() {
         <GestaoConfiguracoes voltar={irParaCadastros} />
       )}
 
-      {telaAtual === 'gestaoRestricoesAcompanhante' && (
-        <GestaoRestricoesAcompanhante
+      {telaAtual === 'gestaoCondicoesAcompanhante' && (
+        <GestaoCondicoesAcompanhante
           voltar={irParaCadastros}
           onRestricoesCriadas={handleRestricoesAcompanhanteCriadas}
         />

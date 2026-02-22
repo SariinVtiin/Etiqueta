@@ -11,7 +11,7 @@ const REFEICOES_CRIANCA_IDOSO = ['Desjejum', 'Colação', 'Almoço', 'Merenda', 
 function SecaoAcompanhante({ dados, onChange }) {
   const [restricoesDisponiveis, setRestricoesDisponiveis] = useState([]);
 
-  // Carregar restrições do acompanhante do BD
+  // Carregar condições nutricionais do acompanhante do BD
   useEffect(() => {
     const carregar = async () => {
       try {
@@ -20,7 +20,7 @@ function SecaoAcompanhante({ dados, onChange }) {
           setRestricoesDisponiveis(resposta.restricoes);
         }
       } catch (erro) {
-        console.error('Erro ao carregar restrições do acompanhante:', erro);
+        console.error('Erro ao carregar condições nutricionais do acompanhante:', erro);
       }
     };
     carregar();
@@ -181,9 +181,9 @@ function SecaoAcompanhante({ dados, onChange }) {
                 </div>
               </div>
 
-              {/* Restrições do Acompanhante */}
+              {/* Condições Nutricionais do Acompanhante */}
               <div className="sa-campo">
-                <label className="sa-label">RESTRIÇÕES DO ACOMPANHANTE (opcional)</label>
+                <label className="sa-label">CONDIÇÕES NUTRICIONAIS DO ACOMPANHANTE (opcional)</label>
                 {restricoesDisponiveis.length > 0 ? (
                   <div className="sa-restricoes-grid">
                     {restricoesDisponiveis.map(restricao => (
@@ -201,7 +201,7 @@ function SecaoAcompanhante({ dados, onChange }) {
                     ))}
                   </div>
                 ) : (
-                  <p className="sa-aviso">Nenhuma restrição cadastrada. Cadastre em Configurações &gt; Restrições do Acompanhante.</p>
+                  <p className="sa-aviso">Nenhuma condição nutricional cadastrada. Cadastre em Configurações &gt; Cond. Nutricionais do Acompanhante.</p>
                 )}
               </div>
 

@@ -1,4 +1,4 @@
-// frontend/src/pages/GestaoRestricoes/GestaoRestricoes.jsx
+// frontend/src/pages/GestaoCondicoes/GestaoCondicoes.jsx
 import React, { useState, useEffect } from 'react';
 import {
   listarRestricoes,
@@ -6,9 +6,9 @@ import {
   atualizarRestricao,
   toggleRestricaoAtiva
 } from '../../services/api';
-import './GestaoRestricoes.css';
+import './GestaoCondicoes.css';
 
-function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
+function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
   const [restricoes, setRestricoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -21,9 +21,10 @@ function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
     ordem: ''
   });
 
-  // Carregar restrições
+  // Carregar condições nutricionais
   useEffect(() => {
     carregarRestricoes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtro]);
 
   const carregarRestricoes = async () => {
@@ -32,8 +33,8 @@ function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
       const resposta = await listarRestricoes(filtro === 'todas');
       setRestricoes(resposta.restricoes || []);
     } catch (erro) {
-      console.error('Erro ao carregar restrições:', erro);
-      alert('Erro ao carregar restrições alimentares');
+      console.error('Erro ao carregar condições nutricionais:', erro);
+      alert('Erro ao carregar Condições Nutricionais');
     } finally {
       setCarregando(false);
     }
@@ -65,21 +66,18 @@ function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
     e.preventDefault();
 
     if (!formData.nome.trim()) {
-      alert('Nome da restrição é obrigatório!');
+      alert('Nome da Condição Nutricional é obrigatório!');
       return;
     }
 
     try {
       if (restricaoEditando) {
-        // Atualizar
         await atualizarRestricao(restricaoEditando.id, formData);
-        alert('Restrição atualizada com sucesso!');
+        alert('Condição nutricional atualizada com sucesso!');
       } else {
-        // Criar
-        const resposta = await criarRestricao(formData);
-        alert('Restrição criada com sucesso!');
+        await criarRestricao(formData);
+        alert('Condição nutricional criada com sucesso!');
         
-        // Notificar App.js para atualizar estado global
         if (onRestricoesCriadas) {
           onRestricoesCriadas();
         }
@@ -89,24 +87,23 @@ function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
       carregarRestricoes();
     } catch (erro) {
       console.error('Erro ao salvar:', erro);
-      alert(erro.message || 'Erro ao salvar restrição');
+      alert(erro.message || 'Erro ao salvar condição nutricional');
     }
   };
 
   const handleToggleAtiva = async (restricao) => {
     const novoStatus = !restricao.ativa;
     const confirmacao = window.confirm(
-      `Deseja realmente ${novoStatus ? 'ativar' : 'desativar'} a restrição "${restricao.nome}"?`
+      `Deseja realmente ${novoStatus ? 'ativar' : 'desativar'} a condição nutricional "${restricao.nome}"?`
     );
 
     if (!confirmacao) return;
 
     try {
       await toggleRestricaoAtiva(restricao.id, novoStatus);
-      alert(`Restrição ${novoStatus ? 'ativada' : 'desativada'} com sucesso!`);
+      alert(`Condição nutricional ${novoStatus ? 'ativada' : 'desativada'} com sucesso!`);
       carregarRestricoes();
       
-      // Notificar App.js para atualizar estado global
       if (onRestricoesCriadas) {
         onRestricoesCriadas();
       }
@@ -120,7 +117,7 @@ function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
     return (
       <div className="gr-container">
         <div className="gr-header">
-          <h1>🍽️ Restrições Alimentares</h1>
+          <h1>🩺 Condições Nutricionais</h1>
           <button className="gr-btn-voltar" onClick={voltar}>
             ← Voltar
           </button>
@@ -133,7 +130,7 @@ function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
   return (
     <div className="gr-container">
       <div className="gr-header">
-        <h1>🍽️ Restrições Alimentares</h1>
+        <h1>🩺 Condições Nutricionais</h1>
         <button className="gr-btn-voltar" onClick={voltar}>
           ← Voltar
         </button>
@@ -141,7 +138,7 @@ function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
 
       <div className="gr-acoes">
         <button className="gr-btn-novo" onClick={abrirModalNovo}>
-          + Nova Restrição
+          + Nova Condição Nutricional
         </button>
 
         <div className="gr-filtros">
@@ -168,9 +165,9 @@ function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
 
       {restricoes.length === 0 ? (
         <div className="gr-vazio">
-          <p>📭 Nenhuma restrição cadastrada</p>
+          <p>📭 Nenhuma condição nutricional cadastrada</p>
           <button className="gr-btn-novo" onClick={abrirModalNovo}>
-            + Cadastrar Primeira Restrição
+            + Cadastrar Primeira Condição
           </button>
         </div>
       ) : (
@@ -226,13 +223,13 @@ function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
         <div className="gr-modal-overlay" onClick={fecharModal}>
           <div className="gr-modal" onClick={(e) => e.stopPropagation()}>
             <div className="gr-modal-header">
-              <h2>{restricaoEditando ? '✏️ Editar Restrição' : '➕ Nova Restrição'}</h2>
+              <h2>{restricaoEditando ? '✏️ Editar Condição Nutricional' : '➕ Nova Condição Nutricional'}</h2>
               <button className="gr-modal-fechar" onClick={fecharModal}>✕</button>
             </div>
 
             <form onSubmit={handleSubmit} className="gr-modal-form">
               <div className="gr-campo">
-                <label>Nome da Restrição *</label>
+                <label>Nome da Condição Nutricional *</label>
                 <input
                   type="text"
                   value={formData.nome}
@@ -270,7 +267,7 @@ function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
                   Cancelar
                 </button>
                 <button type="submit" className="gr-btn-salvar">
-                  {restricaoEditando ? 'Salvar Alterações' : 'Criar Restrição'}
+                  {restricaoEditando ? 'Salvar Alterações' : 'Criar Condição'}
                 </button>
               </div>
             </form>
@@ -281,4 +278,4 @@ function GestaoRestricoes({ voltar, onRestricoesCriadas }) {
   );
 }
 
-export default GestaoRestricoes;
+export default GestaoCondicoes;
