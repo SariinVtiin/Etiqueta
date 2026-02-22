@@ -1,28 +1,46 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { listarPrescricoes, deletarPrescricao, atualizarPrescricao } from '../../services/api';
-import { exportarParaExcel, exportarParaPDF, exportarRelatorioDetalhado, gerarMapaRefeicao } from '../../services/relatorios';
-import ModalEditarPrescricao from '../../components/forms/ModalEditarPrescricao';
-import './Prescricoes.css';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  listarPrescricoes,
+  deletarPrescricao,
+  atualizarPrescricao,
+} from "../../services/api";
+import {
+  exportarParaExcel,
+  exportarParaPDF,
+  exportarRelatorioDetalhado,
+} from "../../services/relatorios";
+import ModalEditarPrescricao from "../../components/forms/ModalEditarPrescricao";
+import "./Prescricoes.css";
 
-function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) {
+import { useNavigate, useLocation, useOutletContext } from "react-router-dom";
+function Prescricoes() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const {
+    nucleos = {},
+    dietas = [],
+    restricoes = [],
+    tiposAlimentacao = [],
+  } = useOutletContext() || {};
+
   const [prescricoes, setPrescricoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState('');
-  
+  const [erro, setErro] = useState("");
+
   const [filtros, setFiltros] = useState({
-    busca: '',
-    dataInicio: '',
-    dataFim: '',
-    setor: '',
-    dieta: '',
-    leito: ''
+    busca: "",
+    dataInicio: "",
+    dataFim: "",
+    setor: "",
+    dieta: "",
+    leito: "",
   });
 
   const [paginacao, setPaginacao] = useState({
     pagina: 1,
     limite: 20,
     total: 0,
-    totalPaginas: 0
+    totalPaginas: 0,
   });
 
   const [linhaExpandida, setLinhaExpandida] = useState(null);
@@ -32,32 +50,32 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
   const carregarPrescricoes = useCallback(async () => {
     try {
       setCarregando(true);
-      setErro('');
+      setErro("");
 
       const params = {
         ...filtros,
         page: paginacao.pagina,
-        limit: paginacao.limite
+        limit: paginacao.limite,
       };
 
       const resposta = await listarPrescricoes(params);
 
       if (resposta.sucesso) {
-        const prescricoesFormatadas = resposta.prescricoes.map(p => ({
+        const prescricoesFormatadas = resposta.prescricoes.map((p) => ({
           ...p,
-          restricoes: p.restricoes ? JSON.parse(p.restricoes) : []
+          restricoes: p.restricoes ? JSON.parse(p.restricoes) : [],
         }));
 
         setPrescricoes(prescricoesFormatadas);
-        setPaginacao(prev => ({
+        setPaginacao((prev) => ({
           ...prev,
           total: resposta.paginacao.total,
-          totalPaginas: resposta.paginacao.totalPaginas
+          totalPaginas: resposta.paginacao.totalPaginas,
         }));
       }
     } catch (erro) {
-      console.error('Erro ao carregar prescrições:', erro);
-      setErro('Erro ao carregar prescrições. Tente novamente.');
+      console.error("Erro ao carregar prescrições:", erro);
+      setErro("Erro ao carregar prescrições. Tente novamente.");
     } finally {
       setCarregando(false);
     }
@@ -65,23 +83,23 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
 
   useEffect(() => {
     carregarPrescricoes();
-  }, [carregarPrescricoes]);
+  }, [carregarPrescricoes, location.key]);
 
   const aplicarFiltros = () => {
-    setPaginacao(prev => ({ ...prev, pagina: 1 }));
+    setPaginacao((prev) => ({ ...prev, pagina: 1 }));
     carregarPrescricoes();
   };
 
   const limparFiltros = () => {
     setFiltros({
-      busca: '',
-      dataInicio: '',
-      dataFim: '',
-      setor: '',
-      dieta: '',
-      leito: ''
+      busca: "",
+      dataInicio: "",
+      dataFim: "",
+      setor: "",
+      dieta: "",
+      leito: "",
     });
-    setPaginacao(prev => ({ ...prev, pagina: 1 }));
+    setPaginacao((prev) => ({ ...prev, pagina: 1 }));
     setTimeout(() => carregarPrescricoes(), 100);
   };
 
@@ -91,31 +109,31 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
 
   const paginaAnterior = () => {
     if (paginacao.pagina > 1) {
-      setPaginacao(prev => ({ ...prev, pagina: prev.pagina - 1 }));
+      setPaginacao((prev) => ({ ...prev, pagina: prev.pagina - 1 }));
     }
   };
 
   const proximaPagina = () => {
     if (paginacao.pagina < paginacao.totalPaginas) {
-      setPaginacao(prev => ({ ...prev, pagina: prev.pagina + 1 }));
+      setPaginacao((prev) => ({ ...prev, pagina: prev.pagina + 1 }));
     }
   };
 
   const handleExcluir = async (id) => {
-    if (!window.confirm('Tem certeza que deseja excluir esta prescrição?')) {
+    if (!window.confirm("Tem certeza que deseja excluir esta prescrição?")) {
       return;
     }
 
     try {
       const resposta = await deletarPrescricao(id);
-      
+
       if (resposta.sucesso) {
-        alert('Prescrição excluída com sucesso!');
+        alert("Prescrição excluída com sucesso!");
         carregarPrescricoes();
       }
     } catch (erro) {
-      console.error('Erro ao excluir prescrição:', erro);
-      alert('Erro ao excluir prescrição: ' + erro.message);
+      console.error("Erro ao excluir prescrição:", erro);
+      alert("Erro ao excluir prescrição: " + erro.message);
     }
   };
 
@@ -126,23 +144,26 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
 
   const handleSalvarEdicao = async (dadosAtualizados) => {
     try {
-      const resposta = await atualizarPrescricao(prescricaoEditando.id, dadosAtualizados);
-      
+      const resposta = await atualizarPrescricao(
+        prescricaoEditando.id,
+        dadosAtualizados,
+      );
+
       if (resposta.sucesso) {
-        alert('Prescrição atualizada com sucesso!');
+        alert("Prescrição atualizada com sucesso!");
         setModalEdicaoAberto(false);
         setPrescricaoEditando(null);
         carregarPrescricoes();
       }
     } catch (erro) {
-      console.error('Erro ao atualizar prescrição:', erro);
-      alert('Erro ao atualizar prescrição: ' + erro.message);
+      console.error("Erro ao atualizar prescrição:", erro);
+      alert("Erro ao atualizar prescrição: " + erro.message);
     }
   };
 
   const handleExportarExcel = () => {
     if (prescricoes.length === 0) {
-      alert('Nenhuma prescrição para exportar.');
+      alert("Nenhuma prescrição para exportar.");
       return;
     }
 
@@ -156,7 +177,7 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
 
   const handleExportarPDF = () => {
     if (prescricoes.length === 0) {
-      alert('Nenhuma prescrição para exportar.');
+      alert("Nenhuma prescrição para exportar.");
       return;
     }
 
@@ -168,9 +189,9 @@ function Prescricoes({ voltar, nucleos, dietas, restricoes, tiposAlimentacao }) 
     }
   };
 
-const handleRelatorioDetalhado = () => {
+  const handleRelatorioDetalhado = () => {
     if (prescricoes.length === 0) {
-      alert('Nenhuma prescrição para gerar relatório.');
+      alert("Nenhuma prescrição para gerar relatório.");
       return;
     }
 
@@ -182,65 +203,18 @@ const handleRelatorioDetalhado = () => {
     }
   };
 
-  const handleGerarMapa = async () => {
-    if (prescricoes.length === 0) {
-      alert('Nenhuma prescrição encontrada para gerar mapa.');
-      return;
-    }
-
-    const confirmar = window.confirm(
-      `Será gerado o mapa de refeição com base nos filtros atuais.\nTotal de registros filtrados: ${paginacao.total}\n\nDeseja continuar?`
-    );
-
-    if (!confirmar) return;
-
-    try {
-      const params = {
-        ...filtros,
-        limit: 5000
-      };
-
-      const resposta = await listarPrescricoes(params);
-
-      if (!resposta.sucesso || resposta.prescricoes.length === 0) {
-        alert('Nenhuma prescrição encontrada para gerar mapa.');
-        return;
-      }
-
-      const todasPrescricoes = resposta.prescricoes.map(p => ({
-        ...p,
-        restricoes: p.restricoes ? JSON.parse(p.restricoes) : []
-      }));
-
-      const resultado = gerarMapaRefeicao(todasPrescricoes, filtros);
-
-      if (resultado.sucesso) {
-        alert(resultado.mensagem);
-      } else {
-        alert(resultado.erro);
-      }
-    } catch (erro) {
-      console.error('Erro ao gerar mapa de refeição:', erro);
-      alert('Erro ao gerar mapa de refeição.');
-    }
-  };
-
-  // ============================================
-  // SISTEMA DE IMPRESSÃO DE ETIQUETAS - CONSOLIDADO
-  // ============================================
-
   // ============================================
   // SISTEMA DE IMPRESSÃO DE ETIQUETAS - CONSOLIDADO
   // ============================================
 
   const handleImprimirEtiquetas = async () => {
     if (prescricoes.length === 0) {
-      alert('Nenhuma prescrição encontrada para imprimir.');
+      alert("Nenhuma prescrição encontrada para imprimir.");
       return;
     }
 
     const confirmar = window.confirm(
-      `Você vai imprimir ${prescricoes.length} etiqueta(s) filtrada(s).\n\nDeseja continuar?`
+      `Você vai imprimir ${prescricoes.length} etiqueta(s) filtrada(s).\n\nDeseja continuar?`,
     );
 
     if (!confirmar) return;
@@ -248,33 +222,32 @@ const handleRelatorioDetalhado = () => {
     try {
       const params = {
         ...filtros,
-        limit: 1000
+        limit: 1000,
       };
 
       const resposta = await listarPrescricoes(params);
 
       if (!resposta.sucesso || resposta.prescricoes.length === 0) {
-        alert('Nenhuma prescrição encontrada para imprimir.');
+        alert("Nenhuma prescrição encontrada para imprimir.");
         return;
       }
 
-      const todasPrescricoes = resposta.prescricoes.map(p => ({
+      const todasPrescricoes = resposta.prescricoes.map((p) => ({
         ...p,
-        restricoes: p.restricoes ? JSON.parse(p.restricoes) : []
+        restricoes: p.restricoes ? JSON.parse(p.restricoes) : [],
       }));
 
-      const janelaImpressao = window.open('', '', 'width=800,height=600');
+      const janelaImpressao = window.open("", "", "width=800,height=600");
       janelaImpressao.document.write(gerarHTMLEtiquetas(todasPrescricoes));
       janelaImpressao.document.close();
-
     } catch (erro) {
-      console.error('Erro ao preparar impressão:', erro);
-      alert('Erro ao preparar etiquetas para impressão.');
+      console.error("Erro ao preparar impressão:", erro);
+      alert("Erro ao preparar etiquetas para impressão.");
     }
   };
 
   const gerarHTMLEtiquetas = (prescricoesParaImprimir) => {
-    const dataFormatada = new Date().toLocaleDateString('pt-BR');
+    const dataFormatada = new Date().toLocaleDateString("pt-BR");
 
     // CSS CONSOLIDADO - PADRONIZADO PARA 10cm x 8cm
     const estilos = `
@@ -534,7 +507,7 @@ const handleRelatorioDetalhado = () => {
     `;
 
     // GERAR CADA ETIQUETA
-    prescricoesParaImprimir.forEach(prescricao => {
+    prescricoesParaImprimir.forEach((prescricao) => {
       html += `
         <div class="etiqueta">
           <!-- Empresa -->
@@ -542,100 +515,117 @@ const handleRelatorioDetalhado = () => {
           
           <!-- Nome e Idade -->
           <div class="etiqueta-linha-principal">
-            <div class="etiqueta-nome">${prescricao.nome_paciente || 'Paciente'}</div>
-            <div class="etiqueta-idade">${prescricao.idade || '0'} anos</div>
+            <div class="etiqueta-nome">${prescricao.nome_paciente || "Paciente"}</div>
+            <div class="etiqueta-idade">${prescricao.idade || "0"} anos</div>
           </div>
 
           <!-- Sem Principal (se houver) -->
-          ${prescricao.sem_principal ? `
+          ${
+            prescricao.sem_principal
+              ? `
           <div class="etiqueta-sem-principal">
             <span class="etiqueta-sem-principal-label">⚠️ SEM PRINCIPAL:</span>
-            <span class="etiqueta-sem-principal-valor">${prescricao.descricao_sem_principal || ''}</span>
+            <span class="etiqueta-sem-principal-valor">${prescricao.descricao_sem_principal || ""}</span>
           </div>
-          ` : ''}
+          `
+              : ""
+          }
 
           <!-- Grid de Informações -->
           <div class="etiqueta-grid">
             <!-- Linha 1 -->
             <div class="etiqueta-item">
               <span class="etiqueta-label">Mãe:</span>
-              <span class="etiqueta-valor">${prescricao.nome_mae || '-'}</span>
+              <span class="etiqueta-valor">${prescricao.nome_mae || "-"}</span>
             </div>
             
             <div class="etiqueta-item">
               <span class="etiqueta-label">Atend:</span>
-              <span class="etiqueta-valor">${prescricao.codigo_atendimento || '-'}</span>
+              <span class="etiqueta-valor">${prescricao.codigo_atendimento || "-"}</span>
             </div>
             
             <!-- Linha 2 -->
             <div class="etiqueta-item">
               <span class="etiqueta-label">Convênio:</span>
-              <span class="etiqueta-valor">${prescricao.convenio || '-'}</span>
+              <span class="etiqueta-valor">${prescricao.convenio || "-"}</span>
             </div>
             
             <div class="etiqueta-item">
               <span class="etiqueta-label">Leito:</span>
-              <span class="etiqueta-valor">${prescricao.leito || '-'}</span>
+              <span class="etiqueta-valor">${prescricao.leito || "-"}</span>
             </div>
             
             <!-- Linha 3 - DESTAQUE -->
             <div class="etiqueta-item destaque">
               <span class="etiqueta-label">Refeição:</span>
-              <span class="etiqueta-valor">${prescricao.tipo_alimentacao || '-'}</span>
+              <span class="etiqueta-valor">${prescricao.tipo_alimentacao || "-"}</span>
             </div>
             
             <div class="etiqueta-item destaque">
               <span class="etiqueta-label">Dieta:</span>
-              <span class="etiqueta-valor">${prescricao.dieta || '-'}</span>
+              <span class="etiqueta-valor">${prescricao.dieta || "-"}</span>
             </div>
             
-            <!-- Condições Nutricionais (se houver) -->
-            ${prescricao.restricoes && prescricao.restricoes.length > 0 ? `
+            <!-- Restrições (se houver) -->
+            ${
+              prescricao.restricoes && prescricao.restricoes.length > 0
+                ? `
             <div class="etiqueta-item full-width">
-              <span class="etiqueta-label">Cond. Nutricional:</span>
-              <span class="etiqueta-valor">${prescricao.restricoes.join(', ')}</span>
+              <span class="etiqueta-label">Restrição:</span>
+              <span class="etiqueta-valor">${prescricao.restricoes.join(", ")}</span>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
             
             <!-- Exclusões (se houver) -->
-            ${prescricao.obs_exclusao ? `
+            ${
+              prescricao.obs_exclusao
+                ? `
             <div class="etiqueta-item full-width">
               <span class="etiqueta-label">Exclusão:</span>
               <span class="etiqueta-valor">${prescricao.obs_exclusao}</span>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
             
             <!-- Acréscimos (se houver) -->
-            ${prescricao.obs_acrescimo ? `
+            ${
+              prescricao.obs_acrescimo
+                ? `
             <div class="etiqueta-item full-width">
               <span class="etiqueta-label">Acréscimo:</span>
               <span class="etiqueta-valor">${prescricao.obs_acrescimo}</span>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
         </div>
       `;
-
 
       // Dentro do forEach de prescricoesParaImprimir, APÓS gerar etiqueta do paciente:
       // ✅ GERAR ETIQUETAS DO ACOMPANHANTE (se houver)
       if (prescricao.tem_acompanhante && prescricao.acompanhante_refeicoes) {
         let refeicoes = [];
         try {
-          refeicoes = typeof prescricao.acompanhante_refeicoes === 'string'
-            ? JSON.parse(prescricao.acompanhante_refeicoes)
-            : prescricao.acompanhante_refeicoes;
+          refeicoes =
+            typeof prescricao.acompanhante_refeicoes === "string"
+              ? JSON.parse(prescricao.acompanhante_refeicoes)
+              : prescricao.acompanhante_refeicoes;
         } catch (e) {
           refeicoes = [];
         }
 
-        // Montar texto da dieta com condições nutricionais
+        // Montar texto da dieta com restrições
         let restricoesAcomp = [];
         try {
-          const ids = typeof prescricao.acompanhante_restricoes_ids === 'string'
-            ? JSON.parse(prescricao.acompanhante_restricoes_ids)
-            : (prescricao.acompanhante_restricoes_ids || []);
-          // Nota: para exibir nomes, será necessário passar as condições nutricionais por parâmetro
+          const ids =
+            typeof prescricao.acompanhante_restricoes_ids === "string"
+              ? JSON.parse(prescricao.acompanhante_restricoes_ids)
+              : prescricao.acompanhante_restricoes_ids || [];
+          // Nota: para exibir nomes, será necessário passar as restrições por parâmetro
           // ou fazer um fetch. Alternativa: salvar os nomes no JSON da prescrição.
           restricoesAcomp = ids;
         } catch (e) {
@@ -643,10 +633,11 @@ const handleRelatorioDetalhado = () => {
         }
 
         // Para cada refeição do acompanhante, gerar uma etiqueta
-        refeicoes.forEach(refeicao => {
-          const dietaTexto = restricoesAcomp.length > 0
-            ? `Dieta Normal p/ Acompanhante` // Simplificado; nomes podem ser mapeados
-            : 'Dieta Normal';
+        refeicoes.forEach((refeicao) => {
+          const dietaTexto =
+            restricoesAcomp.length > 0
+              ? `Dieta Normal p/ Acompanhante` // Simplificado; nomes podem ser mapeados
+              : "Dieta Normal";
 
           html += `
             <div class="etiqueta">
@@ -655,7 +646,7 @@ const handleRelatorioDetalhado = () => {
 
               <!-- Identificação do Acompanhante -->
               <div class="etiqueta-linha-principal">
-                <div class="etiqueta-nome">ACOMPANHANTE - Leito ${prescricao.leito || ''}</div>
+                <div class="etiqueta-nome">ACOMPANHANTE - Leito ${prescricao.leito || ""}</div>
                 <div class="etiqueta-idade" style="background:#f59e0b;color:#000;font-size:10px;">ACOMP.</div>
               </div>
 
@@ -663,11 +654,11 @@ const handleRelatorioDetalhado = () => {
               <div class="etiqueta-grid">
                 <div class="etiqueta-item destaque">
                   <span class="etiqueta-label">Setor:</span>
-                  <span class="etiqueta-valor">${prescricao.nucleo || ''}</span>
+                  <span class="etiqueta-valor">${prescricao.nucleo || ""}</span>
                 </div>
                 <div class="etiqueta-item destaque">
                   <span class="etiqueta-label">Leito:</span>
-                  <span class="etiqueta-valor">${prescricao.leito || ''}</span>
+                  <span class="etiqueta-valor">${prescricao.leito || ""}</span>
                 </div>
                 <div class="etiqueta-item full-width destaque">
                   <span class="etiqueta-label">Refeição:</span>
@@ -677,15 +668,19 @@ const handleRelatorioDetalhado = () => {
                   <span class="etiqueta-label">Dieta:</span>
                   <span class="etiqueta-valor">${dietaTexto}</span>
                 </div>
-                ${prescricao.acompanhante_obs_livre ? `
+                ${
+                  prescricao.acompanhante_obs_livre
+                    ? `
                 <div class="etiqueta-item full-width">
                   <span class="etiqueta-label">Obs:</span>
                   <span class="etiqueta-valor">${prescricao.acompanhante_obs_livre}</span>
                 </div>
-                ` : ''}
+                `
+                    : ""
+                }
                 <div class="etiqueta-item full-width">
                   <span class="etiqueta-label">Paciente:</span>
-                  <span class="etiqueta-valor">${prescricao.nome_paciente || ''}</span>
+                  <span class="etiqueta-valor">${prescricao.nome_paciente || ""}</span>
                 </div>
               </div>
             </div>
@@ -709,19 +704,22 @@ const handleRelatorioDetalhado = () => {
 
   const formatarData = (dataString) => {
     const data = new Date(dataString);
-    return data.toLocaleDateString('pt-BR');
+    return data.toLocaleDateString("pt-BR");
   };
 
   const formatarHora = (dataString) => {
     const data = new Date(dataString);
-    return data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return data.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   return (
     <div className="prescricoes-container">
       <div className="prescricoes-header">
         <h1>Prescrições de Alimentação</h1>
-        <button className="btn-voltar" onClick={voltar}>
+        <button className="btn-voltar" onClick={() => navigate("/dashboard")}>
           Voltar ao Menu
         </button>
       </div>
@@ -735,7 +733,7 @@ const handleRelatorioDetalhado = () => {
             placeholder="Nome, CPF..."
             value={filtros.busca}
             onChange={(e) => setFiltros({ ...filtros, busca: e.target.value })}
-            onKeyPress={(e) => e.key === 'Enter' && aplicarFiltros()}
+            onKeyPress={(e) => e.key === "Enter" && aplicarFiltros()}
           />
         </div>
 
@@ -746,7 +744,7 @@ const handleRelatorioDetalhado = () => {
             placeholder="Ex: 601"
             value={filtros.leito}
             onChange={(e) => setFiltros({ ...filtros, leito: e.target.value })}
-            onKeyPress={(e) => e.key === 'Enter' && aplicarFiltros()}
+            onKeyPress={(e) => e.key === "Enter" && aplicarFiltros()}
           />
         </div>
 
@@ -755,7 +753,9 @@ const handleRelatorioDetalhado = () => {
           <input
             type="date"
             value={filtros.dataInicio}
-            onChange={(e) => setFiltros({ ...filtros, dataInicio: e.target.value })}
+            onChange={(e) =>
+              setFiltros({ ...filtros, dataInicio: e.target.value })
+            }
           />
         </div>
 
@@ -764,7 +764,9 @@ const handleRelatorioDetalhado = () => {
           <input
             type="date"
             value={filtros.dataFim}
-            onChange={(e) => setFiltros({ ...filtros, dataFim: e.target.value })}
+            onChange={(e) =>
+              setFiltros({ ...filtros, dataFim: e.target.value })
+            }
           />
         </div>
 
@@ -813,9 +815,12 @@ const handleRelatorioDetalhado = () => {
         <div className="info-exportacao">
           Total de registros: <strong>{paginacao.total}</strong>
         </div>
-        
+
         <div className="botoes-exportacao">
-          <button className="btn-exportar imprimir" onClick={handleImprimirEtiquetas}>
+          <button
+            className="btn-exportar imprimir"
+            onClick={handleImprimirEtiquetas}
+          >
             🖨️ Imprimir Etiquetas
           </button>
           <button className="btn-exportar excel" onClick={handleExportarExcel}>
@@ -824,11 +829,11 @@ const handleRelatorioDetalhado = () => {
           <button className="btn-exportar pdf" onClick={handleExportarPDF}>
             📄 Exportar PDF
           </button>
-          <button className="btn-exportar detalhado" onClick={handleRelatorioDetalhado}>
+          <button
+            className="btn-exportar detalhado"
+            onClick={handleRelatorioDetalhado}
+          >
             📈 Relatório Detalhado
-          </button>
-          <button className="btn-exportar mapa" onClick={handleGerarMapa}>
-            🗺️ Gerar Mapa
           </button>
         </div>
       </div>
@@ -840,9 +845,7 @@ const handleRelatorioDetalhado = () => {
           <p>Carregando prescrições...</p>
         </div>
       ) : erro ? (
-        <div className="mensagem-erro">
-          {erro}
-        </div>
+        <div className="mensagem-erro">{erro}</div>
       ) : prescricoes.length === 0 ? (
         <div className="sem-resultados">
           <h3>Nenhuma prescrição encontrada</h3>
@@ -874,11 +877,11 @@ const handleRelatorioDetalhado = () => {
                   <React.Fragment key={prescricao.id}>
                     <tr className="linha-principal">
                       <td>
-                        <button 
+                        <button
                           className="btn-expandir"
                           onClick={() => toggleExpandir(prescricao.id)}
                         >
-                          {linhaExpandida === prescricao.id ? '▼' : '▶'}
+                          {linhaExpandida === prescricao.id ? "▼" : "▶"}
                         </button>
                       </td>
                       <td>{prescricao.nome_paciente}</td>
@@ -900,14 +903,14 @@ const handleRelatorioDetalhado = () => {
                         <span className="status-badge ativo">Ativo</span>
                       </td>
                       <td>
-                        <button 
+                        <button
                           className="btn-acao-editar"
                           onClick={() => handleEditar(prescricao)}
                           title="Editar"
                         >
                           ✏️
                         </button>
-                        <button 
+                        <button
                           className="btn-acao-excluir"
                           onClick={() => handleExcluir(prescricao.id)}
                           title="Excluir"
@@ -916,7 +919,7 @@ const handleRelatorioDetalhado = () => {
                         </button>
                       </td>
                     </tr>
-                    
+
                     {linhaExpandida === prescricao.id && (
                       <tr className="linha-expandida">
                         <td colSpan="12">
@@ -941,44 +944,61 @@ const handleRelatorioDetalhado = () => {
                               </div>
                               <div className="detalhe-item">
                                 <strong>Data Nascimento:</strong>
-                                <span>{formatarData(prescricao.data_nascimento)}</span>
+                                <span>
+                                  {formatarData(prescricao.data_nascimento)}
+                                </span>
                               </div>
                               <div className="detalhe-item">
                                 <strong>Núcleo:</strong>
                                 <span>{prescricao.nucleo}</span>
                               </div>
-                              
-                              {prescricao.restricoes && prescricao.restricoes.length > 0 && (
-                                <div className="detalhe-item full-width">
-                                  <strong>Cond. Nutricionais:</strong>
-                                  <span>{prescricao.restricoes.join(', ')}</span>
-                                </div>
-                              )}
-                              
+
+                              {prescricao.restricoes &&
+                                prescricao.restricoes.length > 0 && (
+                                  <div className="detalhe-item full-width">
+                                    <strong>Restrições:</strong>
+                                    <span>
+                                      {prescricao.restricoes.join(", ")}
+                                    </span>
+                                  </div>
+                                )}
+
                               {prescricao.sem_principal && (
                                 <div className="detalhe-item full-width">
                                   <strong>Sem Principal:</strong>
-                                  <span>{prescricao.descricao_sem_principal}</span>
+                                  <span>
+                                    {prescricao.descricao_sem_principal}
+                                  </span>
                                 </div>
                               )}
-                              
+
                               {prescricao.obs_exclusao && (
                                 <div className="detalhe-item full-width">
                                   <strong>Exclusões:</strong>
                                   <span>{prescricao.obs_exclusao}</span>
                                 </div>
                               )}
-                              
+
                               {prescricao.obs_acrescimo && (
                                 <div className="detalhe-item full-width">
                                   <strong>Acréscimos:</strong>
                                   <span>{prescricao.obs_acrescimo}</span>
                                 </div>
                               )}
-                              
+
                               <div className="detalhe-item">
                                 <strong>Criado em:</strong>
-                                <span>{formatarData(prescricao.data_cadastro || prescricao.data_prescricao)} às {formatarHora(prescricao.data_cadastro || prescricao.data_prescricao)}</span>
+                                <span>
+                                  {formatarData(
+                                    prescricao.data_cadastro ||
+                                      prescricao.data_prescricao,
+                                  )}{" "}
+                                  às{" "}
+                                  {formatarHora(
+                                    prescricao.data_cadastro ||
+                                      prescricao.data_prescricao,
+                                  )}
+                                </span>
                               </div>
                               <div className="detalhe-item">
                                 <strong>Por:</strong>
@@ -986,43 +1006,55 @@ const handleRelatorioDetalhado = () => {
                               </div>
 
                               {prescricao.tem_acompanhante && (
-                              <div className="detalhe-acompanhante">
-                                <h5>Acompanhante</h5>
-                                <div className="detalhes-grid">
-                                  <div className="detalhe-item">
-                                    <strong>Tipo:</strong>
-                                    <span>
-                                      {prescricao.tipo_acompanhante === 'adulto' && 'Adulto (3 refeições)'}
-                                      {prescricao.tipo_acompanhante === 'crianca' && 'Criança (6 refeições)'}
-                                      {prescricao.tipo_acompanhante === 'idoso' && 'Idoso (6 refeições)'}
-                                    </span>
-                                  </div>
-                                  <div className="detalhe-item">
-                                    <strong>Dieta:</strong>
-                                    <span>Dieta Normal</span>
-                                  </div>
-                                  <div className="detalhe-item full-width">
-                                    <strong>Refeições:</strong>
-                                    <span>
-                                      {(() => {
-                                        try {
-                                          const refs = typeof prescricao.acompanhante_refeicoes === 'string'
-                                            ? JSON.parse(prescricao.acompanhante_refeicoes)
-                                            : (prescricao.acompanhante_refeicoes || []);
-                                          return refs.join(', ') || 'Nenhuma';
-                                        } catch (e) { return 'Nenhuma'; }
-                                      })()}
-                                    </span>
-                                  </div>
-                                  {prescricao.acompanhante_obs_livre && (
-                                    <div className="detalhe-item full-width">
-                                      <strong>Obs. Acompanhante:</strong>
-                                      <span>{prescricao.acompanhante_obs_livre}</span>
+                                <div className="detalhe-acompanhante">
+                                  <h5>Acompanhante</h5>
+                                  <div className="detalhes-grid">
+                                    <div className="detalhe-item">
+                                      <strong>Tipo:</strong>
+                                      <span>
+                                        {prescricao.tipo_acompanhante ===
+                                          "adulto" && "Adulto (3 refeições)"}
+                                        {prescricao.tipo_acompanhante ===
+                                          "crianca" && "Criança (6 refeições)"}
+                                        {prescricao.tipo_acompanhante ===
+                                          "idoso" && "Idoso (6 refeições)"}
+                                      </span>
                                     </div>
-                                  )}
+                                    <div className="detalhe-item">
+                                      <strong>Dieta:</strong>
+                                      <span>Dieta Normal</span>
+                                    </div>
+                                    <div className="detalhe-item full-width">
+                                      <strong>Refeições:</strong>
+                                      <span>
+                                        {(() => {
+                                          try {
+                                            const refs =
+                                              typeof prescricao.acompanhante_refeicoes ===
+                                              "string"
+                                                ? JSON.parse(
+                                                    prescricao.acompanhante_refeicoes,
+                                                  )
+                                                : prescricao.acompanhante_refeicoes ||
+                                                  [];
+                                            return refs.join(", ") || "Nenhuma";
+                                          } catch (e) {
+                                            return "Nenhuma";
+                                          }
+                                        })()}
+                                      </span>
+                                    </div>
+                                    {prescricao.acompanhante_obs_livre && (
+                                      <div className="detalhe-item full-width">
+                                        <strong>Obs. Acompanhante:</strong>
+                                        <span>
+                                          {prescricao.acompanhante_obs_livre}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
                             </div>
                           </div>
                         </td>
@@ -1040,16 +1072,16 @@ const handleRelatorioDetalhado = () => {
               Mostrando {prescricoes.length} de {paginacao.total} registros
               (Página {paginacao.pagina} de {paginacao.totalPaginas})
             </div>
-            
+
             <div className="paginacao-botoes">
-              <button 
+              <button
                 onClick={paginaAnterior}
                 disabled={paginacao.pagina === 1}
               >
                 ← Anterior
               </button>
-              
-              <button 
+
+              <button
                 onClick={proximaPagina}
                 disabled={paginacao.pagina >= paginacao.totalPaginas}
               >

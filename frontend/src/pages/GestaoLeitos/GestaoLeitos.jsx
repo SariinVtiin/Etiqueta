@@ -1,35 +1,39 @@
 // frontend/src/pages/GestaoLeitos/GestaoLeitos.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   listarLeitosCompleto,
   criarLeito,
   criarLeitosLote,
   atualizarLeito,
-  toggleLeitoAtivo
-} from '../../services/api';
-import './GestaoLeitos.css';
+  toggleLeitoAtivo,
+} from "../../services/api";
+import "./GestaoLeitos.css";
 
-function GestaoLeitos({ voltar, onLeitosAlterados }) {
+function GestaoLeitos() {
+  const navigate = useNavigate();
+  const { refreshSystemData } = useOutletContext() || {};
+
   const [leitos, setLeitos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalLote, setMostrarModalLote] = useState(false);
   const [leitoEditando, setLeitoEditando] = useState(null);
-  const [filtro, setFiltro] = useState('ativos'); // 'ativos' ou 'todos'
-  const [filtroSetor, setFiltroSetor] = useState(''); // filtro por setor
-  const [busca, setBusca] = useState('');
+  const [filtro, setFiltro] = useState("ativos"); // 'ativos' ou 'todos'
+  const [filtroSetor, setFiltroSetor] = useState(""); // filtro por setor
+  const [busca, setBusca] = useState("");
 
   const [formData, setFormData] = useState({
-    numero: '',
-    setor: '',
-    andar: ''
+    numero: "",
+    setor: "",
+    andar: "",
   });
 
   const [formLote, setFormLote] = useState({
-    setor: '',
-    andar: '',
-    numeroInicio: '',
-    numeroFim: ''
+    setor: "",
+    andar: "",
+    numeroInicio: "",
+    numeroFim: "",
   });
 
   // ============================================
@@ -42,11 +46,11 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
   const carregarLeitos = async () => {
     setCarregando(true);
     try {
-      const resposta = await listarLeitosCompleto(filtro === 'todos');
+      const resposta = await listarLeitosCompleto(filtro === "todos");
       setLeitos(resposta.leitos || []);
     } catch (erro) {
-      console.error('Erro ao carregar leitos:', erro);
-      alert('Erro ao carregar leitos');
+      console.error("Erro ao carregar leitos:", erro);
+      alert("Erro ao carregar leitos");
     } finally {
       setCarregando(false);
     }
@@ -55,14 +59,15 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
   // ============================================
   // SETORES ÚNICOS (extraídos dos leitos carregados)
   // ============================================
-  const setoresUnicos = [...new Set(leitos.map(l => l.setor))].sort();
+  const setoresUnicos = [...new Set(leitos.map((l) => l.setor))].sort();
 
   // ============================================
   // FILTROS
   // ============================================
-  const leitosFiltrados = leitos.filter(leito => {
+  const leitosFiltrados = leitos.filter((leito) => {
     const passaSetor = !filtroSetor || leito.setor === filtroSetor;
-    const passaBusca = !busca || 
+    const passaBusca =
+      !busca ||
       leito.numero.toLowerCase().includes(busca.toLowerCase()) ||
       leito.setor.toLowerCase().includes(busca.toLowerCase());
     return passaSetor && passaBusca;
@@ -70,7 +75,7 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
 
   // Agrupar por setor
   const leitosPorSetor = {};
-  leitosFiltrados.forEach(leito => {
+  leitosFiltrados.forEach((leito) => {
     if (!leitosPorSetor[leito.setor]) {
       leitosPorSetor[leito.setor] = [];
     }
@@ -78,7 +83,7 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
   });
 
   // Ordenar leitos dentro de cada setor naturalmente
-  Object.keys(leitosPorSetor).forEach(setor => {
+  Object.keys(leitosPorSetor).forEach((setor) => {
     leitosPorSetor[setor].sort((a, b) => {
       const numA = parseInt(a.numero) || 0;
       const numB = parseInt(b.numero) || 0;
@@ -91,7 +96,7 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
   // ============================================
   const abrirModalNovo = () => {
     setLeitoEditando(null);
-    setFormData({ numero: '', setor: '', andar: '' });
+    setFormData({ numero: "", setor: "", andar: "" });
     setMostrarModal(true);
   };
 
@@ -100,7 +105,7 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
     setFormData({
       numero: leito.numero,
       setor: leito.setor,
-      andar: leito.andar || ''
+      andar: leito.andar || "",
     });
     setMostrarModal(true);
   };
@@ -108,17 +113,17 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
   const fecharModal = () => {
     setMostrarModal(false);
     setLeitoEditando(null);
-    setFormData({ numero: '', setor: '', andar: '' });
+    setFormData({ numero: "", setor: "", andar: "" });
   };
 
   const abrirModalLote = () => {
-    setFormLote({ setor: '', andar: '', numeroInicio: '', numeroFim: '' });
+    setFormLote({ setor: "", andar: "", numeroInicio: "", numeroFim: "" });
     setMostrarModalLote(true);
   };
 
   const fecharModalLote = () => {
     setMostrarModalLote(false);
-    setFormLote({ setor: '', andar: '', numeroInicio: '', numeroFim: '' });
+    setFormLote({ setor: "", andar: "", numeroInicio: "", numeroFim: "" });
   };
 
   // ============================================
@@ -128,33 +133,37 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
     e.preventDefault();
 
     if (!formData.numero.trim() || !formData.setor.trim()) {
-      alert('Número e setor são obrigatórios!');
+      alert("Número e setor são obrigatórios!");
       return;
     }
 
     try {
       if (leitoEditando) {
         await atualizarLeito(leitoEditando.id, formData);
-        alert('Leito atualizado com sucesso!');
+        alert("Leito atualizado com sucesso!");
       } else {
         await criarLeito(formData);
-        alert('Leito criado com sucesso!');
+        alert("Leito criado com sucesso!");
       }
 
       fecharModal();
       carregarLeitos();
-      if (onLeitosAlterados) onLeitosAlterados();
+      refreshSystemData && refreshSystemData();
     } catch (erro) {
-      console.error('Erro ao salvar:', erro);
-      alert(erro.message || 'Erro ao salvar leito');
+      console.error("Erro ao salvar:", erro);
+      alert(erro.message || "Erro ao salvar leito");
     }
   };
 
   const handleSubmitLote = async (e) => {
     e.preventDefault();
 
-    if (!formLote.setor.trim() || !formLote.numeroInicio || !formLote.numeroFim) {
-      alert('Setor, número inicial e número final são obrigatórios!');
+    if (
+      !formLote.setor.trim() ||
+      !formLote.numeroInicio ||
+      !formLote.numeroFim
+    ) {
+      alert("Setor, número inicial e número final são obrigatórios!");
       return;
     }
 
@@ -162,13 +171,13 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
     const fim = parseInt(formLote.numeroFim);
 
     if (inicio > fim) {
-      alert('Número inicial deve ser menor ou igual ao final!');
+      alert("Número inicial deve ser menor ou igual ao final!");
       return;
     }
 
     const quantidade = fim - inicio + 1;
     const confirmar = window.confirm(
-      `Criar ${quantidade} leito(s) no setor "${formLote.setor.toUpperCase()}"?\n\nLeitos ${inicio} a ${fim}`
+      `Criar ${quantidade} leito(s) no setor "${formLote.setor.toUpperCase()}"?\n\nLeitos ${inicio} a ${fim}`,
     );
 
     if (!confirmar) return;
@@ -178,29 +187,29 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
       alert(resposta.mensagem);
       fecharModalLote();
       carregarLeitos();
-      if (onLeitosAlterados) onLeitosAlterados();
+      refreshSystemData && refreshSystemData();
     } catch (erro) {
-      console.error('Erro ao criar lote:', erro);
-      alert(erro.message || 'Erro ao criar leitos em lote');
+      console.error("Erro ao criar lote:", erro);
+      alert(erro.message || "Erro ao criar leitos em lote");
     }
   };
 
   const handleToggleAtivo = async (leito) => {
     const novoStatus = !leito.ativo;
     const confirmacao = window.confirm(
-      `Deseja realmente ${novoStatus ? 'ativar' : 'desativar'} o leito ${leito.numero} (${leito.setor})?`
+      `Deseja realmente ${novoStatus ? "ativar" : "desativar"} o leito ${leito.numero} (${leito.setor})?`,
     );
 
     if (!confirmacao) return;
 
     try {
       await toggleLeitoAtivo(leito.id, novoStatus);
-      alert(`Leito ${novoStatus ? 'ativado' : 'desativado'} com sucesso!`);
+      alert(`Leito ${novoStatus ? "ativado" : "desativado"} com sucesso!`);
       carregarLeitos();
-      if (onLeitosAlterados) onLeitosAlterados();
+      refreshSystemData && refreshSystemData();
     } catch (erro) {
-      console.error('Erro ao alterar status:', erro);
-      alert(erro.message || 'Erro ao alterar status');
+      console.error("Erro ao alterar status:", erro);
+      alert(erro.message || "Erro ao alterar status");
     }
   };
 
@@ -212,7 +221,12 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
       <div className="gl-container">
         <div className="gl-header">
           <h1>🏥 Setores e Leitos</h1>
-          <button className="gl-btn-voltar" onClick={voltar}>← Voltar</button>
+          <button
+            className="gl-btn-voltar"
+            onClick={() => navigate("/admin/cadastros")}
+          >
+            ← Voltar
+          </button>
         </div>
         <div className="gl-carregando">⏳ Carregando...</div>
       </div>
@@ -224,7 +238,12 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
       {/* Header */}
       <div className="gl-header">
         <h1>🏥 Setores e Leitos</h1>
-        <button className="gl-btn-voltar" onClick={voltar}>← Voltar</button>
+        <button
+          className="gl-btn-voltar"
+          onClick={() => navigate("/admin/cadastros")}
+        >
+          ← Voltar
+        </button>
       </div>
 
       {/* Barra de Ações */}
@@ -253,8 +272,10 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
             onChange={(e) => setFiltroSetor(e.target.value)}
           >
             <option value="">Todos os setores</option>
-            {setoresUnicos.map(setor => (
-              <option key={setor} value={setor}>{setor}</option>
+            {setoresUnicos.map((setor) => (
+              <option key={setor} value={setor}>
+                {setor}
+              </option>
             ))}
           </select>
 
@@ -263,7 +284,7 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
               <input
                 type="radio"
                 value="ativos"
-                checked={filtro === 'ativos'}
+                checked={filtro === "ativos"}
                 onChange={(e) => setFiltro(e.target.value)}
               />
               Ativos
@@ -272,7 +293,7 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
               <input
                 type="radio"
                 value="todos"
-                checked={filtro === 'todos'}
+                checked={filtro === "todos"}
                 onChange={(e) => setFiltro(e.target.value)}
               />
               Todos
@@ -288,11 +309,15 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
           <span className="gl-resumo-label">Leitos exibidos</span>
         </div>
         <div className="gl-resumo-item">
-          <span className="gl-resumo-valor">{Object.keys(leitosPorSetor).length}</span>
+          <span className="gl-resumo-valor">
+            {Object.keys(leitosPorSetor).length}
+          </span>
           <span className="gl-resumo-label">Setores</span>
         </div>
         <div className="gl-resumo-item">
-          <span className="gl-resumo-valor">{leitos.filter(l => l.ativo).length}</span>
+          <span className="gl-resumo-valor">
+            {leitos.filter((l) => l.ativo).length}
+          </span>
           <span className="gl-resumo-label">Total ativos</span>
         </div>
       </div>
@@ -310,44 +335,48 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
           {Object.entries(leitosPorSetor)
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([setor, leitosSetor]) => (
-            <div key={setor} className="gl-setor-card">
-              <div className="gl-setor-header">
-                <div className="gl-setor-info">
-                  <h3>{setor}</h3>
-                  <span className="gl-setor-count">{leitosSetor.length} leito(s)</span>
-                  {leitosSetor[0]?.andar && (
-                    <span className="gl-setor-andar">Andar {leitosSetor[0].andar}</span>
-                  )}
+              <div key={setor} className="gl-setor-card">
+                <div className="gl-setor-header">
+                  <div className="gl-setor-info">
+                    <h3>{setor}</h3>
+                    <span className="gl-setor-count">
+                      {leitosSetor.length} leito(s)
+                    </span>
+                    {leitosSetor[0]?.andar && (
+                      <span className="gl-setor-andar">
+                        Andar {leitosSetor[0].andar}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="gl-leitos-grid">
+                  {leitosSetor.map((leito) => (
+                    <div
+                      key={leito.id}
+                      className={`gl-leito-chip ${!leito.ativo ? "gl-inativo" : ""}`}
+                    >
+                      <span className="gl-leito-numero">{leito.numero}</span>
+                      <div className="gl-leito-acoes">
+                        <button
+                          className="gl-chip-btn gl-chip-editar"
+                          onClick={() => abrirModalEditar(leito)}
+                          title="Editar"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className="gl-chip-btn gl-chip-toggle"
+                          onClick={() => handleToggleAtivo(leito)}
+                          title={leito.ativo ? "Desativar" : "Ativar"}
+                        >
+                          {leito.ativo ? "🔴" : "🟢"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="gl-leitos-grid">
-                {leitosSetor.map(leito => (
-                  <div
-                    key={leito.id}
-                    className={`gl-leito-chip ${!leito.ativo ? 'gl-inativo' : ''}`}
-                  >
-                    <span className="gl-leito-numero">{leito.numero}</span>
-                    <div className="gl-leito-acoes">
-                      <button
-                        className="gl-chip-btn gl-chip-editar"
-                        onClick={() => abrirModalEditar(leito)}
-                        title="Editar"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className="gl-chip-btn gl-chip-toggle"
-                        onClick={() => handleToggleAtivo(leito)}
-                        title={leito.ativo ? 'Desativar' : 'Ativar'}
-                      >
-                        {leito.ativo ? '🔴' : '🟢'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
 
@@ -358,8 +387,10 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
         <div className="gl-modal-overlay" onClick={fecharModal}>
           <div className="gl-modal" onClick={(e) => e.stopPropagation()}>
             <div className="gl-modal-header">
-              <h2>{leitoEditando ? '✏️ Editar Leito' : '➕ Novo Leito'}</h2>
-              <button className="gl-modal-fechar" onClick={fecharModal}>✕</button>
+              <h2>{leitoEditando ? "✏️ Editar Leito" : "➕ Novo Leito"}</h2>
+              <button className="gl-modal-fechar" onClick={fecharModal}>
+                ✕
+              </button>
             </div>
 
             <form onSubmit={handleSubmit} className="gl-modal-form">
@@ -368,7 +399,9 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
                 <input
                   type="text"
                   value={formData.numero}
-                  onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, numero: e.target.value })
+                  }
                   placeholder="Ex: 601, 501A..."
                   maxLength={20}
                   required
@@ -381,17 +414,21 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
                 <input
                   type="text"
                   value={formData.setor}
-                  onChange={(e) => setFormData({ ...formData, setor: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, setor: e.target.value })
+                  }
                   placeholder="Ex: INTERNAÇÃO, UTI ADULTO..."
                   list="setores-existentes"
                   required
                 />
                 <datalist id="setores-existentes">
-                  {setoresUnicos.map(setor => (
+                  {setoresUnicos.map((setor) => (
                     <option key={setor} value={setor} />
                   ))}
                 </datalist>
-                <small>Digite para selecionar um setor existente ou criar novo</small>
+                <small>
+                  Digite para selecionar um setor existente ou criar novo
+                </small>
               </div>
 
               <div className="gl-campo">
@@ -399,7 +436,9 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
                 <input
                   type="number"
                   value={formData.andar}
-                  onChange={(e) => setFormData({ ...formData, andar: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, andar: e.target.value })
+                  }
                   placeholder="Ex: 1, 2, 3..."
                   min={0}
                   max={20}
@@ -407,11 +446,15 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
               </div>
 
               <div className="gl-modal-acoes">
-                <button type="button" className="gl-btn-cancelar" onClick={fecharModal}>
+                <button
+                  type="button"
+                  className="gl-btn-cancelar"
+                  onClick={fecharModal}
+                >
                   Cancelar
                 </button>
                 <button type="submit" className="gl-btn-salvar">
-                  {leitoEditando ? 'Salvar Alterações' : 'Criar Leito'}
+                  {leitoEditando ? "Salvar Alterações" : "Criar Leito"}
                 </button>
               </div>
             </form>
@@ -427,7 +470,9 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
           <div className="gl-modal" onClick={(e) => e.stopPropagation()}>
             <div className="gl-modal-header">
               <h2>📦 Criar Leitos em Lote</h2>
-              <button className="gl-modal-fechar" onClick={fecharModalLote}>✕</button>
+              <button className="gl-modal-fechar" onClick={fecharModalLote}>
+                ✕
+              </button>
             </div>
 
             <form onSubmit={handleSubmitLote} className="gl-modal-form">
@@ -436,14 +481,16 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
                 <input
                   type="text"
                   value={formLote.setor}
-                  onChange={(e) => setFormLote({ ...formLote, setor: e.target.value })}
+                  onChange={(e) =>
+                    setFormLote({ ...formLote, setor: e.target.value })
+                  }
                   placeholder="Ex: INTERNAÇÃO, UTI ADULTO..."
                   list="setores-existentes-lote"
                   required
                   autoFocus
                 />
                 <datalist id="setores-existentes-lote">
-                  {setoresUnicos.map(setor => (
+                  {setoresUnicos.map((setor) => (
                     <option key={setor} value={setor} />
                   ))}
                 </datalist>
@@ -454,7 +501,9 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
                 <input
                   type="number"
                   value={formLote.andar}
-                  onChange={(e) => setFormLote({ ...formLote, andar: e.target.value })}
+                  onChange={(e) =>
+                    setFormLote({ ...formLote, andar: e.target.value })
+                  }
                   placeholder="Ex: 5"
                   min={0}
                   max={20}
@@ -467,7 +516,9 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
                   <input
                     type="number"
                     value={formLote.numeroInicio}
-                    onChange={(e) => setFormLote({ ...formLote, numeroInicio: e.target.value })}
+                    onChange={(e) =>
+                      setFormLote({ ...formLote, numeroInicio: e.target.value })
+                    }
                     placeholder="Ex: 601"
                     required
                   />
@@ -477,7 +528,9 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
                   <input
                     type="number"
                     value={formLote.numeroFim}
-                    onChange={(e) => setFormLote({ ...formLote, numeroFim: e.target.value })}
+                    onChange={(e) =>
+                      setFormLote({ ...formLote, numeroFim: e.target.value })
+                    }
                     placeholder="Ex: 661"
                     required
                   />
@@ -486,19 +539,31 @@ function GestaoLeitos({ voltar, onLeitosAlterados }) {
 
               {formLote.numeroInicio && formLote.numeroFim && (
                 <div className="gl-lote-preview">
-                  {parseInt(formLote.numeroFim) >= parseInt(formLote.numeroInicio) ? (
+                  {parseInt(formLote.numeroFim) >=
+                  parseInt(formLote.numeroInicio) ? (
                     <span>
-                      Serão criados <strong>{parseInt(formLote.numeroFim) - parseInt(formLote.numeroInicio) + 1}</strong> leitos
-                      ({formLote.numeroInicio} a {formLote.numeroFim})
+                      Serão criados{" "}
+                      <strong>
+                        {parseInt(formLote.numeroFim) -
+                          parseInt(formLote.numeroInicio) +
+                          1}
+                      </strong>{" "}
+                      leitos ({formLote.numeroInicio} a {formLote.numeroFim})
                     </span>
                   ) : (
-                    <span className="gl-lote-erro">Número final deve ser maior que o inicial</span>
+                    <span className="gl-lote-erro">
+                      Número final deve ser maior que o inicial
+                    </span>
                   )}
                 </div>
               )}
 
               <div className="gl-modal-acoes">
-                <button type="button" className="gl-btn-cancelar" onClick={fecharModalLote}>
+                <button
+                  type="button"
+                  className="gl-btn-cancelar"
+                  onClick={fecharModalLote}
+                >
                   Cancelar
                 </button>
                 <button type="submit" className="gl-btn-salvar">

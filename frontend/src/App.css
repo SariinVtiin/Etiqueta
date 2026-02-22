@@ -3,7 +3,7 @@
    Menu, Header e Layout Principal
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
 
 /* ===== VARIÁVEIS GLOBAIS ===== */
 :root {
@@ -12,13 +12,13 @@
   --app-primary-dark: #0f766e;
   --app-primary-50: #f0fdfa;
   --app-primary-100: #ccfbf1;
-  
+
   --app-secondary: #059669;
   --app-accent: #f59e0b;
-  
+
   --app-error: #dc2626;
   --app-error-light: #fee2e2;
-  
+
   --app-white: #ffffff;
   --app-gray-50: #f8fafc;
   --app-gray-100: #f1f5f9;
@@ -30,18 +30,19 @@
   --app-gray-700: #334155;
   --app-gray-800: #1e293b;
   --app-gray-900: #0f172a;
-  
-  --app-font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  --app-font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  
+
+  --app-font-display: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif;
+  --app-font-body:
+    "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+
   --app-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --app-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --app-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  
+
   --app-radius-sm: 6px;
   --app-radius-md: 10px;
   --app-radius-lg: 14px;
-  
+
   --app-transition: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --app-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -109,7 +110,11 @@
 }
 
 .user-role.admin {
-  background: linear-gradient(135deg, var(--app-primary-50), var(--app-primary-100));
+  background: linear-gradient(
+    135deg,
+    var(--app-primary-50),
+    var(--app-primary-100)
+  );
   color: var(--app-primary-dark);
 }
 
@@ -216,8 +221,13 @@
 }
 
 @keyframes pulse-badge {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 /* Botão de Logout */
@@ -280,7 +290,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== BOTÕES GLOBAIS ===== */
@@ -343,6 +355,17 @@
     padding: 8px 14px;
     font-size: 0.8125rem;
   }
+}
+
+.menu-navegacao .menu-btn,
+.menu-navegacao .menu-btn:visited,
+.menu-navegacao .menu-btn:hover,
+.menu-navegacao .menu-btn:active {
+  text-decoration: none;
+}
+
+.menu-navegacao .menu-btn span {
+  text-decoration: none;
 }
 
 @media (max-width: 768px) {

@@ -1,27 +1,30 @@
 // frontend/src/pages/GestaoCondicoes/GestaoCondicoes.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   listarRestricoes,
   criarRestricao,
   atualizarRestricao,
-  toggleRestricaoAtiva
-} from '../../services/api';
-import './GestaoCondicoes.css';
+  toggleRestricaoAtiva,
+} from "../../services/api";
+import "./GestaoCondicoes.css";
 
-function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
+function GestaoCondicoes() {
+  const navigate = useNavigate();
+  const { refreshSystemData } = useOutletContext() || {};
+
   const [restricoes, setRestricoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [restricaoEditando, setRestricaoEditando] = useState(null);
-  const [filtro, setFiltro] = useState('ativas'); // 'ativas' ou 'todas'
-  
+  const [filtro, setFiltro] = useState("ativas"); // 'ativas' ou 'todas'
+
   const [formData, setFormData] = useState({
-    nome: '',
-    descricao: '',
-    ordem: ''
+    nome: "",
+    descricao: "",
+    ordem: "",
   });
 
-  // Carregar condições nutricionais
   useEffect(() => {
     carregarRestricoes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -30,11 +33,11 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
   const carregarRestricoes = async () => {
     setCarregando(true);
     try {
-      const resposta = await listarRestricoes(filtro === 'todas');
+      const resposta = await listarRestricoes(filtro === "todas");
       setRestricoes(resposta.restricoes || []);
     } catch (erro) {
-      console.error('Erro ao carregar condições nutricionais:', erro);
-      alert('Erro ao carregar Condições Nutricionais');
+      console.error("Erro ao carregar condições nutricionais:", erro);
+      alert("Erro ao carregar Condições Nutricionais");
     } finally {
       setCarregando(false);
     }
@@ -42,7 +45,7 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
 
   const abrirModalNovo = () => {
     setRestricaoEditando(null);
-    setFormData({ nome: '', descricao: '', ordem: '' });
+    setFormData({ nome: "", descricao: "", ordem: "" });
     setMostrarModal(true);
   };
 
@@ -50,8 +53,8 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
     setRestricaoEditando(restricao);
     setFormData({
       nome: restricao.nome,
-      descricao: restricao.descricao || '',
-      ordem: restricao.ordem || ''
+      descricao: restricao.descricao || "",
+      ordem: restricao.ordem || "",
     });
     setMostrarModal(true);
   };
@@ -59,57 +62,57 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
   const fecharModal = () => {
     setMostrarModal(false);
     setRestricaoEditando(null);
-    setFormData({ nome: '', descricao: '', ordem: '' });
+    setFormData({ nome: "", descricao: "", ordem: "" });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.nome.trim()) {
-      alert('Nome da Condição Nutricional é obrigatório!');
+      alert("Nome da Condição Nutricional é obrigatório!");
       return;
     }
 
     try {
       if (restricaoEditando) {
         await atualizarRestricao(restricaoEditando.id, formData);
-        alert('Condição nutricional atualizada com sucesso!');
+        alert("Condição nutricional atualizada com sucesso!");
       } else {
         await criarRestricao(formData);
-        alert('Condição nutricional criada com sucesso!');
-        
-        if (onRestricoesCriadas) {
-          onRestricoesCriadas();
-        }
+        alert("Condição nutricional criada com sucesso!");
       }
 
+      // atualiza lista local
       fecharModal();
-      carregarRestricoes();
+      await carregarRestricoes();
+
+      // atualiza cache global (AppShell) para refletir no NovaPrescricao etc.
+      if (refreshSystemData) await refreshSystemData();
     } catch (erro) {
-      console.error('Erro ao salvar:', erro);
-      alert(erro.message || 'Erro ao salvar condição nutricional');
+      console.error("Erro ao salvar:", erro);
+      alert(erro.message || "Erro ao salvar condição nutricional");
     }
   };
 
   const handleToggleAtiva = async (restricao) => {
     const novoStatus = !restricao.ativa;
     const confirmacao = window.confirm(
-      `Deseja realmente ${novoStatus ? 'ativar' : 'desativar'} a condição nutricional "${restricao.nome}"?`
+      `Deseja realmente ${novoStatus ? "ativar" : "desativar"} a condição nutricional "${restricao.nome}"?`,
     );
 
     if (!confirmacao) return;
 
     try {
       await toggleRestricaoAtiva(restricao.id, novoStatus);
-      alert(`Condição nutricional ${novoStatus ? 'ativada' : 'desativada'} com sucesso!`);
-      carregarRestricoes();
-      
-      if (onRestricoesCriadas) {
-        onRestricoesCriadas();
-      }
+      alert(
+        `Condição nutricional ${novoStatus ? "ativada" : "desativada"} com sucesso!`,
+      );
+
+      await carregarRestricoes();
+      if (refreshSystemData) await refreshSystemData();
     } catch (erro) {
-      console.error('Erro ao alterar status:', erro);
-      alert(erro.message || 'Erro ao alterar status');
+      console.error("Erro ao alterar status:", erro);
+      alert(erro.message || "Erro ao alterar status");
     }
   };
 
@@ -118,7 +121,10 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
       <div className="gr-container">
         <div className="gr-header">
           <h1>🩺 Condições Nutricionais</h1>
-          <button className="gr-btn-voltar" onClick={voltar}>
+          <button
+            className="gr-btn-voltar"
+            onClick={() => navigate("/admin/cadastros")}
+          >
             ← Voltar
           </button>
         </div>
@@ -131,7 +137,10 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
     <div className="gr-container">
       <div className="gr-header">
         <h1>🩺 Condições Nutricionais</h1>
-        <button className="gr-btn-voltar" onClick={voltar}>
+        <button
+          className="gr-btn-voltar"
+          onClick={() => navigate("/admin/cadastros")}
+        >
           ← Voltar
         </button>
       </div>
@@ -146,7 +155,7 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
             <input
               type="radio"
               value="ativas"
-              checked={filtro === 'ativas'}
+              checked={filtro === "ativas"}
               onChange={(e) => setFiltro(e.target.value)}
             />
             Apenas Ativas
@@ -155,7 +164,7 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
             <input
               type="radio"
               value="todas"
-              checked={filtro === 'todas'}
+              checked={filtro === "todas"}
               onChange={(e) => setFiltro(e.target.value)}
             />
             Todas
@@ -184,13 +193,18 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
             </thead>
             <tbody>
               {restricoes.map((restricao) => (
-                <tr key={restricao.id} className={!restricao.ativa ? 'gr-inativa' : ''}>
+                <tr
+                  key={restricao.id}
+                  className={!restricao.ativa ? "gr-inativa" : ""}
+                >
                   <td>{restricao.ordem}</td>
                   <td className="gr-nome">{restricao.nome}</td>
-                  <td className="gr-descricao">{restricao.descricao || '-'}</td>
+                  <td className="gr-descricao">{restricao.descricao || "-"}</td>
                   <td>
-                    <span className={`gr-status ${restricao.ativa ? 'ativa' : 'inativa'}`}>
-                      {restricao.ativa ? '✓ Ativa' : '✗ Inativa'}
+                    <span
+                      className={`gr-status ${restricao.ativa ? "ativa" : "inativa"}`}
+                    >
+                      {restricao.ativa ? "✓ Ativa" : "✗ Inativa"}
                     </span>
                   </td>
                   <td>
@@ -203,11 +217,11 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
                         ✏️
                       </button>
                       <button
-                        className={`gr-btn-toggle ${restricao.ativa ? 'desativar' : 'ativar'}`}
+                        className={`gr-btn-toggle ${restricao.ativa ? "desativar" : "ativar"}`}
                         onClick={() => handleToggleAtiva(restricao)}
-                        title={restricao.ativa ? 'Desativar' : 'Ativar'}
+                        title={restricao.ativa ? "Desativar" : "Ativar"}
                       >
-                        {restricao.ativa ? '🔴' : '🟢'}
+                        {restricao.ativa ? "🔴" : "🟢"}
                       </button>
                     </div>
                   </td>
@@ -218,13 +232,18 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
         </div>
       )}
 
-      {/* Modal de Criação/Edição */}
       {mostrarModal && (
         <div className="gr-modal-overlay" onClick={fecharModal}>
           <div className="gr-modal" onClick={(e) => e.stopPropagation()}>
             <div className="gr-modal-header">
-              <h2>{restricaoEditando ? '✏️ Editar Condição Nutricional' : '➕ Nova Condição Nutricional'}</h2>
-              <button className="gr-modal-fechar" onClick={fecharModal}>✕</button>
+              <h2>
+                {restricaoEditando
+                  ? "✏️ Editar Condição Nutricional"
+                  : "➕ Nova Condição Nutricional"}
+              </h2>
+              <button className="gr-modal-fechar" onClick={fecharModal}>
+                ✕
+              </button>
             </div>
 
             <form onSubmit={handleSubmit} className="gr-modal-form">
@@ -233,7 +252,9 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
                 <input
                   type="text"
                   value={formData.nome}
-                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nome: e.target.value })
+                  }
                   placeholder="Ex: HPS, DM, IRC..."
                   maxLength={100}
                   required
@@ -244,7 +265,9 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
                 <label>Descrição (opcional)</label>
                 <textarea
                   value={formData.descricao}
-                  onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, descricao: e.target.value })
+                  }
                   placeholder="Ex: Hiposódica, Diabetes Mellitus..."
                   rows={3}
                 />
@@ -255,7 +278,9 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
                 <input
                   type="number"
                   value={formData.ordem}
-                  onChange={(e) => setFormData({ ...formData, ordem: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, ordem: e.target.value })
+                  }
                   placeholder="Ex: 1, 2, 3..."
                   min={0}
                 />
@@ -263,11 +288,15 @@ function GestaoCondicoes({ voltar, onRestricoesCriadas }) {
               </div>
 
               <div className="gr-modal-acoes">
-                <button type="button" className="gr-btn-cancelar" onClick={fecharModal}>
+                <button
+                  type="button"
+                  className="gr-btn-cancelar"
+                  onClick={fecharModal}
+                >
                   Cancelar
                 </button>
                 <button type="submit" className="gr-btn-salvar">
-                  {restricaoEditando ? 'Salvar Alterações' : 'Criar Condição'}
+                  {restricaoEditando ? "Salvar Alterações" : "Criar Condição"}
                 </button>
               </div>
             </form>
