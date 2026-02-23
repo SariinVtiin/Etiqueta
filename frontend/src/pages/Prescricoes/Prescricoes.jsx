@@ -8,14 +8,17 @@ import {
   exportarParaExcel,
   exportarParaPDF,
   exportarRelatorioDetalhado,
+  gerarMapaRefeicao,
 } from "../../services/relatorios";
 import ModalEditarPrescricao from "../../components/forms/ModalEditarPrescricao";
 import "./Prescricoes.css";
 
 import { useNavigate, useLocation, useOutletContext } from "react-router-dom";
+
 function Prescricoes() {
   const navigate = useNavigate();
   const location = useLocation();
+
   const {
     nucleos = {},
     dietas = [],
@@ -61,7 +64,7 @@ function Prescricoes() {
       const resposta = await listarPrescricoes(params);
 
       if (resposta.sucesso) {
-        const prescricoesFormatadas = resposta.prescricoes.map((p) => ({
+        const prescricoesFormatadas = (resposta.prescricoes || []).map((p) => ({
           ...p,
           restricoes: p.restricoes ? JSON.parse(p.restricoes) : [],
         }));
@@ -69,9 +72,12 @@ function Prescricoes() {
         setPrescricoes(prescricoesFormatadas);
         setPaginacao((prev) => ({
           ...prev,
-          total: resposta.paginacao.total,
-          totalPaginas: resposta.paginacao.totalPaginas,
+          total: resposta.paginacao?.total || 0,
+          totalPaginas: resposta.paginacao?.totalPaginas || 0,
         }));
+      } else {
+        setPrescricoes([]);
+        setPaginacao((prev) => ({ ...prev, total: 0, totalPaginas: 0 }));
       }
     } catch (erro) {
       console.error("Erro ao carregar prescrições:", erro);
@@ -203,6 +209,54 @@ function Prescricoes() {
     }
   };
 
+  // ✅ NOVO: Gerar Mapa (igual o do seu amigo)
+  const handleGerarMapa = async () => {
+    if (prescricoes.length === 0) {
+      alert("Nenhuma prescrição encontrada para gerar mapa.");
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `Será gerado o mapa de refeição com base nos filtros atuais.\nTotal de registros filtrados: ${paginacao.total}\n\nDeseja continuar?`,
+    );
+
+    if (!confirmar) return;
+
+    try {
+      const params = {
+        ...filtros,
+        limit: 5000,
+      };
+
+      const resposta = await listarPrescricoes(params);
+
+      if (
+        !resposta.sucesso ||
+        !resposta.prescricoes ||
+        resposta.prescricoes.length === 0
+      ) {
+        alert("Nenhuma prescrição encontrada para gerar mapa.");
+        return;
+      }
+
+      const todasPrescricoes = resposta.prescricoes.map((p) => ({
+        ...p,
+        restricoes: p.restricoes ? JSON.parse(p.restricoes) : [],
+      }));
+
+      const resultado = gerarMapaRefeicao(todasPrescricoes, filtros);
+
+      if (resultado.sucesso) {
+        alert(resultado.mensagem);
+      } else {
+        alert(resultado.erro);
+      }
+    } catch (erro) {
+      console.error("Erro ao gerar mapa de refeição:", erro);
+      alert("Erro ao gerar mapa de refeição.");
+    }
+  };
+
   // ============================================
   // SISTEMA DE IMPRESSÃO DE ETIQUETAS - CONSOLIDADO
   // ============================================
@@ -249,240 +303,129 @@ function Prescricoes() {
   const gerarHTMLEtiquetas = (prescricoesParaImprimir) => {
     const dataFormatada = new Date().toLocaleDateString("pt-BR");
 
-    // CSS CONSOLIDADO - PADRONIZADO PARA 10cm x 8cm
     const estilos = `
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      
-      body {
-        font-family: Arial, sans-serif;
-        padding: 10mm;
-        background: #f5f5f5;
-      }
-      
-      /* ============================================
-         ETIQUETA PRINCIPAL - 10cm x 8cm
-         ============================================ */
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family: Arial, sans-serif; padding: 10mm; background:#f5f5f5; }
+
       .etiqueta {
-        width: 10cm;
-        height: 8cm;
-        background: white;
-        padding: 6mm;
-        margin-bottom: 5mm;
-        page-break-after: always;
-        border: 2px solid #333;
-        display: flex;
-        flex-direction: column;
-        position: relative;
+        width:10cm;
+        height:8cm;
+        background:white;
+        padding:6mm;
+        margin-bottom:5mm;
+        page-break-after:always;
+        border:2px solid #333;
+        display:flex;
+        flex-direction:column;
+        position:relative;
       }
-      
-      .etiqueta:last-child {
-        page-break-after: auto;
-      }
-      
-      /* ============================================
-         CABEÇALHO DA EMPRESA
-         ============================================ */
+      .etiqueta:last-child { page-break-after:auto; }
+
       .etiqueta-empresa {
-        text-align: center;
-        font-size: 12px;
-        font-weight: bold;
-        color: #333;
-        padding-bottom: 4px;
-        margin-bottom: 4px;
-        border-bottom: 2px solid #333;
+        text-align:center;
+        font-size:12px;
+        font-weight:bold;
+        color:#333;
+        padding-bottom:4px;
+        margin-bottom:4px;
+        border-bottom:2px solid #333;
       }
-      
-      /* ============================================
-         LINHA PRINCIPAL: NOME + IDADE
-         ============================================ */
+
       .etiqueta-linha-principal {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 5px;
-        padding-bottom: 4px;
-        border-bottom: 2px solid #333;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:5px;
+        padding-bottom:4px;
+        border-bottom:2px solid #333;
       }
-      
+
       .etiqueta-nome {
-        font-size: 13px;
-        font-weight: bold;
-        flex: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        color: #000;
+        font-size:13px;
+        font-weight:bold;
+        flex:1;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        color:#000;
       }
-      
+
       .etiqueta-idade {
-        font-size: 11px;
-        font-weight: bold;
-        background: #000;
-        color: #fff;
-        padding: 2px 6px;
-        border-radius: 3px;
-        margin-left: 8px;
-        white-space: nowrap;
+        font-size:11px;
+        font-weight:bold;
+        background:#000;
+        color:#fff;
+        padding:2px 6px;
+        border-radius:3px;
+        margin-left:8px;
+        white-space:nowrap;
       }
-      
-      /* ============================================
-         DESTAQUE "SEM PRINCIPAL"
-         ============================================ */
+
       .etiqueta-sem-principal {
-        background: #fff3cd;
-        padding: 4px 6px;
-        margin-bottom: 5px;
-        border-radius: 3px;
-        border-left: 3px solid #ffc107;
-        display: flex;
-        font-size: 9px;
-        font-weight: bold;
-        align-items: center;
+        background:#fff3cd;
+        padding:4px 6px;
+        margin-bottom:5px;
+        border-radius:3px;
+        border-left:3px solid #ffc107;
+        display:flex;
+        font-size:9px;
+        font-weight:bold;
+        align-items:center;
       }
-      
-      .etiqueta-sem-principal-label {
-        color: #856404;
-        margin-right: 4px;
-        white-space: nowrap;
-      }
-      
-      .etiqueta-sem-principal-valor {
-        color: #856404;
-        flex: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      
-      /* ============================================
-         GRID DE INFORMAÇÕES
-         ============================================ */
+
+      .etiqueta-sem-principal-label { color:#856404; margin-right:4px; white-space:nowrap; }
+      .etiqueta-sem-principal-valor { color:#856404; flex:1; overflow:hidden; text-overflow:ellipsis; }
+
       .etiqueta-grid {
-        display: grid;
-        font-weight: bold;
+        display:grid;
+        font-weight:bold;
         grid-template-columns: 1fr 1fr;
-        gap: 3px 6px;
-        flex: 1;
+        gap:3px 6px;
+        flex:1;
       }
-      
-      .etiqueta-item {
-        display: flex;
-        font-weight: bold;
-        font-size: 9px;
-        line-height: 1.3;
-      }
-      
-      .etiqueta-item.full-width {
-        grid-column: 1 / -1;
-      }
-      
-      .etiqueta-item.destaque {
-        font-weight: bold;
-      }
-      
-      .etiqueta-label {
-        font-weight: bold;
-        min-width: 50px;
-        flex-shrink: 0;
-        color: #333;
-      }
-      
-      .etiqueta-valor {
-        flex: 1;
-        word-wrap: break-word;
-        color: #000;
-      }
-      
-      /* ============================================
-         PREVIEW E BOTÕES
-         ============================================ */
+
+      .etiqueta-item { display:flex; font-weight:bold; font-size:9px; line-height:1.3; }
+      .etiqueta-item.full-width { grid-column: 1 / -1; }
+      .etiqueta-item.destaque { font-weight:bold; }
+
+      .etiqueta-label { font-weight:bold; min-width:50px; flex-shrink:0; color:#333; }
+      .etiqueta-valor { flex:1; word-wrap:break-word; color:#000; }
+
       .preview-container {
-        margin: 20px 0;
-        padding: 20px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        text-align: center;
+        margin:20px 0;
+        padding:20px;
+        background:white;
+        border-radius:8px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+        text-align:center;
       }
-      
-      .preview-container h3 {
-        margin-bottom: 10px;
-        color: #333;
-      }
-      
-      .preview-container p {
-        margin-bottom: 15px;
-        color: #666;
-      }
-      
+
       .btn-preview {
-        padding: 12px 24px;
-        font-size: 16px;
-        cursor: pointer;
-        border: none;
-        border-radius: 6px;
-        margin: 0 5px;
-        font-weight: 600;
-        transition: all 0.3s;
+        padding:12px 24px;
+        font-size:16px;
+        cursor:pointer;
+        border:none;
+        border-radius:6px;
+        margin:0 5px;
+        font-weight:600;
+        transition:all 0.3s;
       }
-      
-      .btn-imprimir {
-        background: #0d9488;
-        color: white;
-      }
-      
-      .btn-imprimir:hover {
-        background: #0f766e;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
-      }
-      
-      .btn-fechar {
-        background: #6c757d;
-        color: white;
-      }
-      
-      .btn-fechar:hover {
-        background: #5a6268;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
-      }
-      
-      /* ============================================
-         CONFIGURAÇÕES DE IMPRESSÃO
-         ============================================ */
+      .btn-imprimir { background:#0d9488; color:white; }
+      .btn-imprimir:hover { background:#0f766e; transform:translateY(-2px); box-shadow:0 4px 12px rgba(13,148,136,0.3); }
+      .btn-fechar { background:#6c757d; color:white; }
+      .btn-fechar:hover { background:#5a6268; transform:translateY(-2px); box-shadow:0 4px 12px rgba(108,117,125,0.3); }
+
       @media print {
-        body {
-          padding: 0;
-          background: white;
-        }
-        
-        .preview-container {
-          display: none;
-        }
-        
-        .etiqueta {
-          margin: 0;
-          border: 2px solid #000;
-        }
-        
-        .etiqueta:last-child {
-          page-break-after: auto;
-        }
-        
-        @page {
-          size: 10cm 8cm;
-          margin: 0;
-        }
+        body { padding:0; background:white; }
+        .preview-container { display:none; }
+        .etiqueta { margin:0; border:2px solid #000; }
+        .etiqueta:last-child { page-break-after:auto; }
+        @page { size:10cm 8cm; margin:0; }
       }
     </style>
     `;
 
-    // INÍCIO DO HTML
     let html = `
       <!DOCTYPE html>
       <html lang="pt-BR">
@@ -497,29 +440,21 @@ function Prescricoes() {
           <h3>🏷️ Preview de Impressão</h3>
           <p>📊 Total de <strong>${prescricoesParaImprimir.length}</strong> etiqueta(s) | 📅 Data: <strong>${dataFormatada}</strong></p>
           <p>📏 Tamanho: <strong>10cm x 8cm</strong> cada etiqueta</p>
-          <button onclick="window.print()" class="btn-preview btn-imprimir">
-            🖨️ Imprimir
-          </button>
-          <button onclick="window.close()" class="btn-preview btn-fechar">
-            ✖️ Fechar
-          </button>
+          <button onclick="window.print()" class="btn-preview btn-imprimir">🖨️ Imprimir</button>
+          <button onclick="window.close()" class="btn-preview btn-fechar">✖️ Fechar</button>
         </div>
     `;
 
-    // GERAR CADA ETIQUETA
     prescricoesParaImprimir.forEach((prescricao) => {
       html += `
         <div class="etiqueta">
-          <!-- Empresa -->
           <div class="etiqueta-empresa">Maxima Facility</div>
-          
-          <!-- Nome e Idade -->
+
           <div class="etiqueta-linha-principal">
             <div class="etiqueta-nome">${prescricao.nome_paciente || "Paciente"}</div>
             <div class="etiqueta-idade">${prescricao.idade || "0"} anos</div>
           </div>
 
-          <!-- Sem Principal (se houver) -->
           ${
             prescricao.sem_principal
               ? `
@@ -531,54 +466,48 @@ function Prescricoes() {
               : ""
           }
 
-          <!-- Grid de Informações -->
           <div class="etiqueta-grid">
-            <!-- Linha 1 -->
             <div class="etiqueta-item">
               <span class="etiqueta-label">Mãe:</span>
               <span class="etiqueta-valor">${prescricao.nome_mae || "-"}</span>
             </div>
-            
+
             <div class="etiqueta-item">
               <span class="etiqueta-label">Atend:</span>
               <span class="etiqueta-valor">${prescricao.codigo_atendimento || "-"}</span>
             </div>
-            
-            <!-- Linha 2 -->
+
             <div class="etiqueta-item">
               <span class="etiqueta-label">Convênio:</span>
               <span class="etiqueta-valor">${prescricao.convenio || "-"}</span>
             </div>
-            
+
             <div class="etiqueta-item">
               <span class="etiqueta-label">Leito:</span>
               <span class="etiqueta-valor">${prescricao.leito || "-"}</span>
             </div>
-            
-            <!-- Linha 3 - DESTAQUE -->
+
             <div class="etiqueta-item destaque">
               <span class="etiqueta-label">Refeição:</span>
               <span class="etiqueta-valor">${prescricao.tipo_alimentacao || "-"}</span>
             </div>
-            
+
             <div class="etiqueta-item destaque">
               <span class="etiqueta-label">Dieta:</span>
               <span class="etiqueta-valor">${prescricao.dieta || "-"}</span>
             </div>
-            
-            <!-- Restrições (se houver) -->
+
             ${
               prescricao.restricoes && prescricao.restricoes.length > 0
                 ? `
             <div class="etiqueta-item full-width">
-              <span class="etiqueta-label">Restrição:</span>
+              <span class="etiqueta-label">Cond. Nutricional:</span>
               <span class="etiqueta-valor">${prescricao.restricoes.join(", ")}</span>
             </div>
             `
                 : ""
             }
-            
-            <!-- Exclusões (se houver) -->
+
             ${
               prescricao.obs_exclusao
                 ? `
@@ -589,8 +518,7 @@ function Prescricoes() {
             `
                 : ""
             }
-            
-            <!-- Acréscimos (se houver) -->
+
             ${
               prescricao.obs_acrescimo
                 ? `
@@ -605,8 +533,7 @@ function Prescricoes() {
         </div>
       `;
 
-      // Dentro do forEach de prescricoesParaImprimir, APÓS gerar etiqueta do paciente:
-      // ✅ GERAR ETIQUETAS DO ACOMPANHANTE (se houver)
+      // ✅ Etiquetas do acompanhante (mantém a lógica do seu amigo)
       if (prescricao.tem_acompanhante && prescricao.acompanhante_refeicoes) {
         let refeicoes = [];
         try {
@@ -618,39 +545,32 @@ function Prescricoes() {
           refeicoes = [];
         }
 
-        // Montar texto da dieta com restrições
         let restricoesAcomp = [];
         try {
           const ids =
             typeof prescricao.acompanhante_restricoes_ids === "string"
               ? JSON.parse(prescricao.acompanhante_restricoes_ids)
               : prescricao.acompanhante_restricoes_ids || [];
-          // Nota: para exibir nomes, será necessário passar as restrições por parâmetro
-          // ou fazer um fetch. Alternativa: salvar os nomes no JSON da prescrição.
           restricoesAcomp = ids;
         } catch (e) {
           restricoesAcomp = [];
         }
 
-        // Para cada refeição do acompanhante, gerar uma etiqueta
         refeicoes.forEach((refeicao) => {
           const dietaTexto =
             restricoesAcomp.length > 0
-              ? `Dieta Normal p/ Acompanhante` // Simplificado; nomes podem ser mapeados
+              ? `Dieta Normal p/ Acompanhante`
               : "Dieta Normal";
 
           html += `
             <div class="etiqueta">
-              <!-- Empresa -->
               <div class="etiqueta-empresa">Maxima Facility</div>
 
-              <!-- Identificação do Acompanhante -->
               <div class="etiqueta-linha-principal">
                 <div class="etiqueta-nome">ACOMPANHANTE - Leito ${prescricao.leito || ""}</div>
                 <div class="etiqueta-idade" style="background:#f59e0b;color:#000;font-size:10px;">ACOMP.</div>
               </div>
 
-              <!-- Grid de informações -->
               <div class="etiqueta-grid">
                 <div class="etiqueta-item destaque">
                   <span class="etiqueta-label">Setor:</span>
@@ -689,7 +609,6 @@ function Prescricoes() {
       }
     });
 
-    // FECHAMENTO DO HTML
     html += `
       </body>
       </html>
@@ -697,10 +616,6 @@ function Prescricoes() {
 
     return html;
   };
-
-  // ============================================
-  // FIM DO SISTEMA DE IMPRESSÃO
-  // ============================================
 
   const formatarData = (dataString) => {
     const data = new Date(dataString);
@@ -835,6 +750,11 @@ function Prescricoes() {
           >
             📈 Relatório Detalhado
           </button>
+
+          {/* ✅ VOLTOU: mapa */}
+          <button className="btn-exportar mapa" onClick={handleGerarMapa}>
+            🗺️ Gerar Mapa
+          </button>
         </div>
       </div>
 
@@ -956,7 +876,7 @@ function Prescricoes() {
                               {prescricao.restricoes &&
                                 prescricao.restricoes.length > 0 && (
                                   <div className="detalhe-item full-width">
-                                    <strong>Restrições:</strong>
+                                    <strong>Cond. Nutricionais:</strong>
                                     <span>
                                       {prescricao.restricoes.join(", ")}
                                     </span>
@@ -1000,6 +920,7 @@ function Prescricoes() {
                                   )}
                                 </span>
                               </div>
+
                               <div className="detalhe-item">
                                 <strong>Por:</strong>
                                 <span>{prescricao.created_by_name}</span>
