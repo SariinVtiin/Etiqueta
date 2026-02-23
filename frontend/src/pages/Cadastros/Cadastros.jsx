@@ -1,33 +1,11 @@
-// frontend/src/pages/Cadastros/Cadastros.jsx
-// ATUALIZADO - Com card de Logs de Login + Condições Nutricionais
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ImportarAcrescimos from "../../components/configuracoes/ImportarAcrescimos";
 import RelatorioLogin from "../../components/RelatorioLogin/RelatorioLogin";
 import "./Cadastros.css";
 
 function Cadastros() {
   const navigate = useNavigate();
-
-  const [mostrarImportacao, setMostrarImportacao] = useState(false);
   const [relatorioLoginAberto, setRelatorioLoginAberto] = useState(false);
-
-  if (mostrarImportacao) {
-    return (
-      <div className="cadastros-container">
-        <div className="cadastros-header">
-          <h1>📥 Importar Acréscimos</h1>
-          <button
-            className="btn-voltar"
-            onClick={() => setMostrarImportacao(false)}
-          >
-            ← Voltar aos Cadastros
-          </button>
-        </div>
-        <ImportarAcrescimos />
-      </div>
-    );
-  }
 
   return (
     <div className="cadastros-container">
@@ -72,26 +50,29 @@ function Cadastros() {
           <button className="card-button">Acessar</button>
         </div>
 
-        {/* Condições Nutricionais */}
+        {/* Condição Nutricional (seu projeto renomeou de restrição -> condição) */}
         <div
           className="cadastro-card"
           onClick={() => navigate("/admin/condicoes")}
         >
           <div className="card-icon">🩺</div>
           <h3>Condição Nutricional</h3>
-          <p>Gerenciar condições nutricionais (HPS, DM, IRC, etc.)</p>
+          <p>
+            Gerenciar condições nutricionais para prescrições (HPS, DM, IRC,
+            etc.)
+          </p>
           <button className="card-button">Acessar</button>
         </div>
 
-        {/* Acréscimos */}
+        {/* ✅ Acréscimos (AGORA COMO ROTA) */}
         <div
           className="cadastro-card"
-          onClick={() => setMostrarImportacao(true)}
+          onClick={() => navigate("/admin/acrescimos")}
         >
           <div className="card-icon">📥</div>
           <h3>Acréscimos</h3>
           <p>Importar planilha de suplementos e acréscimos</p>
-          <button className="card-button">Importar</button>
+          <button className="card-button">Acessar</button>
         </div>
 
         {/* Logs de Login */}
@@ -116,22 +97,18 @@ function Cadastros() {
           <button className="card-button">Acessar</button>
         </div>
 
-        {/* Condições do Acompanhante */}
+        {/* Configurações */}
         <div
           className="cadastro-card"
-          onClick={() => navigate("/admin/condicoes-acompanhante")}
+          onClick={() => navigate("/admin/configuracoes")}
         >
-          <div className="card-icon">👤</div>
-          <h3>Cond. Nutricionais do Acompanhante</h3>
-          <p>
-            Gerenciar condições nutricionais para acompanhantes (Diabético, Sem
-            Lactose...)
-          </p>
+          <div className="card-icon">⚙️</div>
+          <h3>Configurações</h3>
+          <p>Opções gerais do sistema</p>
           <button className="card-button">Acessar</button>
         </div>
       </div>
 
-      {/* Modal do Relatório de Logs de Login */}
       <RelatorioLogin
         isOpen={relatorioLoginAberto}
         onClose={() => setRelatorioLoginAberto(false)}

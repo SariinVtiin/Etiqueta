@@ -1,51 +1,75 @@
-// frontend/src/components/configuracoes/ImportarAcrescimos.jsx
-import React, { useState, useEffect } from 'react';
-import './ImportarAcrescimos.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import "./ImportarAcrescimos.css";
 
 function ImportarAcrescimos() {
+  const navigate = useNavigate();
+
   const [arquivo, setArquivo] = useState(null);
   const [importando, setImportando] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [estatisticas, setEstatisticas] = useState(null);
 
+  // ✅ Base URL configurável (CRA)
+  const API_BASE =
+    process.env.REACT_APP_API_URL?.replace(/\/$/, "") ||
+    "http://localhost:3001";
+
+  // ✅ Helper padrão com Bearer token
+  const apiFetch = async (path, options = {}) => {
+    const token = localStorage.getItem("token");
+    const headers = {
+      ...(options.headers || {}),
+      Authorization: token ? `Bearer ${token}` : "",
+    };
+
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+    });
+
+    // tenta json sempre
+    const data = await res.json().catch(() => null);
+
+    // se backend retornar 401/403 etc
+    if (!res.ok) {
+      const msg =
+        (data && (data.erro || data.message)) ||
+        `Erro HTTP ${res.status} ao chamar ${path}`;
+      throw new Error(msg);
+    }
+
+    return data;
+  };
+
   useEffect(() => {
     carregarEstatisticas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const carregarEstatisticas = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/acrescimos/estatisticas', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-      if (data.sucesso) {
-        setEstatisticas(data.estatisticas);
-      }
+      const data = await apiFetch("/api/acrescimos/estatisticas");
+      if (data?.sucesso) setEstatisticas(data.estatisticas);
     } catch (erro) {
-      console.error('Erro ao carregar estatísticas:', erro);
+      console.error("Erro ao carregar estatísticas:", erro);
     }
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    
+    const file = e.target.files?.[0];
+
     if (file) {
-      // Validar extensão
-      const extensao = file.name.split('.').pop().toLowerCase();
-      if (extensao !== 'xlsx' && extensao !== 'xls') {
-        alert('Apenas arquivos .xlsx ou .xls são permitidos!');
-        e.target.value = '';
+      const extensao = file.name.split(".").pop().toLowerCase();
+      if (extensao !== "xlsx" && extensao !== "xls") {
+        alert("Apenas arquivos .xlsx ou .xls são permitidos!");
+        e.target.value = "";
         return;
       }
 
-      // Validar tamanho (máximo 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('Arquivo muito grande! Máximo: 5MB');
-        e.target.value = '';
+        alert("Arquivo muito grande! Máximo: 5MB");
+        e.target.value = "";
         return;
       }
 
@@ -56,67 +80,56 @@ function ImportarAcrescimos() {
 
   const handleImportar = async () => {
     if (!arquivo) {
-      alert('Selecione um arquivo primeiro!');
+      alert("Selecione um arquivo primeiro!");
       return;
     }
 
     const confirmacao = window.confirm(
       `ATENÇÃO!\n\n` +
-      `Esta ação irá:\n` +
-      `1. DESATIVAR todos os ${estatisticas?.ativos || 0} itens atuais\n` +
-      `2. IMPORTAR os novos itens da planilha\n\n` +
-      `Prescrições antigas continuarão com valores corretos.\n\n` +
-      `Deseja continuar?`
+        `Esta ação irá:\n` +
+        `1. DESATIVAR todos os ${estatisticas?.ativos || 0} itens atuais\n` +
+        `2. IMPORTAR os novos itens da planilha\n\n` +
+        `Prescrições antigas continuarão com valores corretos.\n\n` +
+        `Deseja continuar?`,
     );
 
-    if (!confirmacao) {
-      return;
-    }
+    if (!confirmacao) return;
 
     setImportando(true);
     setResultado(null);
 
     try {
-      const token = localStorage.getItem('token');
       const formData = new FormData();
-      formData.append('arquivo', arquivo);
+      formData.append("arquivo", arquivo);
 
-      const response = await fetch('http://localhost:3001/api/acrescimos/importar', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
+      const data = await apiFetch("/api/acrescimos/importar", {
+        method: "POST",
+        body: formData,
       });
 
-      const data = await response.json();
-
-      if (data.sucesso) {
+      if (data?.sucesso) {
         setResultado({
-          tipo: 'sucesso',
+          tipo: "sucesso",
           mensagem: data.mensagem,
-          detalhes: data.detalhes
+          detalhes: data.detalhes,
         });
-        
-        // Limpar arquivo
+
         setArquivo(null);
-        document.querySelector('input[type="file"]').value = '';
+        const input = document.querySelector('input[type="file"]');
+        if (input) input.value = "";
 
-        // Recarregar estatísticas
         await carregarEstatisticas();
-
       } else {
         setResultado({
-          tipo: 'erro',
-          mensagem: data.erro
+          tipo: "erro",
+          mensagem: data?.erro || "Erro ao importar planilha",
         });
       }
-
     } catch (erro) {
-      console.error('Erro ao importar:', erro);
+      console.error("Erro ao importar:", erro);
       setResultado({
-        tipo: 'erro',
-        mensagem: 'Erro ao importar planilha: ' + erro.message
+        tipo: "erro",
+        mensagem: "Erro ao importar planilha: " + erro.message,
       });
     } finally {
       setImportando(false);
@@ -124,22 +137,41 @@ function ImportarAcrescimos() {
   };
 
   const formatarData = (data) => {
-    if (!data) return 'Nunca';
-    return new Date(data).toLocaleString('pt-BR');
+    if (!data) return "Nunca";
+    return new Date(data).toLocaleString("pt-BR");
   };
 
   return (
     <div className="importar-acrescimos-container">
       <div className="card-importacao">
         <div className="card-header">
-          <h2>Importar Acréscimos</h2>
-          <p className="card-descricao">
-            Importe a planilha Excel com os itens de acréscimo disponíveis para prescrições
-          </p>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <h2>Importar Acréscimos</h2>
+              <p className="card-descricao">
+                Importe a planilha Excel com os itens de acréscimo disponíveis
+                para prescrições
+              </p>
+            </div>
+
+            {/* ✅ Voltar padrão (rota) */}
+            <button
+              className="btn-voltar"
+              onClick={() => navigate("/admin/cadastros")}
+            >
+              ← Voltar
+            </button>
+          </div>
         </div>
 
         <div className="card-body">
-          {/* Estatísticas */}
           {estatisticas && (
             <div className="estatisticas-box">
               <div className="stat-item">
@@ -152,16 +184,19 @@ function ImportarAcrescimos() {
               </div>
               <div className="stat-item">
                 <span className="stat-label">Inativos (histórico):</span>
-                <span className="stat-valor inativo">{estatisticas.inativos}</span>
+                <span className="stat-valor inativo">
+                  {estatisticas.inativos}
+                </span>
               </div>
               <div className="stat-item">
                 <span className="stat-label">Última Importação:</span>
-                <span className="stat-valor">{formatarData(estatisticas.ultima_importacao)}</span>
+                <span className="stat-valor">
+                  {formatarData(estatisticas.ultima_importacao)}
+                </span>
               </div>
             </div>
           )}
 
-          {/* Upload de Arquivo */}
           <div className="upload-section">
             <label className="file-label">
               <input
@@ -186,53 +221,58 @@ function ImportarAcrescimos() {
             )}
           </div>
 
-          {/* Botão de Importar */}
           <button
             onClick={handleImportar}
             disabled={!arquivo || importando}
             className="btn-importar"
           >
-            {importando ? '⏳ Importando...' : '📥 Importar Planilha'}
+            {importando ? "⏳ Importando..." : "📥 Importar Planilha"}
           </button>
 
-          {/* Resultado */}
           {resultado && (
             <div className={`resultado-box ${resultado.tipo}`}>
               <div className="resultado-header">
-                {resultado.tipo === 'sucesso' ? '✅' : '❌'} {resultado.mensagem}
+                {resultado.tipo === "sucesso" ? "✅" : "❌"}{" "}
+                {resultado.mensagem}
               </div>
-              
+
               {resultado.detalhes && (
                 <div className="resultado-detalhes">
                   <p>• Itens desativados: {resultado.detalhes.desativados}</p>
                   <p>• Itens importados: {resultado.detalhes.inseridos}</p>
-                  <p>• Data: {formatarData(resultado.detalhes.data_importacao)}</p>
+                  <p>
+                    • Data: {formatarData(resultado.detalhes.data_importacao)}
+                  </p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Instruções */}
           <div className="instrucoes-box">
             <h3>📋 Instruções</h3>
             <ol>
-              <li>A planilha deve ter as colunas: <code>nome_item</code>, <code>tipo_medida</code>, <code>quantidade_referencia</code>, <code>valor</code></li>
+              <li>
+                A planilha deve ter as colunas: <code>nome_item</code>,{" "}
+                <code>tipo_medida</code>, <code>quantidade_referencia</code>,{" "}
+                <code>valor</code>
+              </li>
               <li>Apenas arquivos .xlsx ou .xls são aceitos</li>
               <li>Tamanho máximo: 5MB</li>
-              <li>A importação desativa itens antigos mas preserva o histórico</li>
+              <li>
+                A importação desativa itens antigos mas preserva o histórico
+              </li>
               <li>Prescrições antigas continuam com valores corretos</li>
             </ol>
           </div>
 
-          {/* Aviso */}
           <div className="aviso-box">
             <strong>⚠️ IMPORTANTE:</strong>
             <p>
-              Ao importar uma nova planilha, os itens atuais serão desativados 
-              e não aparecerão mais na seleção de novas prescrições.
+              Ao importar uma nova planilha, os itens atuais serão desativados e
+              não aparecerão mais na seleção de novas prescrições.
             </p>
             <p>
-              Porém, o histórico é preservado e prescrições antigas continuarão 
+              Porém, o histórico é preservado e prescrições antigas continuarão
               exibindo os valores corretos nos relatórios.
             </p>
           </div>
