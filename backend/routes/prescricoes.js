@@ -166,7 +166,7 @@ router.get('/', autenticar, async (req, res) => {
       dataInicio, 
       dataFim, 
       setor, 
-      dieta,
+      refeicao,
       page = 1,
       limit = 20
     } = req.query;
@@ -195,9 +195,9 @@ router.get('/', autenticar, async (req, res) => {
       params.push(setor);
     }
 
-    if (dieta) {
-      query += ' AND dieta = ?';
-      params.push(dieta);
+    if (refeicao) {
+      query += ' AND tipo_alimentacao = ?';
+      params.push(refeicao);
     }
 
     query += ' ORDER BY data_prescricao DESC';

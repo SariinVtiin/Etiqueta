@@ -12,7 +12,8 @@ import {
 } from "../../services/relatorios";
 import ModalEditarPrescricao from "../../components/forms/ModalEditarPrescricao";
 import "./Prescricoes.css";
-
+import Toast from "../../components/common/Toast/Toast";
+import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
 import { useNavigate, useLocation, useOutletContext } from "react-router-dom";
 
 function Prescricoes() {
@@ -31,12 +32,12 @@ function Prescricoes() {
   const [erro, setErro] = useState("");
 
   const [filtros, setFiltros] = useState({
-    busca: "",
-    dataInicio: "",
-    dataFim: "",
-    setor: "",
-    dieta: "",
-    leito: "",
+      busca: "",
+      dataInicio: "",
+      dataFim: "",
+      setor: "",
+      refeicao: "",
+      leito: "",
   });
 
   const [paginacao, setPaginacao] = useState({
@@ -102,7 +103,7 @@ function Prescricoes() {
       dataInicio: "",
       dataFim: "",
       setor: "",
-      dieta: "",
+      refeicao: "",
       leito: "",
     });
     setPaginacao((prev) => ({ ...prev, pagina: 1 }));
@@ -125,23 +126,25 @@ function Prescricoes() {
     }
   };
 
-  const handleExcluir = async (id) => {
-    if (!window.confirm("Tem certeza que deseja excluir esta prescrição?")) {
-      return;
-    }
-
-    try {
-      const resposta = await deletarPrescricao(id);
-
-      if (resposta.sucesso) {
-        alert("Prescrição excluída com sucesso!");
-        carregarPrescricoes();
-      }
-    } catch (erro) {
-      console.error("Erro ao excluir prescrição:", erro);
-      alert("Erro ao excluir prescrição: " + erro.message);
-    }
-  };
+  const handleExcluir = (id) => {
+      mostrarConfirmacao(
+        "Excluir Prescrição",
+        "Tem certeza que deseja excluir esta prescrição?\nEsta ação não pode ser desfeita.",
+        async () => {
+          try {
+            const resposta = await deletarPrescricao(id);
+            if (resposta.sucesso) {
+              mostrarToast("Prescrição excluída com sucesso!", "sucesso");
+              carregarPrescricoes();
+            }
+          } catch (erro) {
+            console.error("Erro ao excluir prescrição:", erro);
+            mostrarToast("Erro ao excluir prescrição: " + erro.message, "erro");
+          }
+        },
+        "perigo"
+      );
+    };
 
   const handleEditar = (prescricao) => {
     setPrescricaoEditando(prescricao);
@@ -149,155 +152,197 @@ function Prescricoes() {
   };
 
   const handleSalvarEdicao = async (dadosAtualizados) => {
-    try {
-      const resposta = await atualizarPrescricao(
-        prescricaoEditando.id,
-        dadosAtualizados,
-      );
+      try {
+        const resposta = await atualizarPrescricao(
+          prescricaoEditando.id,
+          dadosAtualizados,
+        );
 
-      if (resposta.sucesso) {
-        alert("Prescrição atualizada com sucesso!");
-        setModalEdicaoAberto(false);
-        setPrescricaoEditando(null);
-        carregarPrescricoes();
+        if (resposta.sucesso) {
+          mostrarToast("Prescrição atualizada com sucesso!", "sucesso");
+          setModalEdicaoAberto(false);
+          setPrescricaoEditando(null);
+          carregarPrescricoes();
+        }
+      } catch (erro) {
+        console.error("Erro ao atualizar prescrição:", erro);
+        mostrarToast("Erro ao atualizar prescrição: " + erro.message, "erro");
       }
-    } catch (erro) {
-      console.error("Erro ao atualizar prescrição:", erro);
-      alert("Erro ao atualizar prescrição: " + erro.message);
-    }
-  };
+    };
 
   const handleExportarExcel = () => {
     if (prescricoes.length === 0) {
-      alert("Nenhuma prescrição para exportar.");
+      mostrarToast("Nenhuma prescrição para exportar.", "aviso");
       return;
     }
 
     const resultado = exportarParaExcel(prescricoes);
     if (resultado.sucesso) {
-      alert(resultado.mensagem);
+      mostrarToast(resultado.mensagem, "sucesso");
     } else {
-      alert(resultado.erro);
+      mostrarToast(resultado.erro, "erro");
     }
   };
 
   const handleExportarPDF = () => {
-    if (prescricoes.length === 0) {
-      alert("Nenhuma prescrição para exportar.");
-      return;
-    }
-
-    const resultado = exportarParaPDF(prescricoes);
-    if (resultado.sucesso) {
-      alert(resultado.mensagem);
-    } else {
-      alert(resultado.erro);
-    }
-  };
-
-  const handleRelatorioDetalhado = () => {
-    if (prescricoes.length === 0) {
-      alert("Nenhuma prescrição para gerar relatório.");
-      return;
-    }
-
-    const resultado = exportarRelatorioDetalhado(prescricoes);
-    if (resultado.sucesso) {
-      alert(resultado.mensagem);
-    } else {
-      alert(resultado.erro);
-    }
-  };
-
-  // ✅ NOVO: Gerar Mapa (igual o do seu amigo)
-  const handleGerarMapa = async () => {
-    if (prescricoes.length === 0) {
-      alert("Nenhuma prescrição encontrada para gerar mapa.");
-      return;
-    }
-
-    const confirmar = window.confirm(
-      `Será gerado o mapa de refeição com base nos filtros atuais.\nTotal de registros filtrados: ${paginacao.total}\n\nDeseja continuar?`,
-    );
-
-    if (!confirmar) return;
-
-    try {
-      const params = {
-        ...filtros,
-        limit: 5000,
-      };
-
-      const resposta = await listarPrescricoes(params);
-
-      if (
-        !resposta.sucesso ||
-        !resposta.prescricoes ||
-        resposta.prescricoes.length === 0
-      ) {
-        alert("Nenhuma prescrição encontrada para gerar mapa.");
+      if (prescricoes.length === 0) {
+        mostrarToast("Nenhuma prescrição para exportar.", "aviso");
         return;
       }
 
-      const todasPrescricoes = resposta.prescricoes.map((p) => ({
-        ...p,
-        restricoes: p.restricoes ? JSON.parse(p.restricoes) : [],
-      }));
-
-      const resultado = gerarMapaRefeicao(todasPrescricoes, filtros);
-
+      const resultado = exportarParaPDF(prescricoes, filtros);
       if (resultado.sucesso) {
-        alert(resultado.mensagem);
+        mostrarToast(resultado.mensagem, "sucesso");
       } else {
-        alert(resultado.erro);
+        mostrarToast(resultado.erro, "erro");
       }
-    } catch (erro) {
-      console.error("Erro ao gerar mapa de refeição:", erro);
-      alert("Erro ao gerar mapa de refeição.");
-    }
+    };
+
+  const handleRelatorioDetalhado = () => {
+      if (prescricoes.length === 0) {
+        mostrarToast("Nenhuma prescrição para gerar relatório.", "aviso");
+        return;
+      }
+
+      const resultado = exportarRelatorioDetalhado(prescricoes);
+      if (resultado.sucesso) {
+        mostrarToast(resultado.mensagem, "sucesso");
+      } else {
+        mostrarToast(resultado.erro, "erro");
+      }
+    };
+
+  // Toast customizado
+  const [toast, setToast] = useState({ visivel: false, mensagem: "", tipo: "" });
+
+  // Modal de alerta/confirmação
+  const [modalAlerta, setModalAlerta] = useState({
+    visivel: false,
+    titulo: "",
+    mensagem: "",
+    tipo: "info",
+    onConfirmar: null,
+  });
+
+  const handleGerarMapa = () => {
+      if (prescricoes.length === 0) {
+        mostrarToast("Nenhuma prescrição encontrada para gerar mapa.", "aviso");
+        return;
+      }
+
+      mostrarConfirmacao(
+        "Gerar Mapa de Refeição",
+        `Será gerado o mapa de refeição com base nos filtros atuais.\nTotal de registros filtrados: ${paginacao.total}\n\nDeseja continuar?`,
+        async () => {
+          try {
+            const params = {
+              ...filtros,
+              limit: 5000,
+            };
+
+            const resposta = await listarPrescricoes(params);
+
+            if (
+              !resposta.sucesso ||
+              !resposta.prescricoes ||
+              resposta.prescricoes.length === 0
+            ) {
+              mostrarToast("Nenhuma prescrição encontrada para gerar mapa.", "aviso");
+              return;
+            }
+
+            const todasPrescricoes = resposta.prescricoes.map((p) => ({
+              ...p,
+              restricoes: p.restricoes ? JSON.parse(p.restricoes) : [],
+            }));
+
+            const resultado = gerarMapaRefeicao(todasPrescricoes, filtros);
+
+            if (resultado.sucesso) {
+              mostrarToast(resultado.mensagem, "sucesso");
+            } else {
+              mostrarToast(resultado.erro, "erro");
+            }
+          } catch (erro) {
+            console.error("Erro ao gerar mapa de refeição:", erro);
+            mostrarToast("Erro ao gerar mapa de refeição.", "erro");
+          }
+        }
+      );
+    };
+
+  const mostrarToast = (mensagem, tipo = "sucesso") => {
+    setToast({ visivel: true, mensagem, tipo });
+  };
+
+  const fecharToast = () => {
+    setToast({ visivel: false, mensagem: "", tipo: "" });
+  };
+
+  const mostrarAlerta = (titulo, mensagem, tipo = "info") => {
+    setModalAlerta({
+      visivel: true,
+      titulo,
+      mensagem,
+      tipo,
+      onConfirmar: () => setModalAlerta(prev => ({ ...prev, visivel: false })),
+    });
+  };
+
+  const mostrarConfirmacao = (titulo, mensagem, onConfirmar, tipo = "confirmar") => {
+    setModalAlerta({
+      visivel: true,
+      titulo,
+      mensagem,
+      tipo,
+      onConfirmar: () => {
+        setModalAlerta(prev => ({ ...prev, visivel: false }));
+        onConfirmar();
+      },
+    });
   };
 
   // ============================================
   // SISTEMA DE IMPRESSÃO DE ETIQUETAS - CONSOLIDADO
   // ============================================
 
-  const handleImprimirEtiquetas = async () => {
+  const handleImprimirEtiquetas = () => {
     if (prescricoes.length === 0) {
-      alert("Nenhuma prescrição encontrada para imprimir.");
+      mostrarToast("Nenhuma prescrição encontrada para imprimir.", "aviso");
       return;
     }
 
-    const confirmar = window.confirm(
+    mostrarConfirmacao(
+      "Imprimir Etiquetas",
       `Você vai imprimir ${prescricoes.length} etiqueta(s) filtrada(s).\n\nDeseja continuar?`,
-    );
+      async () => {
+        try {
+          const params = {
+            ...filtros,
+            limit: 1000,
+          };
 
-    if (!confirmar) return;
+          const resposta = await listarPrescricoes(params);
 
-    try {
-      const params = {
-        ...filtros,
-        limit: 1000,
-      };
+          if (!resposta.sucesso || resposta.prescricoes.length === 0) {
+            mostrarToast("Nenhuma prescrição encontrada para imprimir.", "aviso");
+            return;
+          }
 
-      const resposta = await listarPrescricoes(params);
+          const todasPrescricoes = resposta.prescricoes.map((p) => ({
+            ...p,
+            restricoes: p.restricoes ? JSON.parse(p.restricoes) : [],
+          }));
 
-      if (!resposta.sucesso || resposta.prescricoes.length === 0) {
-        alert("Nenhuma prescrição encontrada para imprimir.");
-        return;
+          const janelaImpressao = window.open("", "", "width=800,height=600");
+          janelaImpressao.document.write(gerarHTMLEtiquetas(todasPrescricoes));
+          janelaImpressao.document.close();
+        } catch (erro) {
+          console.error("Erro ao preparar impressão:", erro);
+          mostrarToast("Erro ao preparar etiquetas para impressão.", "erro");
+        }
       }
-
-      const todasPrescricoes = resposta.prescricoes.map((p) => ({
-        ...p,
-        restricoes: p.restricoes ? JSON.parse(p.restricoes) : [],
-      }));
-
-      const janelaImpressao = window.open("", "", "width=800,height=600");
-      janelaImpressao.document.write(gerarHTMLEtiquetas(todasPrescricoes));
-      janelaImpressao.document.close();
-    } catch (erro) {
-      console.error("Erro ao preparar impressão:", erro);
-      alert("Erro ao preparar etiquetas para impressão.");
-    }
+    );
   };
 
   const gerarHTMLEtiquetas = (prescricoesParaImprimir) => {
@@ -701,17 +746,17 @@ function Prescricoes() {
         </div>
 
         <div className="filtro-grupo">
-          <label>Dieta</label>
+          <label>Refeição</label>
           <select
-            value={filtros.dieta}
-            onChange={(e) => setFiltros({ ...filtros, dieta: e.target.value })}
+            value={filtros.refeicao}
+            onChange={(e) => setFiltros({ ...filtros, refeicao: e.target.value })}
           >
             <option value="">Todas</option>
-            <option value="NORMAL">NORMAL</option>
-            <option value="LIQUIDA">LIQUIDA</option>
-            <option value="PASTOSA">PASTOSA</option>
-            <option value="BRANDA">BRANDA</option>
-            <option value="ZERO">ZERO</option>
+            {tiposAlimentacao.map((tipo) => (
+              <option key={tipo.id} value={tipo.nome}>
+                {tipo.nome}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -1028,6 +1073,25 @@ function Prescricoes() {
           tiposAlimentacao={tiposAlimentacao}
         />
       )}
+
+      {/* Toast Customizado */}
+      <Toast
+        visivel={toast.visivel}
+        mensagem={toast.mensagem}
+        tipo={toast.tipo}
+        onFechar={fecharToast}
+      />
+
+      {/* Modal de Alerta/Confirmação */}
+      <ModalAlerta
+        visivel={modalAlerta.visivel}
+        titulo={modalAlerta.titulo}
+        mensagem={modalAlerta.mensagem}
+        tipo={modalAlerta.tipo}
+        onConfirmar={modalAlerta.onConfirmar}
+        onCancelar={() => setModalAlerta(prev => ({ ...prev, visivel: false }))}
+      />
+
     </div>
   );
 }

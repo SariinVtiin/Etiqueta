@@ -1,0 +1,160 @@
+/* frontend/src/components/common/ModalAlerta/ModalAlerta.css */
+
+.ma-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  animation: maFadeIn 0.2s ease;
+}
+
+.ma-container {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: maSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ===== ÍCONE ===== */
+.ma-icone-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.ma-icone-info {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.ma-icone-sucesso {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.ma-icone-erro {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.ma-icone-confirmar {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.ma-icone-perigo {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* ===== TÍTULO ===== */
+.ma-titulo {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px;
+}
+
+/* ===== MENSAGEM ===== */
+.ma-mensagem {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  white-space: pre-line;
+}
+
+/* ===== BOTÕES ===== */
+.ma-botoes {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.ma-botoes-duplo {
+  justify-content: center;
+}
+
+.ma-btn {
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  border: none;
+  min-width: 100px;
+}
+
+.ma-btn-cancelar {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.ma-btn-cancelar:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.ma-btn-confirmar {
+  background: linear-gradient(135deg, #0d9488, #059669);
+  color: white;
+}
+
+.ma-btn-confirmar:hover {
+  background: linear-gradient(135deg, #0f766e, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+}
+
+.ma-btn-erro {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+}
+
+.ma-btn-erro:hover {
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
+}
+
+.ma-btn-perigo {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+}
+
+.ma-btn-perigo:hover {
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+/* ===== ANIMAÇÕES ===== */
+@keyframes maFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes maSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

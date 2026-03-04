@@ -1,7 +1,7 @@
 // frontend/src/services/relatorios.js
 import * as XLSX from 'xlsx-js-style';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 /**
  * Exportar prescrições para Excel - ATUALIZADO COM TODOS OS CAMPOS DO BD
@@ -146,7 +146,7 @@ export const exportarParaPDF = (prescricoes, filtros = {}) => {
     ]);
 
     // Adicionar tabela
-    doc.autoTable({
+    autoTable(doc, {
       startY: yPos,
       head: [['Data', 'Paciente', 'CPF', 'Leito', 'Setor', 'Refeição', 'Dieta', 'Restrições', 'Status']],
       body: dadosTabela,
@@ -155,7 +155,7 @@ export const exportarParaPDF = (prescricoes, filtros = {}) => {
       alternateRowStyles: { fillColor: [245, 245, 245] },
       margin: { top: 10 }
     });
-
+    
     // Salvar PDF
     const nomeArquivo = `prescricoes_${dataAtual.replace(/\//g, '-')}.pdf`;
     doc.save(nomeArquivo);

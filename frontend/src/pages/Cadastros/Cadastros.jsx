@@ -97,6 +97,19 @@ function Cadastros() {
           <button className="card-button">Acessar</button>
         </div>
 
+        {/* Condições Nutricionais do Acompanhante */}
+        <div
+          className="cadastro-card"
+          onClick={() => navigate("/admin/condicoes-acompanhante")}
+        >
+          <div className="card-icon">👥</div>
+          <h3>Cond. Nutricional Acompanhante</h3>
+          <p>
+            Gerenciar condições nutricionais específicas para acompanhantes
+          </p>
+          <button className="card-button">Acessar</button>
+        </div>
+
         {/* Configurações */}
         <div
           className="cadastro-card"

@@ -87,7 +87,7 @@ export const listarPrescricoes = async (filtros = {}) => {
     if (filtros.dataInicio) params.append('dataInicio', filtros.dataInicio);
     if (filtros.dataFim) params.append('dataFim', filtros.dataFim);
     if (filtros.setor) params.append('setor', filtros.setor);
-    if (filtros.dieta) params.append('dieta', filtros.dieta);
+    if (filtros.refeicao) params.append('refeicao', filtros.refeicao);
     if (filtros.page) params.append('page', filtros.page);
     if (filtros.limit) params.append('limit', filtros.limit);
     
