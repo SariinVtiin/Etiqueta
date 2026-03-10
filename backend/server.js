@@ -27,6 +27,7 @@ const logsLoginRouter = require('./routes/logsLogin');
 const tiposRefeicaoRoutes = require('./routes/tiposRefeicaoRoutes');
 const { router: configuracoesRouter } = require('./routes/configuracoes');
 const restricoesAcompanhanteRouter = require('./routes/restricoesAcompanhante');
+const conveniosRoutes = require('./routes/convenios');
 // ============================================
 // REGISTRAR ROTAS
 // ============================================
@@ -44,6 +45,7 @@ app.use('/api/logs-login', logsLoginRouter);
 app.use('/api/refeicoes', tiposRefeicaoRoutes);
 app.use('/api/configuracoes', configuracoesRouter);
 app.use('/api/restricoes-acompanhante', restricoesAcompanhanteRouter);
+app.use('/api/convenios', conveniosRoutes);
 
 // Testar conexão ao iniciar
 testarConexao();

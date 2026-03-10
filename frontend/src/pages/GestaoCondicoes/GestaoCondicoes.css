@@ -24,20 +24,22 @@
 }
 
 .gr-btn-voltar {
-  background: #64748b;
-  color: white;
-  border: none;
   padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
+  background: var(--app-gray-100);
+  color: var(--app-gray-700);
+  border: 1px solid var(--app-gray-200);
+  border-radius: var(--app-radius-md);
   font-size: 14px;
   font-weight: 600;
-  transition: all 0.3s;
+  font-family: var(--app-font-body);
+  cursor: pointer;
+  transition: all var(--app-transition-fast);
 }
 
 .gr-btn-voltar:hover {
-  background: #475569;
-  transform: translateX(-5px);
+  background: var(--app-gray-200);
+  color: var(--app-gray-800);
+  transform: translateX(-3px);
 }
 
 .gr-acoes {

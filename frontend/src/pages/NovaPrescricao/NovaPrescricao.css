@@ -1,65 +1,47 @@
 /* ==========================================
-   NOVA PRESCRIÇÃO - CSS SIMPLES E LIMPO
+   SALUSVITA TECH - NOVA PRESCRIÇÃO
+   Desenvolvido por FerMax Solution
    ========================================== */
 
 /* Container Principal */
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  background: #f8f9fa;
-  min-height: 100vh;
+  padding: 32px;
+  background: transparent;
+  min-height: calc(100vh - 68px);
+  font-family: var(--app-font-body);
 }
 
 /* Header */
 .header-principal {
-  background: white;
-  padding: 20px 30px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--app-white);
+  padding: 20px 25px;
+  border-radius: var(--app-radius-lg);
+  margin-bottom: 24px;
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .header-principal h1 {
-  color: #0d9488;
-  font-size: 28px;
+  font-family: var(--app-font-display);
+  color: var(--app-primary);
+  font-size: 1.75rem;
   margin: 0;
-  font-weight: 600;
-}
-
-.btn-group {
-  display: flex;
-  gap: 10px;
-}
-
-/* Botões do Header */
-.btn-cadastros {
-  background: #0d9488;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-cadastros:hover {
-  background: #0f766e;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(13, 148, 136, 0.3);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 /* Formulário */
 .formulario {
-  background: white;
+  background: var(--app-white);
   padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
 }
 
 /* Campos do Formulário */
@@ -70,27 +52,29 @@
 .campo label {
   display: block;
   font-weight: 600;
-  color: #374151;
+  color: var(--app-gray-700);
   margin-bottom: 8px;
   font-size: 14px;
+  font-family: var(--app-font-body);
 }
 
 .campo input,
 .campo select {
   width: 100%;
   padding: 10px 12px;
-  border: 2px solid #e5e7eb;
-  border-radius: 6px;
+  border: 2px solid var(--app-gray-200);
+  border-radius: var(--app-radius-sm);
   font-size: 14px;
-  color: #1f2937;
-  transition: border-color 0.3s ease;
-  background: white;
+  font-family: var(--app-font-body);
+  color: var(--app-gray-800);
+  transition: border-color 0.2s ease;
 }
 
+/* Adicionar/atualizar: */
 .campo input:focus,
 .campo select:focus {
   outline: none;
-  border-color: #0d9488;
+  border-color: var(--app-primary);
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
 
@@ -184,20 +168,21 @@
 
 /* Configuração de Refeição */
 .config-refeicao {
-  background: #fafafa;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  background: var(--app-gray-50);
+  border: 2px solid var(--app-gray-200);
+  border-radius: var(--app-radius-lg);
   padding: 20px;
   margin-bottom: 20px;
 }
 
 .titulo-refeicao {
-  color: #0d9488;
+  font-family: var(--app-font-display);
+  color: var(--app-primary);
   font-size: 18px;
   font-weight: 600;
   margin: 0 0 20px 0;
   padding-bottom: 10px;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--app-gray-200);
 }
 
 .campo-sem-principal {
@@ -210,24 +195,23 @@
 /* Botão de Adicionar */
 .btn-adicionar {
   width: 100%;
-  background: #059669;
+  background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-secondary) 100%);
   color: white;
   border: none;
   padding: 14px 24px;
-  border-radius: 6px;
+  border-radius: var(--app-radius-md);
   font-size: 16px;
   font-weight: 600;
+  font-family: var(--app-font-body);
   cursor: pointer;
   margin-top: 20px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-adicionar:hover {
-  background: #047857;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
 }
-
 .btn-adicionar:active {
   transform: translateY(0);
 }

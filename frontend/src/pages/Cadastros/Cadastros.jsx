@@ -10,10 +10,7 @@ function Cadastros() {
   return (
     <div className="cadastros-container">
       <div className="cadastros-header">
-        <h1>⚙️ Configurações e Cadastros</h1>
-        <button className="btn-voltar" onClick={() => navigate("/dashboard")}>
-          ← Voltar ao Menu
-        </button>
+        <h1>Configurações e Cadastros</h1>
       </div>
 
       <div className="cadastros-cards">
@@ -120,6 +117,17 @@ function Cadastros() {
           <p>Opções gerais do sistema</p>
           <button className="card-button">Acessar</button>
         </div>
+
+        <div
+          className="cadastro-card"
+          onClick={() => navigate("/admin/convenios")}
+        >
+          <div className="card-icon">🏦</div>
+          <h3>Convênios</h3>
+          <p>Gerenciar tipos de convênio (SUS, Particular, etc.)</p>
+          <button className="card-button">Acessar</button>
+        </div>
+
       </div>
 
       <RelatorioLogin

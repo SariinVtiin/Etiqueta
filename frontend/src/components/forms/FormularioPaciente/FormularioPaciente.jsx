@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { buscarPacientePorCPF, verificarCodigoAtendimento } from '../../../services/api';
 
-function FormularioPaciente({ formData, onChange }) {
+function FormularioPaciente({ formData, onChange, convenios = [] }) {
   
   const [buscandoPaciente, setBuscandoPaciente] = useState(false);
   const [pacienteEncontrado, setPacienteEncontrado] = useState(null);
@@ -261,21 +261,37 @@ function FormularioPaciente({ formData, onChange }) {
       <div className="campo">
         <label>CONVÊNIO * (selecione um)</label>
         <div className="opcoes-radio">
-          <label className="opcao-check">
-            <input type="radio" name="convenio" checked={formData.convenio === 'SUS'}
-              onChange={() => onChange({ target: { name: 'convenio', value: 'SUS' } })} />
-            <span>SUS</span>
-          </label>
-          <label className="opcao-check">
-            <input type="radio" name="convenio" checked={formData.convenio === 'Convênio'}
-              onChange={() => onChange({ target: { name: 'convenio', value: 'Convênio' } })} />
-            <span>Convênio</span>
-          </label>
-          <label className="opcao-check">
-            <input type="radio" name="convenio" checked={formData.convenio === 'Particular'}
-              onChange={() => onChange({ target: { name: 'convenio', value: 'Particular' } })} />
-            <span>Particular</span>
-          </label>
+          {convenios.length > 0 ? (
+            convenios.map((conv) => (
+              <label key={conv.id} className="opcao-check">
+                <input
+                  type="radio"
+                  name="convenio"
+                  checked={formData.convenio === conv.nome}
+                  onChange={() => onChange({ target: { name: 'convenio', value: conv.nome } })}
+                />
+                <span>{conv.nome}</span>
+              </label>
+            ))
+          ) : (
+            <>
+              <label className="opcao-check">
+                <input type="radio" name="convenio" checked={formData.convenio === 'SUS'}
+                  onChange={() => onChange({ target: { name: 'convenio', value: 'SUS' } })} />
+                <span>SUS</span>
+              </label>
+              <label className="opcao-check">
+                <input type="radio" name="convenio" checked={formData.convenio === 'Convênio'}
+                  onChange={() => onChange({ target: { name: 'convenio', value: 'Convênio' } })} />
+                <span>Convênio</span>
+              </label>
+              <label className="opcao-check">
+                <input type="radio" name="convenio" checked={formData.convenio === 'Particular'}
+                  onChange={() => onChange({ target: { name: 'convenio', value: 'Particular' } })} />
+                <span>Particular</span>
+              </label>
+            </>
+          )}
         </div>
       </div>
 

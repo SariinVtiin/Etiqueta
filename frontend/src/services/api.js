@@ -1025,3 +1025,70 @@ export const toggleRestricaoAcompanhanteAtiva = async (id, ativa) => {
   }
   return response.json();
 };
+
+// ====================================
+// FUNÇÕES DE CONVÊNIOS
+// ====================================
+
+/**
+ * Listar convênios (ativos ou todos)
+ */
+export const listarConvenios = async (todas = false) => {
+  const response = await fetch(
+    `${API_URL}/convenios${todas ? '?incluirInativas=true' : ''}`,
+    fetchConfigAuth()
+  );
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao listar convênios');
+  }
+  return response.json();
+};
+
+/**
+ * Criar convênio
+ */
+export const criarConvenio = async (convenio) => {
+  const response = await fetch(`${API_URL}/convenios`, {
+    ...fetchConfigAuth(),
+    method: 'POST',
+    body: JSON.stringify(convenio)
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao criar convênio');
+  }
+  return response.json();
+};
+
+/**
+ * Atualizar convênio
+ */
+export const atualizarConvenio = async (id, convenio) => {
+  const response = await fetch(`${API_URL}/convenios/${id}`, {
+    ...fetchConfigAuth(),
+    method: 'PUT',
+    body: JSON.stringify(convenio)
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao atualizar convênio');
+  }
+  return response.json();
+};
+
+/**
+ * Ativar/Desativar convênio
+ */
+export const toggleConvenioAtivo = async (id, ativa) => {
+  const response = await fetch(`${API_URL}/convenios/${id}/toggle`, {
+    ...fetchConfigAuth(),
+    method: 'PATCH',
+    body: JSON.stringify({ ativa })
+  });
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || 'Erro ao alterar status do convênio');
+  }
+  return response.json();
+};

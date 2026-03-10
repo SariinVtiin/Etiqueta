@@ -25,19 +25,22 @@
 }
 
 .gra-btn-voltar {
-  background: #6b7280;
-  color: white;
-  border: none;
   padding: 10px 20px;
-  border-radius: 8px;
+  background: var(--app-gray-100);
+  color: var(--app-gray-700);
+  border: 1px solid var(--app-gray-200);
+  border-radius: var(--app-radius-md);
   font-size: 14px;
   font-weight: 600;
+  font-family: var(--app-font-body);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--app-transition-fast);
 }
 
 .gra-btn-voltar:hover {
-  background: #4b5563;
+  background: var(--app-gray-200);
+  color: var(--app-gray-800);
+  transform: translateX(-3px);
 }
 
 /* Info Box */

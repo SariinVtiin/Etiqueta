@@ -1,6 +1,3 @@
-// frontend/src/pages/NovaPrescricao/NovaPrescricao.jsx
-// ✅ LIMPO: Removido todo o sistema legado de etiquetas/localStorage
-// Agora usa apenas BD via criarPrescricao()
 import React, { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import "./NovaPrescricao.css";
@@ -18,6 +15,7 @@ function NovaPrescricao() {
     dietas = [],
     restricoes = [],
     tiposAlimentacao = [],
+    convenios = [],
     carregandoDados,
     refreshSystemData,
   } = useOutletContext() || {};
@@ -415,7 +413,7 @@ function NovaPrescricao() {
       </div>
 
       <form className="formulario" onSubmit={handleSubmit}>
-        <FormularioPaciente formData={formData} onChange={handleChange} />
+        <FormularioPaciente formData={formData} onChange={handleChange} convenios={convenios} />
 
         <div className="campo">
           <label>NÚCLEO *</label>
@@ -536,7 +534,7 @@ function NovaPrescricao() {
                   </div>
 
                   <div className="campo">
-                    <label>RESTRIÇÃO ALIMENTAR (para {refeicao})</label>
+                    <label>CONDIÇÃO NUTRICIONAL (para {refeicao})</label>
                     <div className="opcoes-check">
                       {restricoes.map((restricao) => (
                         <label key={restricao.id} className="opcao-check">

@@ -412,10 +412,10 @@ function Dashboard() {
             <h1>
               {getGreeting()}, {getPrimeiroNome(usuario.nome)}
             </h1>
-            <p className="header-subtitle">
-              {usuario.role === "admin" ? "Administrador" : "Nutricionista"} ·
-              Sistema de Nutrição Hospitalar
-            </p>
+              <p className="header-subtitle">
+                {usuario.role === "admin" ? "Administrador" : "Nutricionista"} ·
+                SalusVita Tech
+              </p>
           </div>
           <div className="header-right">
             <button
@@ -792,7 +792,7 @@ function Dashboard() {
         <div className="info-card">
           <div className="info-header">
             <div className="info-icon">{Icons.info}</div>
-            <h3>Informações Importantes</h3>
+            <h3>Informações do Sistema</h3>
             {atualizadoEm && (
               <span className="info-atualizado">
                 Atualizado{" "}

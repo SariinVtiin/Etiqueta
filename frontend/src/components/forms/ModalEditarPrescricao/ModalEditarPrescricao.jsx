@@ -4,6 +4,7 @@ import './ModalEditarPrescricao.css';
 
 function ModalEditarPrescricao({ 
   prescricao, 
+  convenios = [],
   onSalvar, 
   onCancelar, 
   nucleos, 
@@ -260,9 +261,17 @@ function ModalEditarPrescricao({
               <label>Convênio *</label>
               <select name="convenio" value={formData.convenio} onChange={handleChange}>
                 <option value="">Selecione...</option>
-                <option value="SUS">SUS</option>
-                <option value="Convênio">Convênio</option>
-                <option value="Particular">Particular</option>
+                {convenios.length > 0 ? (
+                  convenios.map((conv) => (
+                    <option key={conv.id} value={conv.nome}>{conv.nome}</option>
+                  ))
+                ) : (
+                  <>
+                    <option value="SUS">SUS</option>
+                    <option value="Convênio">Convênio</option>
+                    <option value="Particular">Particular</option>
+                  </>
+                )}
               </select>
             </div>
 

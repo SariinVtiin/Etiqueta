@@ -77,15 +77,10 @@ function Login() {
             {/* Logo e Header */}
             <div className="login-header">
               <div className="logo-container">
-                <img
-                  src="/logo-ictdf.png"
-                  alt="ICTDF Logo"
-                  className="login-logo"
-                />
+                <img src="/logo-salusvita.png" alt="SalusVita Tech" className="login-logo" />
               </div>
               <div className="login-title-group">
-                <h1 className="login-title">Sistema de Nutrição</h1>
-                <p className="login-subtitle">Gestão de Prescrições</p>
+                <p className="login-subtitle">Nutrição Hospitalar Inteligente</p>
               </div>
             </div>
 
@@ -235,10 +230,10 @@ function Login() {
             {/* Footer */}
             <div className="login-footer">
               <div className="footer-divider">
-                <span>Esbagallayds - Equipe</span>
+                <span>FerMax Solution</span>
               </div>
               <p className="footer-text">
-                Sistema de gestão de nutrição hospitalar
+                SalusVita Tech — Gestão de nutrição hospitalar
               </p>
             </div>
           </div>
@@ -261,11 +256,11 @@ function Login() {
                 <path d="M9 15h4" />
               </svg>
             </div>
-            <h2 className="visual-title">Nutrição Hospitalar</h2>
-            <p className="visual-description">
-              Gerencie prescrições dietéticas, imprima etiquetas e organize a
-              alimentação dos pacientes de forma eficiente e segura.
-            </p>
+            <h2 className="visual-title">SalusVita Tech</h2>
+              <p className="visual-description">
+                Gerencie prescrições dietéticas, imprima etiquetas e organize a
+                alimentação dos pacientes de forma eficiente e segura.
+              </p>
 
             <div className="features-grid">
               <div className="feature-item">

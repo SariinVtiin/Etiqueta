@@ -17,6 +17,7 @@ import {
   listarLeitos,
   listarRefeicoes,
   listarRestricoesAcompanhante,
+  listarConvenios,
 } from "../services/api";
 
 const Icons = {
@@ -127,6 +128,7 @@ export default function AppShell() {
   const [restricoes, setRestricoes] = useState([]);
   const [tiposAlimentacao, setTiposAlimentacao] = useState([]);
   const [restricoesAcompanhante, setRestricoesAcompanhante] = useState([]);
+  const [convenios, setConvenios] = useState([]);
 
   // Evita dupla execução de fetch no StrictMode (dev)
   const loadOnceRef = useRef(false);
@@ -165,6 +167,15 @@ export default function AppShell() {
       const respostaRestAcomp = await listarRestricoesAcompanhante();
       if (respostaRestAcomp?.sucesso) {
         setRestricoesAcompanhante(respostaRestAcomp.restricoes);
+      }
+
+      const respostaConvenios = await listarConvenios();
+      if (respostaConvenios?.sucesso) {
+        setConvenios(
+          respostaConvenios.convenios.filter(
+            (c) => c.ativa === 1 || c.ativa === true,
+          ),
+        );
       }
 
       const respostaRefeicoes = await listarRefeicoes();
@@ -300,6 +311,7 @@ export default function AppShell() {
           restricoes,
           tiposAlimentacao,
           restricoesAcompanhante,
+          convenios,
           carregandoDados,
           refreshSystemData,
         }}

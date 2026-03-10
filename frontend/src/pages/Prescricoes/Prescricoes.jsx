@@ -25,6 +25,7 @@ function Prescricoes() {
     dietas = [],
     restricoes = [],
     tiposAlimentacao = [],
+    convenios = [],
   } = useOutletContext() || {};
 
   const [prescricoes, setPrescricoes] = useState([]);
@@ -679,9 +680,6 @@ function Prescricoes() {
     <div className="prescricoes-container">
       <div className="prescricoes-header">
         <h1>Prescrições de Alimentação</h1>
-        <button className="btn-voltar" onClick={() => navigate("/dashboard")}>
-          Voltar ao Menu
-        </button>
       </div>
 
       {/* Filtros */}
@@ -777,29 +775,21 @@ function Prescricoes() {
         </div>
 
         <div className="botoes-exportacao">
-          <button
-            className="btn-exportar imprimir"
-            onClick={handleImprimirEtiquetas}
-          >
-            🖨️ Imprimir Etiquetas
-          </button>
-          <button className="btn-exportar excel" onClick={handleExportarExcel}>
-            📊 Exportar Excel
-          </button>
-          <button className="btn-exportar pdf" onClick={handleExportarPDF}>
-            📄 Exportar PDF
-          </button>
-          <button
-            className="btn-exportar detalhado"
-            onClick={handleRelatorioDetalhado}
-          >
-            📈 Relatório Detalhado
-          </button>
-
-          {/* ✅ VOLTOU: mapa */}
-          <button className="btn-exportar mapa" onClick={handleGerarMapa}>
-            🗺️ Gerar Mapa
-          </button>
+            <button className="btn-exportar imprimir" onClick={handleImprimirEtiquetas}>
+              Imprimir Etiquetas
+            </button>
+            <button className="btn-exportar excel" onClick={handleExportarExcel}>
+              Exportar Excel
+            </button>
+            <button className="btn-exportar pdf" onClick={handleExportarPDF}>
+              Exportar PDF
+            </button>
+            <button className="btn-exportar detalhado" onClick={handleRelatorioDetalhado}>
+              Relatório Detalhado
+            </button>
+            <button className="btn-exportar mapa" onClick={handleGerarMapa}>
+              Gerar Mapa
+            </button>
         </div>
       </div>
 
@@ -868,19 +858,11 @@ function Prescricoes() {
                         <span className="status-badge ativo">Ativo</span>
                       </td>
                       <td>
-                        <button
-                          className="btn-acao-editar"
-                          onClick={() => handleEditar(prescricao)}
-                          title="Editar"
-                        >
-                          ✏️
+                        <button className="btn-acao-editar" onClick={() => handleEditar(prescricao)} title="Editar">
+                          Editar
                         </button>
-                        <button
-                          className="btn-acao-excluir"
-                          onClick={() => handleExcluir(prescricao.id)}
-                          title="Excluir"
-                        >
-                          🗑️
+                        <button className="btn-acao-excluir" onClick={() => handleExcluir(prescricao.id)} title="Excluir">
+                          Excluir
                         </button>
                       </td>
                     </tr>
@@ -1069,6 +1051,7 @@ function Prescricoes() {
           onSalvar={handleSalvarEdicao}
           nucleos={nucleos}
           dietas={dietas}
+          convenios={convenios}
           restricoes={restricoes}
           tiposAlimentacao={tiposAlimentacao}
         />

@@ -94,6 +94,7 @@ async function salvarOuAtualizarPaciente(dados) {
   const cpfLimpo = cpf.replace(/\D/g, '');
 
   try {
+    // 1. Verificar se o código de atendimento pertence a OUTRO paciente
     const [codigoExistente] = await pool.query(
       `SELECT cpf, nome_paciente FROM pacientes 
        WHERE codigo_atendimento = ? 
@@ -105,6 +106,7 @@ async function salvarOuAtualizarPaciente(dados) {
       throw new Error(`Código de atendimento ${codigoAtendimento} já está em uso pelo paciente: ${codigoExistente[0].nome_paciente}`);
     }
 
+    // 2. Verificar se o paciente já existe pelo CPF
     const [pacientesExistentes] = await pool.query(
       'SELECT id, nome_paciente FROM pacientes WHERE REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") = ?',
       [cpfLimpo]
@@ -116,13 +118,18 @@ async function salvarOuAtualizarPaciente(dados) {
         `UPDATE pacientes SET 
           codigo_atendimento = ?,
           convenio = ?,
+          nome_paciente = ?,
+          nome_mae = ?,
+          data_nascimento = ?,
+          idade = ?,
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ?`,
-        [codigoAtendimento, convenio, pacientesExistentes[0].id]
+        [codigoAtendimento, convenio, nomePaciente, nomeMae, dataNascimento, idade, pacientesExistentes[0].id]
       );
       return pacientesExistentes[0].id;
     }
 
+    // 3. Paciente novo — tentar INSERT
     console.log(`🆕 Criando novo paciente: ${nomePaciente} (CPF: ${cpfLimpo})`);
     const [resultado] = await pool.query(
       `INSERT INTO pacientes (
@@ -136,6 +143,30 @@ async function salvarOuAtualizarPaciente(dados) {
     return resultado.insertId;
 
   } catch (erro) {
+    // 4. RACE CONDITION: outra request já inseriu o mesmo CPF
+    //    Trata o erro de duplicata fazendo UPDATE ao invés de falhar
+    if (erro.code === 'ER_DUP_ENTRY' && erro.sqlMessage?.includes(cpfLimpo)) {
+      console.log(`⚡ Race condition detectada para CPF ${cpfLimpo} — fazendo UPDATE ao invés de INSERT`);
+
+      const [pacienteJaCriado] = await pool.query(
+        'SELECT id FROM pacientes WHERE REPLACE(REPLACE(REPLACE(cpf, ".", ""), "-", ""), " ", "") = ?',
+        [cpfLimpo]
+      );
+
+      if (pacienteJaCriado.length > 0) {
+        await pool.query(
+          `UPDATE pacientes SET 
+            codigo_atendimento = ?,
+            convenio = ?,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?`,
+          [codigoAtendimento, convenio, pacienteJaCriado[0].id]
+        );
+        console.log(`✅ Paciente atualizado após race condition! ID: ${pacienteJaCriado[0].id}`);
+        return pacienteJaCriado[0].id;
+      }
+    }
+
     console.error(`❌ Erro ao salvar paciente:`, erro);
     throw erro;
   }

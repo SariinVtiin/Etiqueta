@@ -1,6 +1,8 @@
+/* PARA: */
 /* ============================================
-   ETIQUETA 1 - TELA DE LOGIN
+   SALUSVITA TECH - TELA DE LOGIN
    Design Moderno e Responsivo
+   Desenvolvido por FerMax Solution
    ============================================ */
 
 /* Importar Google Fonts */
@@ -200,7 +202,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 
 .login-logo {

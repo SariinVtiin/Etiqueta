@@ -1,18 +1,16 @@
 /* ============================================
-   ETIQUETA 1 - PRESCRIÇÕES DE ALIMENTAÇÃO
-   Paleta: Teal/Emerald (padronizado com demais telas)
+   SALUSVITA TECH - PRESCRIÇÕES DE ALIMENTAÇÃO
+   Desenvolvido por FerMax Solution
    ============================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 /* ===== CONTAINER PRINCIPAL ===== */
 .prescricoes-container {
-  padding: 24px;
+  padding: 32px;
   max-width: 1400px;
   margin: 0 auto;
   min-height: calc(100vh - 68px);
-  background: linear-gradient(135deg, #f0fdfa 0%, #f8fafc 100%);
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: transparent;
+  font-family: var(--app-font-body);
 }
 
 /* ===== HEADER ===== */
@@ -22,52 +20,31 @@
   align-items: center;
   margin-bottom: 24px;
   padding: 20px 25px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e2e8f0;
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
 }
-
 .prescricoes-header h1 {
-  font-family: 'Outfit', sans-serif;
-  color: #0d9488;
+  font-family: var(--app-font-display);
+  color: var(--app-primary);
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0;
   letter-spacing: -0.02em;
 }
 
-.btn-voltar {
-  padding: 10px 20px;
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.btn-voltar:hover {
-  background: #f8fafc;
-  border-color: #0d9488;
-  color: #0d9488;
-  transform: translateX(-2px);
-}
-
 /* ===== FILTROS ===== */
 .filtros-container {
-  background: white;
+  background: var(--app-white);
   padding: 20px 24px;
-  border-radius: 12px;
+  border-radius: var(--app-radius-lg);
   margin-bottom: 20px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
 }
 
 .filtro-grupo {
@@ -78,7 +55,7 @@
 .filtro-grupo label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--app-gray-600);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -87,22 +64,21 @@
 .filtro-grupo input,
 .filtro-grupo select {
   padding: 10px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 1px solid var(--app-gray-300);
+  border-radius: var(--app-radius-sm);
   font-size: 14px;
-  font-family: inherit;
+  font-family: var(--app-font-body);
   transition: all 0.2s ease;
-  color: #1e293b;
-  background: white;
+  color: var(--app-gray-800);
+  background: var(--app-white);
 }
 
 .filtro-grupo input:focus,
 .filtro-grupo select:focus {
   outline: none;
-  border-color: #0d9488;
+  border-color: var(--app-primary);
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
-
 .filtro-grupo input::placeholder {
   color: #94a3b8;
 }
@@ -149,15 +125,15 @@
 
 /* ===== BARRA DE AÇÕES / EXPORTAÇÃO ===== */
 .acoes-exportacao {
-  background: white;
+  background: var(--app-white);
   padding: 16px 24px;
-  border-radius: 12px;
+  border-radius: var(--app-radius-lg);
   margin-bottom: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
 }
 
 .info-exportacao {
@@ -231,10 +207,10 @@
 
 /* ===== TABELA ===== */
 .tabela-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e2e8f0;
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
   overflow-x: auto;
   margin-bottom: 20px;
 }
@@ -325,22 +301,27 @@
 .btn-acao-editar,
 .btn-acao-excluir {
   background: transparent;
-  border: none;
-  font-size: 16px;
+  border: 1px solid var(--app-gray-200);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--app-font-body);
   cursor: pointer;
-  padding: 6px 8px;
-  border-radius: 8px;
+  padding: 5px 12px;
+  border-radius: var(--app-radius-sm);
   transition: all 0.2s ease;
+  color: var(--app-gray-600);
 }
 
 .btn-acao-editar:hover {
-  background: #f0fdfa;
-  transform: scale(1.15);
+  background: var(--app-primary-50);
+  border-color: var(--app-primary);
+  color: var(--app-primary);
 }
 
 .btn-acao-excluir:hover {
-  background: #fee2e2;
-  transform: scale(1.15);
+  background: var(--app-error-light);
+  border-color: var(--app-error);
+  color: var(--app-error);
 }
 
 /* ===== LINHA EXPANDIDA (DETALHES) ===== */
@@ -400,10 +381,10 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e2e8f0;
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
 }
 
 .paginacao-info {
