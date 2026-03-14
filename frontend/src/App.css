@@ -328,27 +328,22 @@
     padding: 0 16px;
     height: auto;
     min-height: 68px;
-    flex-wrap: wrap;
-    padding-top: 12px;
-    padding-bottom: 12px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     gap: 12px;
   }
 
   .user-info {
-    order: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
 
   .menu-navegacao {
-    order: 3;
-    width: 100%;
-    justify-content: flex-start;
-    overflow-x: auto;
-    padding-bottom: 4px;
+    flex: 1;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 6px;
-  }
-
-  .header-actions {
-    order: 2;
   }
 
   .menu-btn {
@@ -370,37 +365,35 @@
 
 @media (max-width: 768px) {
   .user-header {
-    padding: 12px;
+    padding: 10px 12px;
+    gap: 8px;
   }
 
   .user-info {
-    width: 100%;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
   }
 
-  .header-actions {
-    width: 100%;
-    justify-content: flex-end;
+  .user-name {
+    font-size: 0.8125rem;
   }
 
   .menu-navegacao {
-    width: 100%;
-    justify-content: flex-start;
+    flex: 1;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 4px;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .menu-navegacao::-webkit-scrollbar {
-    display: none;
   }
 
   .menu-btn {
-    padding: 8px 12px;
-    flex-shrink: 0;
+    padding: 6px 10px;
+    font-size: 0.75rem;
   }
 
-  .menu-btn span {
-    display: none;
+  .menu-btn svg {
+    width: 16px;
+    height: 16px;
   }
 
   .btn-logout span {
@@ -409,6 +402,11 @@
 
   .btn-logout {
     padding: 10px;
+  }
+
+  .btn-notificacoes {
+    width: 36px;
+    height: 36px;
   }
 }
 

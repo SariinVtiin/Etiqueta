@@ -19,21 +19,62 @@ const fetchConfigAuth = () => ({
 });
 
 /**
- * Handler genérico de erros
+ * Flag para evitar múltiplos redirects simultâneos
  */
-  const handleResponse = async (response) => {
-    if (response.status === 401) {
-      // Token expirado: limpa localStorage e redireciona para login
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-      throw new Error('Sessão expirada. Faça login novamente.');
+let isRedirecting = false;
+
+/**
+ * Redireciona para login ao detectar sessão expirada
+ */
+const redirectToLogin = () => {
+  if (isRedirecting) return;
+  isRedirecting = true;
+  localStorage.removeItem('token');
+  localStorage.removeItem('usuario');
+  window.location.href = '/login';
+};
+
+/**
+ * Fetch centralizado com interceptação de 401
+ * Toda chamada autenticada deve usar esta função
+ */
+const fetchAuth = async (url, options = {}) => {
+  const config = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...(options.headers || {})
     }
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ erro: 'Erro na requisição' }));
-      throw new Error(error.erro || 'Erro na requisição');
-    }
-    return response.json();
   };
+
+  const response = await fetch(url, config);
+
+  // Intercepta 401 GLOBALMENTE — sessão expirada
+  if (response.status === 401) {
+    redirectToLogin();
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
+
+  return response;
+};
+
+/**
+ * Handler genérico de erros (para funções que já usam)
+ */
+const handleResponse = async (response) => {
+  // 401 já foi tratado pelo fetchAuth, mas mantemos por segurança
+  if (response.status === 401) {
+    redirectToLogin();
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ erro: 'Erro na requisição' }));
+    throw new Error(error.erro || 'Erro na requisição');
+  }
+  return response.json();
+};
+
 // ============================================
 // ENDPOINTS - TESTE E STATUS
 // ============================================
@@ -64,7 +105,7 @@ export const buscarStatus = async () => {
 
 export const listarLeitos = async () => {
   try {
-    const response = await fetch(`${API_URL}/leitos`, fetchConfigAuth());
+    const response = await fetchAuth(`${API_URL}/leitos`);
     return handleResponse(response);
   } catch (erro) {
     console.error('Erro ao listar leitos:', erro);
@@ -172,7 +213,7 @@ export const deletarPrescricao = async (id) => {
  */
 export const listarUsuarios = async (busca = '') => {
   const params = busca ? `?busca=${encodeURIComponent(busca)}` : '';
-  const response = await fetch(`${API_URL}/usuarios${params}`, fetchConfigAuth());
+  const response = await fetchAuth(`${API_URL}/usuarios${params}`);
   if (!response.ok) {
     const erro = await response.json();
     throw new Error(erro.erro || 'Erro ao listar usuários');
@@ -184,8 +225,7 @@ export const listarUsuarios = async (busca = '') => {
  * Criar novo usuário
  */
 export const criarUsuario = async (usuario) => {
-  const response = await fetch(`${API_URL}/usuarios`, {
-    ...fetchConfigAuth(),
+  const response = await fetchAuth(`${API_URL}/usuarios`, {
     method: 'POST',
     body: JSON.stringify(usuario)
   });
