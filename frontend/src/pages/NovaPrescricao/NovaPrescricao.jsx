@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 import "./NovaPrescricao.css";
 import ModalConfirmacao from "../../components/common/ModalConfirmacao";
 import FormularioPaciente from "../../components/forms/FormularioPaciente";
@@ -9,15 +9,12 @@ import SeletorItensEspeciais from "../../components/forms/SeletorItensEspeciais/
 import SecaoAcompanhante from "../../components/forms/SecaoAcompanhante/SecaoAcompanhante";
 
 function NovaPrescricao() {
-  const navigate = useNavigate();
   const {
     nucleos = {},
     dietas = [],
     restricoes = [],
     tiposAlimentacao = [],
     convenios = [],
-    carregandoDados,
-    refreshSystemData,
   } = useOutletContext() || {};
 
   const [formData, setFormData] = useState({
@@ -413,7 +410,11 @@ function NovaPrescricao() {
       </div>
 
       <form className="formulario" onSubmit={handleSubmit}>
-        <FormularioPaciente formData={formData} onChange={handleChange} convenios={convenios} />
+        <FormularioPaciente
+          formData={formData}
+          onChange={handleChange}
+          convenios={convenios}
+        />
 
         <div className="campo">
           <label>NÚCLEO *</label>

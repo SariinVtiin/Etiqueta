@@ -1,5 +1,5 @@
 // frontend/src/pages/GestaoLeitos/GestaoLeitos.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   listarLeitosCompleto,
@@ -39,11 +39,7 @@ function GestaoLeitos() {
   // ============================================
   // CARREGAR DADOS
   // ============================================
-  useEffect(() => {
-    carregarLeitos();
-  }, [filtro]);
-
-  const carregarLeitos = async () => {
+  const carregarLeitos = useCallback(async () => {
     setCarregando(true);
     try {
       const resposta = await listarLeitosCompleto(filtro === "todos");
@@ -54,7 +50,11 @@ function GestaoLeitos() {
     } finally {
       setCarregando(false);
     }
-  };
+  }, [filtro]);
+
+  useEffect(() => {
+    carregarLeitos();
+  }, [carregarLeitos]);
 
   // ============================================
   // SETORES ÚNICOS (extraídos dos leitos carregados)

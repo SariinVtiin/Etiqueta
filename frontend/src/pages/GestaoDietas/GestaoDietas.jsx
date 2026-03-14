@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   listarDietas,
   criarDieta,
@@ -10,7 +10,6 @@ import "./GestaoDietas.css";
 
 function GestaoDietas() {
   const navigate = useNavigate();
-  const { refreshSystemData } = useOutletContext() || {};
 
   const [dietas, setDietas] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -143,23 +142,23 @@ function GestaoDietas() {
   return (
     <div className="gd-page">
       {/* Header */}
-        <header className="gd-header">
-          <div className="gd-header-left">
-            <button
-              className="gd-btn-voltar"
-              onClick={() => navigate("/admin/cadastros")}
-            >
-              ← Voltar
-            </button>
-            <div className="gd-header-text">
-              <h1>🍽️ Gestão de Dietas</h1>
-              <p>Gerencie os tipos de dietas do sistema</p>
-            </div>
-          </div>
-          <button className="gd-btn-novo" onClick={abrirModalCriar}>
-            + Nova Dieta
+      <header className="gd-header">
+        <div className="gd-header-left">
+          <button
+            className="gd-btn-voltar"
+            onClick={() => navigate("/admin/cadastros")}
+          >
+            ← Voltar
           </button>
-        </header>
+          <div className="gd-header-text">
+            <h1>🍽️ Gestão de Dietas</h1>
+            <p>Gerencie os tipos de dietas do sistema</p>
+          </div>
+        </div>
+        <button className="gd-btn-novo" onClick={abrirModalCriar}>
+          + Nova Dieta
+        </button>
+      </header>
 
       {/* Stats */}
       <div className="gd-stats">

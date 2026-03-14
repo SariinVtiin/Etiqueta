@@ -14,10 +14,9 @@ import ModalEditarPrescricao from "../../components/forms/ModalEditarPrescricao"
 import "./Prescricoes.css";
 import Toast from "../../components/common/Toast/Toast";
 import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
-import { useNavigate, useLocation, useOutletContext } from "react-router-dom";
+import { useLocation, useOutletContext } from "react-router-dom";
 
 function Prescricoes() {
-  const navigate = useNavigate();
   const location = useLocation();
 
   const {
@@ -33,12 +32,12 @@ function Prescricoes() {
   const [erro, setErro] = useState("");
 
   const [filtros, setFiltros] = useState({
-      busca: "",
-      dataInicio: "",
-      dataFim: "",
-      setor: "",
-      refeicao: "",
-      leito: "",
+    busca: "",
+    dataInicio: "",
+    dataFim: "",
+    setor: "",
+    refeicao: "",
+    leito: "",
   });
 
   const [paginacao, setPaginacao] = useState({
@@ -128,24 +127,24 @@ function Prescricoes() {
   };
 
   const handleExcluir = (id) => {
-      mostrarConfirmacao(
-        "Excluir Prescrição",
-        "Tem certeza que deseja excluir esta prescrição?\nEsta ação não pode ser desfeita.",
-        async () => {
-          try {
-            const resposta = await deletarPrescricao(id);
-            if (resposta.sucesso) {
-              mostrarToast("Prescrição excluída com sucesso!", "sucesso");
-              carregarPrescricoes();
-            }
-          } catch (erro) {
-            console.error("Erro ao excluir prescrição:", erro);
-            mostrarToast("Erro ao excluir prescrição: " + erro.message, "erro");
+    mostrarConfirmacao(
+      "Excluir Prescrição",
+      "Tem certeza que deseja excluir esta prescrição?\nEsta ação não pode ser desfeita.",
+      async () => {
+        try {
+          const resposta = await deletarPrescricao(id);
+          if (resposta.sucesso) {
+            mostrarToast("Prescrição excluída com sucesso!", "sucesso");
+            carregarPrescricoes();
           }
-        },
-        "perigo"
-      );
-    };
+        } catch (erro) {
+          console.error("Erro ao excluir prescrição:", erro);
+          mostrarToast("Erro ao excluir prescrição: " + erro.message, "erro");
+        }
+      },
+      "perigo",
+    );
+  };
 
   const handleEditar = (prescricao) => {
     setPrescricaoEditando(prescricao);
@@ -153,23 +152,23 @@ function Prescricoes() {
   };
 
   const handleSalvarEdicao = async (dadosAtualizados) => {
-      try {
-        const resposta = await atualizarPrescricao(
-          prescricaoEditando.id,
-          dadosAtualizados,
-        );
+    try {
+      const resposta = await atualizarPrescricao(
+        prescricaoEditando.id,
+        dadosAtualizados,
+      );
 
-        if (resposta.sucesso) {
-          mostrarToast("Prescrição atualizada com sucesso!", "sucesso");
-          setModalEdicaoAberto(false);
-          setPrescricaoEditando(null);
-          carregarPrescricoes();
-        }
-      } catch (erro) {
-        console.error("Erro ao atualizar prescrição:", erro);
-        mostrarToast("Erro ao atualizar prescrição: " + erro.message, "erro");
+      if (resposta.sucesso) {
+        mostrarToast("Prescrição atualizada com sucesso!", "sucesso");
+        setModalEdicaoAberto(false);
+        setPrescricaoEditando(null);
+        carregarPrescricoes();
       }
-    };
+    } catch (erro) {
+      console.error("Erro ao atualizar prescrição:", erro);
+      mostrarToast("Erro ao atualizar prescrição: " + erro.message, "erro");
+    }
+  };
 
   const handleExportarExcel = () => {
     if (prescricoes.length === 0) {
@@ -186,35 +185,39 @@ function Prescricoes() {
   };
 
   const handleExportarPDF = () => {
-      if (prescricoes.length === 0) {
-        mostrarToast("Nenhuma prescrição para exportar.", "aviso");
-        return;
-      }
+    if (prescricoes.length === 0) {
+      mostrarToast("Nenhuma prescrição para exportar.", "aviso");
+      return;
+    }
 
-      const resultado = exportarParaPDF(prescricoes, filtros);
-      if (resultado.sucesso) {
-        mostrarToast(resultado.mensagem, "sucesso");
-      } else {
-        mostrarToast(resultado.erro, "erro");
-      }
-    };
+    const resultado = exportarParaPDF(prescricoes, filtros);
+    if (resultado.sucesso) {
+      mostrarToast(resultado.mensagem, "sucesso");
+    } else {
+      mostrarToast(resultado.erro, "erro");
+    }
+  };
 
   const handleRelatorioDetalhado = () => {
-      if (prescricoes.length === 0) {
-        mostrarToast("Nenhuma prescrição para gerar relatório.", "aviso");
-        return;
-      }
+    if (prescricoes.length === 0) {
+      mostrarToast("Nenhuma prescrição para gerar relatório.", "aviso");
+      return;
+    }
 
-      const resultado = exportarRelatorioDetalhado(prescricoes);
-      if (resultado.sucesso) {
-        mostrarToast(resultado.mensagem, "sucesso");
-      } else {
-        mostrarToast(resultado.erro, "erro");
-      }
-    };
+    const resultado = exportarRelatorioDetalhado(prescricoes);
+    if (resultado.sucesso) {
+      mostrarToast(resultado.mensagem, "sucesso");
+    } else {
+      mostrarToast(resultado.erro, "erro");
+    }
+  };
 
   // Toast customizado
-  const [toast, setToast] = useState({ visivel: false, mensagem: "", tipo: "" });
+  const [toast, setToast] = useState({
+    visivel: false,
+    mensagem: "",
+    tipo: "",
+  });
 
   // Modal de alerta/confirmação
   const [modalAlerta, setModalAlerta] = useState({
@@ -226,51 +229,54 @@ function Prescricoes() {
   });
 
   const handleGerarMapa = () => {
-      if (prescricoes.length === 0) {
-        mostrarToast("Nenhuma prescrição encontrada para gerar mapa.", "aviso");
-        return;
-      }
+    if (prescricoes.length === 0) {
+      mostrarToast("Nenhuma prescrição encontrada para gerar mapa.", "aviso");
+      return;
+    }
 
-      mostrarConfirmacao(
-        "Gerar Mapa de Refeição",
-        `Será gerado o mapa de refeição com base nos filtros atuais.\nTotal de registros filtrados: ${paginacao.total}\n\nDeseja continuar?`,
-        async () => {
-          try {
-            const params = {
-              ...filtros,
-              limit: 5000,
-            };
+    mostrarConfirmacao(
+      "Gerar Mapa de Refeição",
+      `Será gerado o mapa de refeição com base nos filtros atuais.\nTotal de registros filtrados: ${paginacao.total}\n\nDeseja continuar?`,
+      async () => {
+        try {
+          const params = {
+            ...filtros,
+            limit: 5000,
+          };
 
-            const resposta = await listarPrescricoes(params);
+          const resposta = await listarPrescricoes(params);
 
-            if (
-              !resposta.sucesso ||
-              !resposta.prescricoes ||
-              resposta.prescricoes.length === 0
-            ) {
-              mostrarToast("Nenhuma prescrição encontrada para gerar mapa.", "aviso");
-              return;
-            }
-
-            const todasPrescricoes = resposta.prescricoes.map((p) => ({
-              ...p,
-              restricoes: p.restricoes ? JSON.parse(p.restricoes) : [],
-            }));
-
-            const resultado = gerarMapaRefeicao(todasPrescricoes, filtros);
-
-            if (resultado.sucesso) {
-              mostrarToast(resultado.mensagem, "sucesso");
-            } else {
-              mostrarToast(resultado.erro, "erro");
-            }
-          } catch (erro) {
-            console.error("Erro ao gerar mapa de refeição:", erro);
-            mostrarToast("Erro ao gerar mapa de refeição.", "erro");
+          if (
+            !resposta.sucesso ||
+            !resposta.prescricoes ||
+            resposta.prescricoes.length === 0
+          ) {
+            mostrarToast(
+              "Nenhuma prescrição encontrada para gerar mapa.",
+              "aviso",
+            );
+            return;
           }
+
+          const todasPrescricoes = resposta.prescricoes.map((p) => ({
+            ...p,
+            restricoes: p.restricoes ? JSON.parse(p.restricoes) : [],
+          }));
+
+          const resultado = gerarMapaRefeicao(todasPrescricoes, filtros);
+
+          if (resultado.sucesso) {
+            mostrarToast(resultado.mensagem, "sucesso");
+          } else {
+            mostrarToast(resultado.erro, "erro");
+          }
+        } catch (erro) {
+          console.error("Erro ao gerar mapa de refeição:", erro);
+          mostrarToast("Erro ao gerar mapa de refeição.", "erro");
         }
-      );
-    };
+      },
+    );
+  };
 
   const mostrarToast = (mensagem, tipo = "sucesso") => {
     setToast({ visivel: true, mensagem, tipo });
@@ -280,24 +286,19 @@ function Prescricoes() {
     setToast({ visivel: false, mensagem: "", tipo: "" });
   };
 
-  const mostrarAlerta = (titulo, mensagem, tipo = "info") => {
-    setModalAlerta({
-      visivel: true,
-      titulo,
-      mensagem,
-      tipo,
-      onConfirmar: () => setModalAlerta(prev => ({ ...prev, visivel: false })),
-    });
-  };
-
-  const mostrarConfirmacao = (titulo, mensagem, onConfirmar, tipo = "confirmar") => {
+  const mostrarConfirmacao = (
+    titulo,
+    mensagem,
+    onConfirmar,
+    tipo = "confirmar",
+  ) => {
     setModalAlerta({
       visivel: true,
       titulo,
       mensagem,
       tipo,
       onConfirmar: () => {
-        setModalAlerta(prev => ({ ...prev, visivel: false }));
+        setModalAlerta((prev) => ({ ...prev, visivel: false }));
         onConfirmar();
       },
     });
@@ -326,7 +327,10 @@ function Prescricoes() {
           const resposta = await listarPrescricoes(params);
 
           if (!resposta.sucesso || resposta.prescricoes.length === 0) {
-            mostrarToast("Nenhuma prescrição encontrada para imprimir.", "aviso");
+            mostrarToast(
+              "Nenhuma prescrição encontrada para imprimir.",
+              "aviso",
+            );
             return;
           }
 
@@ -342,7 +346,7 @@ function Prescricoes() {
           console.error("Erro ao preparar impressão:", erro);
           mostrarToast("Erro ao preparar etiquetas para impressão.", "erro");
         }
-      }
+      },
     );
   };
 
@@ -747,7 +751,9 @@ function Prescricoes() {
           <label>Refeição</label>
           <select
             value={filtros.refeicao}
-            onChange={(e) => setFiltros({ ...filtros, refeicao: e.target.value })}
+            onChange={(e) =>
+              setFiltros({ ...filtros, refeicao: e.target.value })
+            }
           >
             <option value="">Todas</option>
             {tiposAlimentacao.map((tipo) => (
@@ -775,21 +781,27 @@ function Prescricoes() {
         </div>
 
         <div className="botoes-exportacao">
-            <button className="btn-exportar imprimir" onClick={handleImprimirEtiquetas}>
-              Imprimir Etiquetas
-            </button>
-            <button className="btn-exportar excel" onClick={handleExportarExcel}>
-              Exportar Excel
-            </button>
-            <button className="btn-exportar pdf" onClick={handleExportarPDF}>
-              Exportar PDF
-            </button>
-            <button className="btn-exportar detalhado" onClick={handleRelatorioDetalhado}>
-              Relatório Detalhado
-            </button>
-            <button className="btn-exportar mapa" onClick={handleGerarMapa}>
-              Gerar Mapa
-            </button>
+          <button
+            className="btn-exportar imprimir"
+            onClick={handleImprimirEtiquetas}
+          >
+            Imprimir Etiquetas
+          </button>
+          <button className="btn-exportar excel" onClick={handleExportarExcel}>
+            Exportar Excel
+          </button>
+          <button className="btn-exportar pdf" onClick={handleExportarPDF}>
+            Exportar PDF
+          </button>
+          <button
+            className="btn-exportar detalhado"
+            onClick={handleRelatorioDetalhado}
+          >
+            Relatório Detalhado
+          </button>
+          <button className="btn-exportar mapa" onClick={handleGerarMapa}>
+            Gerar Mapa
+          </button>
         </div>
       </div>
 
@@ -858,10 +870,18 @@ function Prescricoes() {
                         <span className="status-badge ativo">Ativo</span>
                       </td>
                       <td>
-                        <button className="btn-acao-editar" onClick={() => handleEditar(prescricao)} title="Editar">
+                        <button
+                          className="btn-acao-editar"
+                          onClick={() => handleEditar(prescricao)}
+                          title="Editar"
+                        >
                           Editar
                         </button>
-                        <button className="btn-acao-excluir" onClick={() => handleExcluir(prescricao.id)} title="Excluir">
+                        <button
+                          className="btn-acao-excluir"
+                          onClick={() => handleExcluir(prescricao.id)}
+                          title="Excluir"
+                        >
                           Excluir
                         </button>
                       </td>
@@ -1072,9 +1092,10 @@ function Prescricoes() {
         mensagem={modalAlerta.mensagem}
         tipo={modalAlerta.tipo}
         onConfirmar={modalAlerta.onConfirmar}
-        onCancelar={() => setModalAlerta(prev => ({ ...prev, visivel: false }))}
+        onCancelar={() =>
+          setModalAlerta((prev) => ({ ...prev, visivel: false }))
+        }
       />
-
     </div>
   );
 }

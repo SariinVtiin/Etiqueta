@@ -5,6 +5,7 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 import Prescricoes from "../pages/Prescricoes/Prescricoes";
 import NovaPrescricao from "../pages/NovaPrescricao/NovaPrescricao";
 
+import Pacientes from "../pages/Pacientes/Pacientes";
 import Cadastros from "../pages/Cadastros/Cadastros";
 import GestaoUsuarios from "../pages/GestaoUsuarios/GestaoUsuarios";
 import GestaoDietas from "../pages/GestaoDietas/GestaoDietas";
@@ -35,6 +36,7 @@ export const routes = [
 
           { path: "/dashboard", element: <Dashboard /> },
           { path: "/prescricoes", element: <Prescricoes /> },
+          { path: "/pacientes", element: <Pacientes /> },
           { path: "/nova-prescricao", element: <NovaPrescricao /> },
 
           {
@@ -52,7 +54,9 @@ export const routes = [
               { path: "/admin/acrescimos", element: <GestaoImportacao /> },
               { path: "/admin/convenios", element: <GestaoConvenios /> },
               { path: "/admin/refeicoes", element: <GestaoRefeicoes /> },
-              { path: "/admin/configuracoes",element: <GestaoConfiguracoes />,
+              {
+                path: "/admin/configuracoes",
+                element: <GestaoConfiguracoes />,
               },
 
               { path: "/admin/condicoes", element: <GestaoCondicoes /> },

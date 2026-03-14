@@ -5,7 +5,7 @@ const API_URL = process.env.REACT_APP_API_URL;
  * Obter token do localStorage
  */
 const getToken = () => {
-  return localStorage.getItem('token');
+  return localStorage.getItem("token");
 };
 
 /**
@@ -13,9 +13,9 @@ const getToken = () => {
  */
 const fetchConfigAuth = () => ({
   headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${getToken()}`
-  }
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${getToken()}`,
+  },
 });
 
 /**
@@ -29,9 +29,9 @@ let isRedirecting = false;
 const redirectToLogin = () => {
   if (isRedirecting) return;
   isRedirecting = true;
-  localStorage.removeItem('token');
-  localStorage.removeItem('usuario');
-  window.location.href = '/login';
+  localStorage.removeItem("token");
+  localStorage.removeItem("usuario");
+  window.location.href = "/login";
 };
 
 /**
@@ -42,10 +42,10 @@ const fetchAuth = async (url, options = {}) => {
   const config = {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...(options.headers || {})
-    }
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+      ...(options.headers || {}),
+    },
   };
 
   const response = await fetch(url, config);
@@ -53,7 +53,7 @@ const fetchAuth = async (url, options = {}) => {
   // Intercepta 401 GLOBALMENTE — sessão expirada
   if (response.status === 401) {
     redirectToLogin();
-    throw new Error('Sessão expirada. Faça login novamente.');
+    throw new Error("Sessão expirada. Faça login novamente.");
   }
 
   return response;
@@ -66,11 +66,13 @@ const handleResponse = async (response) => {
   // 401 já foi tratado pelo fetchAuth, mas mantemos por segurança
   if (response.status === 401) {
     redirectToLogin();
-    throw new Error('Sessão expirada. Faça login novamente.');
+    throw new Error("Sessão expirada. Faça login novamente.");
   }
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ erro: 'Erro na requisição' }));
-    throw new Error(error.erro || 'Erro na requisição');
+    const error = await response
+      .json()
+      .catch(() => ({ erro: "Erro na requisição" }));
+    throw new Error(error.erro || "Erro na requisição");
   }
   return response.json();
 };
@@ -81,10 +83,10 @@ const handleResponse = async (response) => {
 
 export const testarConexao = async () => {
   try {
-    const response = await fetch(`${API_URL}/api/teste`);
+    const response = await fetch(`${API_URL}/teste`);
     return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao testar conexão:', erro);
+    console.error("Erro ao testar conexão:", erro);
     throw erro;
   }
 };
@@ -94,7 +96,7 @@ export const buscarStatus = async () => {
     const response = await fetch(`${API_URL}/status`);
     return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao buscar status:', erro);
+    console.error("Erro ao buscar status:", erro);
     throw erro;
   }
 };
@@ -108,7 +110,7 @@ export const listarLeitos = async () => {
     const response = await fetchAuth(`${API_URL}/leitos`);
     return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao listar leitos:', erro);
+    console.error("Erro ao listar leitos:", erro);
     throw erro;
   }
 };
@@ -123,20 +125,20 @@ export const listarLeitos = async () => {
 export const listarPrescricoes = async (filtros = {}) => {
   try {
     const params = new URLSearchParams();
-    
-    if (filtros.busca) params.append('busca', filtros.busca);
-    if (filtros.dataInicio) params.append('dataInicio', filtros.dataInicio);
-    if (filtros.dataFim) params.append('dataFim', filtros.dataFim);
-    if (filtros.setor) params.append('setor', filtros.setor);
-    if (filtros.refeicao) params.append('refeicao', filtros.refeicao);
-    if (filtros.page) params.append('page', filtros.page);
-    if (filtros.limit) params.append('limit', filtros.limit);
-    
+
+    if (filtros.busca) params.append("busca", filtros.busca);
+    if (filtros.dataInicio) params.append("dataInicio", filtros.dataInicio);
+    if (filtros.dataFim) params.append("dataFim", filtros.dataFim);
+    if (filtros.setor) params.append("setor", filtros.setor);
+    if (filtros.refeicao) params.append("refeicao", filtros.refeicao);
+    if (filtros.page) params.append("page", filtros.page);
+    if (filtros.limit) params.append("limit", filtros.limit);
+
     const url = `${API_URL}/prescricoes?${params.toString()}`;
     const response = await fetch(url, fetchConfigAuth());
     return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao listar prescrições:', erro);
+    console.error("Erro ao listar prescrições:", erro);
     throw erro;
   }
 };
@@ -146,10 +148,13 @@ export const listarPrescricoes = async (filtros = {}) => {
  */
 export const buscarPrescricao = async (id) => {
   try {
-    const response = await fetch(`${API_URL}/prescricoes/${id}`, fetchConfigAuth());
+    const response = await fetch(
+      `${API_URL}/prescricoes/${id}`,
+      fetchConfigAuth(),
+    );
     return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao buscar prescrição:', erro);
+    console.error("Erro ao buscar prescrição:", erro);
     throw erro;
   }
 };
@@ -160,13 +165,13 @@ export const buscarPrescricao = async (id) => {
 export const criarPrescricao = async (prescricao) => {
   try {
     const response = await fetch(`${API_URL}/prescricoes`, {
-      method: 'POST',
+      method: "POST",
       ...fetchConfigAuth(),
-      body: JSON.stringify(prescricao)
+      body: JSON.stringify(prescricao),
     });
     return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao criar prescrição:', erro);
+    console.error("Erro ao criar prescrição:", erro);
     throw erro;
   }
 };
@@ -177,13 +182,13 @@ export const criarPrescricao = async (prescricao) => {
 export const atualizarPrescricao = async (id, prescricao) => {
   try {
     const response = await fetch(`${API_URL}/prescricoes/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       ...fetchConfigAuth(),
-      body: JSON.stringify(prescricao)
+      body: JSON.stringify(prescricao),
     });
     return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao atualizar prescrição:', erro);
+    console.error("Erro ao atualizar prescrição:", erro);
     throw erro;
   }
 };
@@ -194,12 +199,12 @@ export const atualizarPrescricao = async (id, prescricao) => {
 export const deletarPrescricao = async (id) => {
   try {
     const response = await fetch(`${API_URL}/prescricoes/${id}`, {
-      method: 'DELETE',
-      ...fetchConfigAuth()
+      method: "DELETE",
+      ...fetchConfigAuth(),
     });
     return handleResponse(response);
   } catch (erro) {
-    console.error('Erro ao deletar prescrição:', erro);
+    console.error("Erro ao deletar prescrição:", erro);
     throw erro;
   }
 };
@@ -211,12 +216,12 @@ export const deletarPrescricao = async (id) => {
 /**
  * Listar todos os usuários
  */
-export const listarUsuarios = async (busca = '') => {
-  const params = busca ? `?busca=${encodeURIComponent(busca)}` : '';
+export const listarUsuarios = async (busca = "") => {
+  const params = busca ? `?busca=${encodeURIComponent(busca)}` : "";
   const response = await fetchAuth(`${API_URL}/usuarios${params}`);
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar usuários');
+    throw new Error(erro.erro || "Erro ao listar usuários");
   }
   return response.json();
 };
@@ -226,12 +231,12 @@ export const listarUsuarios = async (busca = '') => {
  */
 export const criarUsuario = async (usuario) => {
   const response = await fetchAuth(`${API_URL}/usuarios`, {
-    method: 'POST',
-    body: JSON.stringify(usuario)
+    method: "POST",
+    body: JSON.stringify(usuario),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao criar usuário');
+    throw new Error(erro.erro || "Erro ao criar usuário");
   }
   return response.json();
 };
@@ -242,12 +247,12 @@ export const criarUsuario = async (usuario) => {
 export const atualizarUsuario = async (id, usuario) => {
   const response = await fetch(`${API_URL}/usuarios/${id}`, {
     ...fetchConfigAuth(),
-    method: 'PUT',
-    body: JSON.stringify(usuario)
+    method: "PUT",
+    body: JSON.stringify(usuario),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao atualizar usuário');
+    throw new Error(erro.erro || "Erro ao atualizar usuário");
   }
   return response.json();
 };
@@ -258,11 +263,11 @@ export const atualizarUsuario = async (id, usuario) => {
 export const desativarUsuario = async (id) => {
   const response = await fetch(`${API_URL}/usuarios/${id}`, {
     ...fetchConfigAuth(),
-    method: 'DELETE'
+    method: "DELETE",
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao desativar usuário');
+    throw new Error(erro.erro || "Erro ao desativar usuário");
   }
   return response.json();
 };
@@ -273,11 +278,11 @@ export const desativarUsuario = async (id) => {
 export const ativarUsuario = async (id) => {
   const response = await fetch(`${API_URL}/usuarios/${id}/ativar`, {
     ...fetchConfigAuth(),
-    method: 'POST'
+    method: "POST",
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao ativar usuário');
+    throw new Error(erro.erro || "Erro ao ativar usuário");
   }
   return response.json();
 };
@@ -288,12 +293,12 @@ export const ativarUsuario = async (id) => {
 export const resetarSenhaUsuario = async (id, novaSenha) => {
   const response = await fetch(`${API_URL}/usuarios/${id}/resetar-senha`, {
     ...fetchConfigAuth(),
-    method: 'POST',
-    body: JSON.stringify({ novaSenha })
+    method: "POST",
+    body: JSON.stringify({ novaSenha }),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao resetar senha');
+    throw new Error(erro.erro || "Erro ao resetar senha");
   }
   return response.json();
 };
@@ -307,23 +312,23 @@ export const resetarSenhaUsuario = async (id, novaSenha) => {
  */
 export const listarLogsAuditoria = async (filtros = {}) => {
   const params = new URLSearchParams();
-  if (filtros.usuarioId) params.append('usuarioId', filtros.usuarioId);
-  if (filtros.acao) params.append('acao', filtros.acao);
-  if (filtros.entidade) params.append('entidade', filtros.entidade);
-  if (filtros.entidadeId) params.append('entidadeId', filtros.entidadeId);
-  if (filtros.dataInicio) params.append('dataInicio', filtros.dataInicio);
-  if (filtros.dataFim) params.append('dataFim', filtros.dataFim);
-  if (filtros.busca) params.append('busca', filtros.busca);
-  if (filtros.page) params.append('page', filtros.page);
-  if (filtros.limit) params.append('limit', filtros.limit);
+  if (filtros.usuarioId) params.append("usuarioId", filtros.usuarioId);
+  if (filtros.acao) params.append("acao", filtros.acao);
+  if (filtros.entidade) params.append("entidade", filtros.entidade);
+  if (filtros.entidadeId) params.append("entidadeId", filtros.entidadeId);
+  if (filtros.dataInicio) params.append("dataInicio", filtros.dataInicio);
+  if (filtros.dataFim) params.append("dataFim", filtros.dataFim);
+  if (filtros.busca) params.append("busca", filtros.busca);
+  if (filtros.page) params.append("page", filtros.page);
+  if (filtros.limit) params.append("limit", filtros.limit);
 
   const queryString = params.toString();
-  const url = `${API_URL}/auditoria/logs${queryString ? '?' + queryString : ''}`;
-  
+  const url = `${API_URL}/auditoria/logs${queryString ? "?" + queryString : ""}`;
+
   const response = await fetch(url, fetchConfigAuth());
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar logs');
+    throw new Error(erro.erro || "Erro ao listar logs");
   }
   return response.json();
 };
@@ -332,10 +337,13 @@ export const listarLogsAuditoria = async (filtros = {}) => {
  * Obter estatísticas de auditoria
  */
 export const obterEstatisticasAuditoria = async () => {
-  const response = await fetch(`${API_URL}/auditoria/estatisticas`, fetchConfigAuth());
+  const response = await fetch(
+    `${API_URL}/auditoria/estatisticas`,
+    fetchConfigAuth(),
+  );
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao obter estatísticas');
+    throw new Error(erro.erro || "Erro ao obter estatísticas");
   }
   return response.json();
 };
@@ -351,7 +359,7 @@ export const listarDietas = async () => {
   const response = await fetch(`${API_URL}/dietas`, fetchConfigAuth());
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar dietas');
+    throw new Error(erro.erro || "Erro ao listar dietas");
   }
   return response.json();
 };
@@ -362,12 +370,12 @@ export const listarDietas = async () => {
 export const criarDieta = async (dieta) => {
   const response = await fetch(`${API_URL}/dietas`, {
     ...fetchConfigAuth(),
-    method: 'POST',
-    body: JSON.stringify(dieta)
+    method: "POST",
+    body: JSON.stringify(dieta),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao criar dieta');
+    throw new Error(erro.erro || "Erro ao criar dieta");
   }
   return response.json();
 };
@@ -378,12 +386,12 @@ export const criarDieta = async (dieta) => {
 export const atualizarDieta = async (id, dieta) => {
   const response = await fetch(`${API_URL}/dietas/${id}`, {
     ...fetchConfigAuth(),
-    method: 'PUT',
-    body: JSON.stringify(dieta)
+    method: "PUT",
+    body: JSON.stringify(dieta),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao atualizar dieta');
+    throw new Error(erro.erro || "Erro ao atualizar dieta");
   }
   return response.json();
 };
@@ -394,12 +402,12 @@ export const atualizarDieta = async (id, dieta) => {
 export const toggleDietaAtiva = async (id, ativa) => {
   const response = await fetch(`${API_URL}/dietas/${id}/toggle`, {
     ...fetchConfigAuth(),
-    method: 'PATCH',
-    body: JSON.stringify({ ativa })
+    method: "PATCH",
+    body: JSON.stringify({ ativa }),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao alterar status da dieta');
+    throw new Error(erro.erro || "Erro ao alterar status da dieta");
   }
   return response.json();
 };
@@ -415,7 +423,7 @@ export const listarEtiquetas = async () => {
   const response = await fetch(`${API_URL}/etiquetas`, fetchConfigAuth());
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar etiquetas');
+    throw new Error(erro.erro || "Erro ao listar etiquetas");
   }
   return response.json();
 };
@@ -424,17 +432,20 @@ export const listarEtiquetas = async () => {
  * Listar etiquetas pendentes
  */
 export const listarEtiquetasPendentes = async () => {
-  const response = await fetch(`${API_URL}/etiquetas/pendentes`, fetchConfigAuth());
+  const response = await fetch(
+    `${API_URL}/etiquetas/pendentes`,
+    fetchConfigAuth(),
+  );
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao buscar pendentes');
+    throw new Error(erro.erro || "Erro ao buscar pendentes");
   }
   return response.json();
 };
 
 /**
  * Criar etiqueta
- * 
+ *
  * @param {Object} etiqueta - Dados da etiqueta
  * @param {string} etiqueta.leito - Número do leito
  * @param {string} etiqueta.dieta - Nome da dieta
@@ -446,12 +457,12 @@ export const listarEtiquetasPendentes = async () => {
 export const criarEtiqueta = async (etiqueta) => {
   const response = await fetch(`${API_URL}/etiquetas`, {
     ...fetchConfigAuth(),
-    method: 'POST',
-    body: JSON.stringify(etiqueta)
+    method: "POST",
+    body: JSON.stringify(etiqueta),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao criar etiqueta');
+    throw new Error(erro.erro || "Erro ao criar etiqueta");
   }
   return response.json();
 };
@@ -462,11 +473,11 @@ export const criarEtiqueta = async (etiqueta) => {
 export const marcarEtiquetaImpressa = async (id) => {
   const response = await fetch(`${API_URL}/etiquetas/${id}/imprimir`, {
     ...fetchConfigAuth(),
-    method: 'PATCH'
+    method: "PATCH",
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao marcar impressão');
+    throw new Error(erro.erro || "Erro ao marcar impressão");
   }
   return response.json();
 };
@@ -477,12 +488,12 @@ export const marcarEtiquetaImpressa = async (id) => {
 export const imprimirEtiquetasLote = async (ids) => {
   const response = await fetch(`${API_URL}/etiquetas/imprimir-lote`, {
     ...fetchConfigAuth(),
-    method: 'POST',
-    body: JSON.stringify({ ids })
+    method: "POST",
+    body: JSON.stringify({ ids }),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao imprimir lote');
+    throw new Error(erro.erro || "Erro ao imprimir lote");
   }
   return response.json();
 };
@@ -497,21 +508,21 @@ export const imprimirEtiquetasLote = async (ids) => {
  */
 export const buscarPacientePorCPF = async (cpf) => {
   try {
-    const token = localStorage.getItem('token');
-    
+    const token = localStorage.getItem("token");
+
     if (!token) {
-      throw new Error('Token não encontrado');
+      throw new Error("Token não encontrado");
     }
 
-    const cpfLimpo = cpf.replace(/\D/g, '');
+    const cpfLimpo = cpf.replace(/\D/g, "");
 
     // ✅ CORRIGIDO: era /api/pacientes/ (duplicava /api)
     const resposta = await fetch(`${API_URL}/pacientes/buscar/${cpfLimpo}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
 
     const dados = await resposta.json();
@@ -520,16 +531,60 @@ export const buscarPacientePorCPF = async (cpf) => {
       if (resposta.status === 404) {
         return { sucesso: false, paciente: null };
       }
-      throw new Error(dados.erro || 'Erro ao buscar paciente');
+      throw new Error(dados.erro || "Erro ao buscar paciente");
     }
 
     return dados;
   } catch (erro) {
-    console.error('Erro na busca de paciente:', erro);
+    console.error("Erro na busca de paciente:", erro);
     // Retornar paciente null ao invés de lançar erro (para não quebrar o formulário)
-    if (erro.message && (erro.message.includes('404') || erro.message.includes('Paciente'))) {
+    if (
+      erro.message &&
+      (erro.message.includes("404") || erro.message.includes("Paciente"))
+    ) {
       return { sucesso: false, paciente: null };
     }
+    throw erro;
+  }
+};
+
+/**
+ * Listar pacientes com busca e paginação
+ */
+export const listarPacientes = async ({
+  busca = "",
+  page = 1,
+  limit = 10,
+} = {}) => {
+  try {
+    const params = new URLSearchParams();
+
+    if (busca) params.append("busca", busca);
+    params.append("page", page);
+    params.append("limit", limit);
+
+    const response = await fetchAuth(
+      `${API_URL}/pacientes?${params.toString()}`,
+    );
+    return handleResponse(response);
+  } catch (erro) {
+    console.error("Erro ao listar pacientes:", erro);
+    throw erro;
+  }
+};
+
+/**
+ * Listar prescrições de um paciente pelo CPF
+ */
+export const listarPrescricoesPaciente = async (cpf) => {
+  try {
+    const cpfLimpo = String(cpf || "").replace(/\D/g, "");
+    const response = await fetchAuth(
+      `${API_URL}/pacientes/${cpfLimpo}/prescricoes`,
+    );
+    return handleResponse(response);
+  } catch (erro) {
+    console.error("Erro ao listar prescrições do paciente:", erro);
     throw erro;
   }
 };
@@ -539,22 +594,25 @@ export const buscarPacientePorCPF = async (cpf) => {
  */
 export const verificarCodigoAtendimento = async (codigo, cpfAtual) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) throw new Error('Token não encontrado');
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Token não encontrado");
 
-    const cpfLimpo = cpfAtual ? cpfAtual.replace(/\D/g, '') : '';
-    
-    const resposta = await fetch(`${API_URL}/pacientes/verificar-codigo/${codigo}?cpf=${cpfLimpo}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    const cpfLimpo = cpfAtual ? cpfAtual.replace(/\D/g, "") : "";
+
+    const resposta = await fetch(
+      `${API_URL}/pacientes/verificar-codigo/${codigo}?cpf=${cpfLimpo}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
 
     return await resposta.json();
   } catch (erro) {
-    console.error('Erro ao verificar código:', erro);
+    console.error("Erro ao verificar código:", erro);
     return { sucesso: false, disponivel: true }; // Em caso de erro, deixa prosseguir
   }
 };
@@ -565,11 +623,11 @@ export const verificarCodigoAtendimento = async (codigo, cpfAtual) => {
 export const deletarEtiqueta = async (id) => {
   const response = await fetch(`${API_URL}/etiquetas/${id}`, {
     ...fetchConfigAuth(),
-    method: 'DELETE'
+    method: "DELETE",
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao deletar');
+    throw new Error(erro.erro || "Erro ao deletar");
   }
   return response.json();
 };
@@ -585,7 +643,7 @@ export const listarAcrescimos = async () => {
   const response = await fetch(`${API_URL}/acrescimos`, fetchConfigAuth());
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar acréscimos');
+    throw new Error(erro.erro || "Erro ao listar acréscimos");
   }
   return response.json();
 };
@@ -597,13 +655,16 @@ export const buscarAcrescimosPorIds = async (ids) => {
   if (!ids || ids.length === 0) {
     return { sucesso: true, acrescimos: [] };
   }
-  
-  const idsString = Array.isArray(ids) ? ids.join(',') : ids;
-  const response = await fetch(`${API_URL}/acrescimos/buscar/${idsString}`, fetchConfigAuth());
-  
+
+  const idsString = Array.isArray(ids) ? ids.join(",") : ids;
+  const response = await fetch(
+    `${API_URL}/acrescimos/buscar/${idsString}`,
+    fetchConfigAuth(),
+  );
+
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao buscar acréscimos');
+    throw new Error(erro.erro || "Erro ao buscar acréscimos");
   }
   return response.json();
 };
@@ -612,10 +673,13 @@ export const buscarAcrescimosPorIds = async (ids) => {
  * Obter estatísticas de acréscimos
  */
 export const obterEstatisticasAcrescimos = async () => {
-  const response = await fetch(`${API_URL}/acrescimos/estatisticas`, fetchConfigAuth());
+  const response = await fetch(
+    `${API_URL}/acrescimos/estatisticas`,
+    fetchConfigAuth(),
+  );
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao obter estatísticas');
+    throw new Error(erro.erro || "Erro ao obter estatísticas");
   }
   return response.json();
 };
@@ -628,11 +692,13 @@ export const obterEstatisticasAcrescimos = async () => {
  * Listar todas as condições nutricionais (ativas ou todas)
  */
 export const listarRestricoes = async (todas = false) => {
-  const url = todas ? `${API_URL}/restricoes?todas=true` : `${API_URL}/restricoes`;
+  const url = todas
+    ? `${API_URL}/restricoes?todas=true`
+    : `${API_URL}/restricoes`;
   const response = await fetch(url, fetchConfigAuth());
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar condições nutricionais');
+    throw new Error(erro.erro || "Erro ao listar condições nutricionais");
   }
   return response.json();
 };
@@ -641,10 +707,13 @@ export const listarRestricoes = async (todas = false) => {
  * Buscar condição nutricional por ID
  */
 export const buscarRestricao = async (id) => {
-  const response = await fetch(`${API_URL}/restricoes/${id}`, fetchConfigAuth());
+  const response = await fetch(
+    `${API_URL}/restricoes/${id}`,
+    fetchConfigAuth(),
+  );
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao buscar condição nutricional');
+    throw new Error(erro.erro || "Erro ao buscar condição nutricional");
   }
   return response.json();
 };
@@ -655,12 +724,12 @@ export const buscarRestricao = async (id) => {
 export const criarRestricao = async (restricao) => {
   const response = await fetch(`${API_URL}/restricoes`, {
     ...fetchConfigAuth(),
-    method: 'POST',
-    body: JSON.stringify(restricao)
+    method: "POST",
+    body: JSON.stringify(restricao),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao criar condição nutricional');
+    throw new Error(erro.erro || "Erro ao criar condição nutricional");
   }
   return response.json();
 };
@@ -671,12 +740,12 @@ export const criarRestricao = async (restricao) => {
 export const atualizarRestricao = async (id, restricao) => {
   const response = await fetch(`${API_URL}/restricoes/${id}`, {
     ...fetchConfigAuth(),
-    method: 'PUT',
-    body: JSON.stringify(restricao)
+    method: "PUT",
+    body: JSON.stringify(restricao),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao atualizar condição nutricional');
+    throw new Error(erro.erro || "Erro ao atualizar condição nutricional");
   }
   return response.json();
 };
@@ -687,12 +756,14 @@ export const atualizarRestricao = async (id, restricao) => {
 export const toggleRestricaoAtiva = async (id, ativa) => {
   const response = await fetch(`${API_URL}/restricoes/${id}/toggle`, {
     ...fetchConfigAuth(),
-    method: 'PATCH',
-    body: JSON.stringify({ ativa })
+    method: "PATCH",
+    body: JSON.stringify({ ativa }),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao alterar status da condição nutricional');
+    throw new Error(
+      erro.erro || "Erro ao alterar status da condição nutricional",
+    );
   }
   return response.json();
 };
@@ -703,12 +774,12 @@ export const toggleRestricaoAtiva = async (id, ativa) => {
 export const reordenarRestricoes = async (restricoes) => {
   const response = await fetch(`${API_URL}/restricoes/reordenar`, {
     ...fetchConfigAuth(),
-    method: 'POST',
-    body: JSON.stringify({ restricoes })
+    method: "POST",
+    body: JSON.stringify({ restricoes }),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao reordenar condições nutricionais');
+    throw new Error(erro.erro || "Erro ao reordenar condições nutricionais");
   }
   return response.json();
 };
@@ -740,12 +811,12 @@ export const listarSetores = async () => {
 export const criarLeito = async (leito) => {
   const response = await fetch(`${API_URL}/leitos`, {
     ...fetchConfigAuth(),
-    method: 'POST',
-    body: JSON.stringify(leito)
+    method: "POST",
+    body: JSON.stringify(leito),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao criar leito');
+    throw new Error(erro.erro || "Erro ao criar leito");
   }
   return response.json();
 };
@@ -756,12 +827,12 @@ export const criarLeito = async (leito) => {
 export const criarLeitosLote = async (dados) => {
   const response = await fetch(`${API_URL}/leitos/lote`, {
     ...fetchConfigAuth(),
-    method: 'POST',
-    body: JSON.stringify(dados)
+    method: "POST",
+    body: JSON.stringify(dados),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao criar leitos em lote');
+    throw new Error(erro.erro || "Erro ao criar leitos em lote");
   }
   return response.json();
 };
@@ -772,12 +843,12 @@ export const criarLeitosLote = async (dados) => {
 export const atualizarLeito = async (id, leito) => {
   const response = await fetch(`${API_URL}/leitos/${id}`, {
     ...fetchConfigAuth(),
-    method: 'PUT',
-    body: JSON.stringify(leito)
+    method: "PUT",
+    body: JSON.stringify(leito),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao atualizar leito');
+    throw new Error(erro.erro || "Erro ao atualizar leito");
   }
   return response.json();
 };
@@ -788,45 +859,47 @@ export const atualizarLeito = async (id, leito) => {
 export const toggleLeitoAtivo = async (id, ativo) => {
   const response = await fetch(`${API_URL}/leitos/${id}/toggle`, {
     ...fetchConfigAuth(),
-    method: 'PATCH',
-    body: JSON.stringify({ ativo })
+    method: "PATCH",
+    body: JSON.stringify({ ativo }),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao alterar status do leito');
+    throw new Error(erro.erro || "Erro ao alterar status do leito");
   }
   return response.json();
 };
 
 export const exportarLogsLogin = async (filtros = {}) => {
   const params = new URLSearchParams();
-  if (filtros.dataInicio) params.append('dataInicio', filtros.dataInicio);
-  if (filtros.dataFim) params.append('dataFim', filtros.dataFim);
-  if (filtros.usuarioId) params.append('usuarioId', filtros.usuarioId);
-  if (filtros.tipoEvento) params.append('tipoEvento', filtros.tipoEvento);
+  if (filtros.dataInicio) params.append("dataInicio", filtros.dataInicio);
+  if (filtros.dataFim) params.append("dataFim", filtros.dataFim);
+  if (filtros.usuarioId) params.append("usuarioId", filtros.usuarioId);
+  if (filtros.tipoEvento) params.append("tipoEvento", filtros.tipoEvento);
 
   const queryString = params.toString();
-  const url = `${API_URL}/logs-login/exportar${queryString ? '?' + queryString : ''}`;
+  const url = `${API_URL}/logs-login/exportar${queryString ? "?" + queryString : ""}`;
 
   const response = await fetch(url, {
     headers: {
-      'Authorization': `Bearer ${getToken()}`
-    }
+      Authorization: `Bearer ${getToken()}`,
+    },
   });
 
   if (!response.ok) {
-    const erro = await response.json().catch(() => ({ erro: 'Erro ao gerar relatório' }));
-    throw new Error(erro.erro || 'Erro ao gerar relatório de logs');
+    const erro = await response
+      .json()
+      .catch(() => ({ erro: "Erro ao gerar relatório" }));
+    throw new Error(erro.erro || "Erro ao gerar relatório de logs");
   }
 
   // Baixar o arquivo Excel
   const blob = await response.blob();
   const urlBlob = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = urlBlob;
 
   // Extrair nome do arquivo do header ou gerar um
-  const contentDisposition = response.headers.get('Content-Disposition');
+  const contentDisposition = response.headers.get("Content-Disposition");
   let nomeArquivo = `logs_login_${filtros.dataInicio}_a_${filtros.dataFim}.xlsx`;
   if (contentDisposition) {
     const match = contentDisposition.match(/filename="(.+)"/);
@@ -839,17 +912,20 @@ export const exportarLogsLogin = async (filtros = {}) => {
   document.body.removeChild(link);
   window.URL.revokeObjectURL(urlBlob);
 
-  return { sucesso: true, mensagem: 'Relatório baixado com sucesso!' };
+  return { sucesso: true, mensagem: "Relatório baixado com sucesso!" };
 };
 
 /**
  * Listar usuários para filtro do relatório de logs
  */
 export const listarUsuariosLogsLogin = async () => {
-  const response = await fetch(`${API_URL}/logs-login/usuarios`, fetchConfigAuth());
+  const response = await fetch(
+    `${API_URL}/logs-login/usuarios`,
+    fetchConfigAuth(),
+  );
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar usuários');
+    throw new Error(erro.erro || "Erro ao listar usuários");
   }
   return response.json();
 };
@@ -858,10 +934,13 @@ export const listarUsuariosLogsLogin = async () => {
  * Listar apenas dietas ativas (para uso em prescrições)
  */
 export const listarDietasAtivas = async () => {
-  const response = await fetch(`${API_URL}/dietas?apenasAtivas=true`, fetchConfigAuth());
+  const response = await fetch(
+    `${API_URL}/dietas?apenasAtivas=true`,
+    fetchConfigAuth(),
+  );
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar dietas');
+    throw new Error(erro.erro || "Erro ao listar dietas");
   }
   return response.json();
 };
@@ -876,12 +955,12 @@ export const listarDietasAtivas = async () => {
  */
 export const listarRefeicoes = async (incluirInativas = false) => {
   const response = await fetch(
-    `${API_URL}/refeicoes${incluirInativas ? '?incluirInativas=true' : ''}`,
-    fetchConfigAuth()
+    `${API_URL}/refeicoes${incluirInativas ? "?incluirInativas=true" : ""}`,
+    fetchConfigAuth(),
   );
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar refeições');
+    throw new Error(erro.erro || "Erro ao listar refeições");
   }
   return response.json();
 };
@@ -891,9 +970,14 @@ export const listarRefeicoes = async (incluirInativas = false) => {
  */
 export const criarRefeicao = async (refeicao) => {
   const response = await fetch(`${API_URL}/refeicoes`, {
-    ...fetchConfigAuth(), method: 'POST', body: JSON.stringify(refeicao)
+    ...fetchConfigAuth(),
+    method: "POST",
+    body: JSON.stringify(refeicao),
   });
-  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao criar refeição'); }
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || "Erro ao criar refeição");
+  }
   return response.json();
 };
 
@@ -902,9 +986,14 @@ export const criarRefeicao = async (refeicao) => {
  */
 export const atualizarRefeicao = async (id, refeicao) => {
   const response = await fetch(`${API_URL}/refeicoes/${id}`, {
-    ...fetchConfigAuth(), method: 'PUT', body: JSON.stringify(refeicao)
+    ...fetchConfigAuth(),
+    method: "PUT",
+    body: JSON.stringify(refeicao),
   });
-  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao atualizar refeição'); }
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || "Erro ao atualizar refeição");
+  }
   return response.json();
 };
 
@@ -913,17 +1002,27 @@ export const atualizarRefeicao = async (id, refeicao) => {
  */
 export const toggleRefeicaoAtiva = async (id, ativa) => {
   const response = await fetch(`${API_URL}/refeicoes/${id}/toggle`, {
-    ...fetchConfigAuth(), method: 'PATCH', body: JSON.stringify({ ativa })
+    ...fetchConfigAuth(),
+    method: "PATCH",
+    body: JSON.stringify({ ativa }),
   });
-  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao alterar status'); }
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || "Erro ao alterar status");
+  }
   return response.json();
 };
 
 export const toggleListaPersonalizada = async (id, tem_lista_personalizada) => {
   const response = await fetch(`${API_URL}/refeicoes/${id}/toggle-lista`, {
-    ...fetchConfigAuth(), method: 'PATCH', body: JSON.stringify({ tem_lista_personalizada })
+    ...fetchConfigAuth(),
+    method: "PATCH",
+    body: JSON.stringify({ tem_lista_personalizada }),
   });
-  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao alterar lista'); }
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || "Erro ao alterar lista");
+  }
   return response.json();
 };
 
@@ -931,8 +1030,14 @@ export const toggleListaPersonalizada = async (id, tem_lista_personalizada) => {
  * Listar itens ativos de uma refeição especial
  */
 export const listarItensRefeicao = async (refeicaoId) => {
-  const response = await fetch(`${API_URL}/refeicoes/${refeicaoId}/itens`, fetchConfigAuth());
-  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao listar itens'); }
+  const response = await fetch(
+    `${API_URL}/refeicoes/${refeicaoId}/itens`,
+    fetchConfigAuth(),
+  );
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || "Erro ao listar itens");
+  }
   return response.json();
 };
 
@@ -941,8 +1046,14 @@ export const listarItensRefeicao = async (refeicaoId) => {
  */
 export const buscarItensRefeicaoPorIds = async (ids) => {
   if (!ids || ids.length === 0) return { sucesso: true, itens: [] };
-  const response = await fetch(`${API_URL}/refeicoes/itens/buscar/${ids.join(',')}`, fetchConfigAuth());
-  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao buscar itens'); }
+  const response = await fetch(
+    `${API_URL}/refeicoes/itens/buscar/${ids.join(",")}`,
+    fetchConfigAuth(),
+  );
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || "Erro ao buscar itens");
+  }
   return response.json();
 };
 
@@ -951,14 +1062,20 @@ export const buscarItensRefeicaoPorIds = async (ids) => {
  */
 export const importarItensRefeicao = async (refeicaoId, arquivo) => {
   const formData = new FormData();
-  formData.append('arquivo', arquivo);
+  formData.append("arquivo", arquivo);
 
-  const response = await fetch(`${API_URL}/refeicoes/${refeicaoId}/itens/importar`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-    body: formData
-  });
-  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao importar'); }
+  const response = await fetch(
+    `${API_URL}/refeicoes/${refeicaoId}/itens/importar`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      body: formData,
+    },
+  );
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || "Erro ao importar");
+  }
   return response.json();
 };
 
@@ -966,8 +1083,14 @@ export const importarItensRefeicao = async (refeicaoId, arquivo) => {
  * Estatísticas de itens de uma refeição
  */
 export const buscarEstatisticasItensRefeicao = async (refeicaoId) => {
-  const response = await fetch(`${API_URL}/refeicoes/${refeicaoId}/itens/estatisticas`, fetchConfigAuth());
-  if (!response.ok) { const erro = await response.json(); throw new Error(erro.erro || 'Erro ao buscar estatísticas'); }
+  const response = await fetch(
+    `${API_URL}/refeicoes/${refeicaoId}/itens/estatisticas`,
+    fetchConfigAuth(),
+  );
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(erro.erro || "Erro ao buscar estatísticas");
+  }
   return response.json();
 };
 
@@ -978,7 +1101,7 @@ export const buscarConfiguracoes = async () => {
   const response = await fetch(`${API_URL}/configuracoes`, fetchConfigAuth());
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao buscar configurações');
+    throw new Error(erro.erro || "Erro ao buscar configurações");
   }
   return response.json();
 };
@@ -989,12 +1112,12 @@ export const buscarConfiguracoes = async () => {
 export const atualizarConfiguracao = async (chave, valor) => {
   const response = await fetch(`${API_URL}/configuracoes/${chave}`, {
     ...fetchConfigAuth(),
-    method: 'PUT',
-    body: JSON.stringify({ valor })
+    method: "PUT",
+    body: JSON.stringify({ valor }),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao atualizar configuração');
+    throw new Error(erro.erro || "Erro ao atualizar configuração");
   }
   return response.json();
 };
@@ -1013,7 +1136,9 @@ export const listarRestricoesAcompanhante = async (todas = false) => {
   const response = await fetch(url, fetchConfigAuth());
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar condições nutricionais do acompanhante');
+    throw new Error(
+      erro.erro || "Erro ao listar condições nutricionais do acompanhante",
+    );
   }
   return response.json();
 };
@@ -1024,12 +1149,12 @@ export const listarRestricoesAcompanhante = async (todas = false) => {
 export const criarRestricaoAcompanhante = async (restricao) => {
   const response = await fetch(`${API_URL}/restricoes-acompanhante`, {
     ...fetchConfigAuth(),
-    method: 'POST',
-    body: JSON.stringify(restricao)
+    method: "POST",
+    body: JSON.stringify(restricao),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao criar condição nutricional');
+    throw new Error(erro.erro || "Erro ao criar condição nutricional");
   }
   return response.json();
 };
@@ -1040,12 +1165,12 @@ export const criarRestricaoAcompanhante = async (restricao) => {
 export const atualizarRestricaoAcompanhante = async (id, restricao) => {
   const response = await fetch(`${API_URL}/restricoes-acompanhante/${id}`, {
     ...fetchConfigAuth(),
-    method: 'PUT',
-    body: JSON.stringify(restricao)
+    method: "PUT",
+    body: JSON.stringify(restricao),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao atualizar condição nutricional');
+    throw new Error(erro.erro || "Erro ao atualizar condição nutricional");
   }
   return response.json();
 };
@@ -1054,14 +1179,19 @@ export const atualizarRestricaoAcompanhante = async (id, restricao) => {
  * Ativar/Desativar condição nutricional do acompanhante
  */
 export const toggleRestricaoAcompanhanteAtiva = async (id, ativa) => {
-  const response = await fetch(`${API_URL}/restricoes-acompanhante/${id}/toggle`, {
-    ...fetchConfigAuth(),
-    method: 'PATCH',
-    body: JSON.stringify({ ativa })
-  });
+  const response = await fetch(
+    `${API_URL}/restricoes-acompanhante/${id}/toggle`,
+    {
+      ...fetchConfigAuth(),
+      method: "PATCH",
+      body: JSON.stringify({ ativa }),
+    },
+  );
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao alterar status da condição nutricional');
+    throw new Error(
+      erro.erro || "Erro ao alterar status da condição nutricional",
+    );
   }
   return response.json();
 };
@@ -1075,12 +1205,12 @@ export const toggleRestricaoAcompanhanteAtiva = async (id, ativa) => {
  */
 export const listarConvenios = async (todas = false) => {
   const response = await fetch(
-    `${API_URL}/convenios${todas ? '?incluirInativas=true' : ''}`,
-    fetchConfigAuth()
+    `${API_URL}/convenios${todas ? "?incluirInativas=true" : ""}`,
+    fetchConfigAuth(),
   );
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao listar convênios');
+    throw new Error(erro.erro || "Erro ao listar convênios");
   }
   return response.json();
 };
@@ -1091,12 +1221,12 @@ export const listarConvenios = async (todas = false) => {
 export const criarConvenio = async (convenio) => {
   const response = await fetch(`${API_URL}/convenios`, {
     ...fetchConfigAuth(),
-    method: 'POST',
-    body: JSON.stringify(convenio)
+    method: "POST",
+    body: JSON.stringify(convenio),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao criar convênio');
+    throw new Error(erro.erro || "Erro ao criar convênio");
   }
   return response.json();
 };
@@ -1107,12 +1237,12 @@ export const criarConvenio = async (convenio) => {
 export const atualizarConvenio = async (id, convenio) => {
   const response = await fetch(`${API_URL}/convenios/${id}`, {
     ...fetchConfigAuth(),
-    method: 'PUT',
-    body: JSON.stringify(convenio)
+    method: "PUT",
+    body: JSON.stringify(convenio),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao atualizar convênio');
+    throw new Error(erro.erro || "Erro ao atualizar convênio");
   }
   return response.json();
 };
@@ -1123,12 +1253,12 @@ export const atualizarConvenio = async (id, convenio) => {
 export const toggleConvenioAtivo = async (id, ativa) => {
   const response = await fetch(`${API_URL}/convenios/${id}/toggle`, {
     ...fetchConfigAuth(),
-    method: 'PATCH',
-    body: JSON.stringify({ ativa })
+    method: "PATCH",
+    body: JSON.stringify({ ativa }),
   });
   if (!response.ok) {
     const erro = await response.json();
-    throw new Error(erro.erro || 'Erro ao alterar status do convênio');
+    throw new Error(erro.erro || "Erro ao alterar status do convênio");
   }
   return response.json();
 };
