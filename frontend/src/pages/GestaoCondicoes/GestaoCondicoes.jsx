@@ -120,13 +120,15 @@ function GestaoCondicoes() {
     return (
       <div className="gr-container">
         <div className="gr-header">
-          <h1>🩺 Condições Nutricionais</h1>
-          <button
-            className="gr-btn-voltar"
-            onClick={() => navigate("/admin/cadastros")}
-          >
-            ← Voltar
-          </button>
+          <div className="gr-header-left">
+            <button className="gr-btn-voltar" onClick={() => navigate("/admin/cadastros")}>
+              ← Voltar
+            </button>
+            <div className="gr-header-text">
+              <h1>🩺 Condições Nutricionais</h1>
+              <p className="gr-subtitulo">Gerenciar condições nutricionais para prescrições</p>
+            </div>
+          </div>
         </div>
         <div className="gr-carregando">⏳ Carregando...</div>
       </div>
@@ -136,13 +138,15 @@ function GestaoCondicoes() {
   return (
     <div className="gr-container">
       <div className="gr-header">
-        <h1>🩺 Condições Nutricionais</h1>
-        <button
-          className="gr-btn-voltar"
-          onClick={() => navigate("/admin/cadastros")}
-        >
-          ← Voltar
-        </button>
+        <div className="gr-header-left">
+          <button className="gr-btn-voltar" onClick={() => navigate("/admin/cadastros")}>
+            ← Voltar
+          </button>
+          <div className="gr-header-text">
+            <h1>🩺 Condições Nutricionais</h1>
+            <p className="gr-subtitulo">Gerenciar condições nutricionais para prescrições</p>
+          </div>
+        </div>
       </div>
 
       <div className="gr-acoes">

@@ -163,13 +163,6 @@ function GestaoImportacao() {
       </div>
 
       <div className="card-importacao">
-        <div className="card-header">
-          <h2>Suplementos e Acréscimos</h2>
-          <p className="card-descricao">
-            Importe planilhas Excel com os itens de suplementação
-          </p>
-        </div>
-
         <div className="card-body">
           {/* Estatísticas */}
           {estatisticas && (

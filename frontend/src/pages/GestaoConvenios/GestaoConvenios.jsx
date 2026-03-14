@@ -118,15 +118,19 @@ function GestaoConvenios() {
     return (
       <div className="gc-container">
         <div className="gc-header">
-          <h1>Convênios</h1>
-          <button
-            className="gc-btn-voltar"
-            onClick={() => navigate("/admin/cadastros")}
-          >
-            ← Voltar
-          </button>
+          <div className="gc-header-left">
+            <button
+              className="gc-btn-voltar"
+              onClick={() => navigate("/admin/cadastros")}
+            >
+              ← Voltar
+            </button>
+            <div className="gc-header-text">
+              <h1>🏦 Convênios</h1>
+              <p className="gc-subtitulo">Gerenciar tipos de convênio disponíveis</p>
+            </div>
+          </div>
         </div>
-        <div className="gc-carregando">Carregando...</div>
       </div>
     );
   }
@@ -134,13 +138,18 @@ function GestaoConvenios() {
   return (
     <div className="gc-container">
       <div className="gc-header">
-        <h1>Convênios</h1>
-        <button
-          className="gc-btn-voltar"
-          onClick={() => navigate("/admin/cadastros")}
-        >
-          ← Voltar
-        </button>
+        <div className="gc-header-left">
+          <button
+            className="gc-btn-voltar"
+            onClick={() => navigate("/admin/cadastros")}
+          >
+            ← Voltar
+          </button>
+          <div className="gc-header-text">
+            <h1>🏦 Convênios</h1>
+            <p className="gc-subtitulo">Gerenciar tipos de convênio disponíveis</p>
+          </div>
+        </div>
       </div>
 
       <div className="gc-acoes">

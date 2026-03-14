@@ -1,26 +1,54 @@
-/* frontend/src/pages/GestaoRestricoes/GestaoRestricoes.css */
+/* ============================================
+   SALUSVITA TECH - CONDIÇÕES NUTRICIONAIS
+   Desenvolvido por FerMax Solution
+   Prefixo: gr- (gestão condições/restrições)
+   ============================================ */
 
 .gr-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 30px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  min-height: 100vh;
+  padding: 32px;
+  min-height: calc(100vh - 68px);
+  font-family: var(--app-font-body);
 }
 
+/* ===== HEADER ===== */
 .gr-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 3px solid #14b8a6;
+  margin-bottom: 24px;
+  padding: 20px 25px;
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
+}
+
+.gr-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gr-header-text {
+  display: flex;
+  flex-direction: column;
 }
 
 .gr-header h1 {
-  font-size: 28px;
-  color: #0f766e;
   margin: 0;
+  font-family: var(--app-font-display);
+  font-size: 1.5rem;
+  color: var(--app-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.gr-subtitulo {
+  font-size: 0.8125rem;
+  color: var(--app-gray-500);
+  margin: 2px 0 0 0;
 }
 
 .gr-btn-voltar {
@@ -33,7 +61,8 @@
   font-weight: 600;
   font-family: var(--app-font-body);
   cursor: pointer;
-  transition: all var(--app-transition-fast);
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .gr-btn-voltar:hover {
@@ -42,33 +71,36 @@
   transform: translateX(-3px);
 }
 
+/* ===== BARRA DE AÇÕES ===== */
 .gr-acoes {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 24px;
+  padding: 18px 25px;
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
 }
 
 .gr-btn-novo {
-  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-secondary) 100%);
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 10px 22px;
+  border-radius: var(--app-radius-md);
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  transition: all 0.3s;
-  box-shadow: 0 4px 6px rgba(20, 184, 166, 0.3);
+  font-family: var(--app-font-body);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(13, 148, 136, 0.25);
 }
 
 .gr-btn-novo:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(20, 184, 166, 0.4);
+  box-shadow: 0 6px 12px rgba(13, 148, 136, 0.35);
 }
 
 .gr-filtros {
@@ -82,42 +114,48 @@
   gap: 8px;
   cursor: pointer;
   font-weight: 500;
-  color: #334155;
+  font-size: 14px;
+  color: var(--app-gray-700);
 }
 
 .gr-filtros input[type="radio"] {
   cursor: pointer;
+  accent-color: var(--app-primary);
 }
 
+/* ===== ESTADOS ===== */
 .gr-carregando {
   text-align: center;
   padding: 60px;
-  font-size: 20px;
-  color: #64748b;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  font-size: 18px;
+  color: var(--app-gray-500);
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
 }
 
 .gr-vazio {
   text-align: center;
   padding: 80px 40px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
 }
 
 .gr-vazio p {
   font-size: 18px;
-  color: #64748b;
+  color: var(--app-gray-500);
   margin-bottom: 20px;
 }
 
-/* Tabela */
+/* ===== TABELA ===== */
 .gr-tabela-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
   overflow: hidden;
 }
 
@@ -127,46 +165,46 @@
 }
 
 .gr-tabela thead {
-  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-primary-dark) 100%);
   color: white;
 }
 
 .gr-tabela th {
-  padding: 16px;
+  padding: 14px 16px;
   text-align: left;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 }
 
 .gr-tabela tbody tr {
-  border-bottom: 1px solid #e2e8f0;
-  transition: background 0.2s;
+  border-bottom: 1px solid var(--app-gray-100);
+  transition: background 0.15s ease;
 }
 
 .gr-tabela tbody tr:hover {
-  background: #f8fafc;
+  background: #f0fdfa;
 }
 
 .gr-tabela tbody tr.gr-inativa {
-  opacity: 0.6;
-  background: #f1f5f9;
+  opacity: 0.55;
+  background: var(--app-gray-50);
 }
 
 .gr-tabela td {
-  padding: 16px;
-  font-size: 14px;
-  color: #334155;
+  padding: 14px 16px;
+  font-size: 0.875rem;
+  color: var(--app-gray-700);
 }
 
 .gr-nome {
   font-weight: 600;
-  color: #0f766e;
+  color: var(--app-primary-dark);
 }
 
 .gr-descricao {
-  color: #64748b;
+  color: var(--app-gray-500);
   max-width: 300px;
 }
 
@@ -174,7 +212,7 @@
   display: inline-block;
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -197,37 +235,30 @@
 .gr-btn-toggle {
   padding: 6px 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--app-radius-sm);
   cursor: pointer;
   font-size: 16px;
   transition: all 0.2s;
-}
-
-.gr-btn-editar {
-  background: #f1f5f9;
+  background: var(--app-gray-50);
 }
 
 .gr-btn-editar:hover {
-  background: #e2e8f0;
+  background: var(--app-gray-200);
   transform: scale(1.1);
-}
-
-.gr-btn-toggle {
-  background: #f1f5f9;
 }
 
 .gr-btn-toggle:hover {
   transform: scale(1.1);
 }
 
-/* Modal */
+/* ===== MODAL ===== */
 .gr-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -236,57 +267,53 @@
 }
 
 .gr-modal {
-  background: white;
-  border-radius: 16px;
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
   width: 90%;
   max-width: 600px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-  animation: slideDown 0.3s ease;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: grSlideDown 0.3s ease;
+  overflow: hidden;
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes grSlideDown {
+  from { opacity: 0; transform: translateY(-40px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .gr-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
-  border-bottom: 2px solid #e2e8f0;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, var(--app-primary), var(--app-secondary));
+  color: white;
 }
 
 .gr-modal-header h2 {
   margin: 0;
-  color: #0f766e;
-  font-size: 22px;
+  font-family: var(--app-font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .gr-modal-fechar {
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  font-size: 24px;
-  color: #64748b;
+  font-size: 18px;
+  color: white;
   cursor: pointer;
-  transition: all 0.2s;
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 50%;
+  transition: background 0.2s;
 }
 
 .gr-modal-fechar:hover {
-  background: #f1f5f9;
-  color: #dc2626;
+  background: rgba(255, 255, 255, 0.35);
 }
 
 .gr-modal-form {
@@ -294,97 +321,107 @@
 }
 
 .gr-campo {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .gr-campo label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 600;
-  color: #334155;
-  font-size: 14px;
+  color: var(--app-gray-700);
+  font-size: 0.8125rem;
 }
 
 .gr-campo input,
 .gr-campo textarea {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
+  padding: 10px 14px;
+  border: 2px solid var(--app-gray-200);
+  border-radius: var(--app-radius-sm);
   font-size: 14px;
-  transition: all 0.3s;
-  font-family: inherit;
+  font-family: var(--app-font-body);
+  color: var(--app-gray-800);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.gr-campo textarea {
+  resize: vertical;
 }
 
 .gr-campo input:focus,
 .gr-campo textarea:focus {
   outline: none;
-  border-color: #14b8a6;
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
 
 .gr-campo small {
   display: block;
   margin-top: 6px;
-  color: #64748b;
-  font-size: 12px;
+  color: var(--app-gray-500);
+  font-size: 0.75rem;
 }
 
 .gr-modal-acoes {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 2px solid #e2e8f0;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--app-gray-200);
 }
 
 .gr-btn-cancelar,
 .gr-btn-salvar {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
+  padding: 10px 22px;
+  border-radius: var(--app-radius-md);
   font-size: 14px;
   font-weight: 600;
+  font-family: var(--app-font-body);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
 }
 
 .gr-btn-cancelar {
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--app-gray-100);
+  color: var(--app-gray-700);
+  border: 1px solid var(--app-gray-200);
 }
 
 .gr-btn-cancelar:hover {
-  background: #cbd5e1;
+  background: var(--app-gray-200);
 }
 
 .gr-btn-salvar {
-  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-secondary) 100%);
   color: white;
-  box-shadow: 0 4px 6px rgba(20, 184, 166, 0.3);
+  border: none;
+  box-shadow: 0 4px 6px rgba(13, 148, 136, 0.25);
 }
 
 .gr-btn-salvar:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(20, 184, 166, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(13, 148, 136, 0.35);
 }
 
-/* Responsividade */
+/* ===== RESPONSIVO ===== */
 @media (max-width: 768px) {
   .gr-container {
-    padding: 20px 15px;
+    padding: 16px;
   }
 
   .gr-header {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     align-items: flex-start;
+    padding: 16px 20px;
   }
 
   .gr-acoes {
     flex-direction: column;
-    gap: 15px;
+    gap: 16px;
+    padding: 16px 20px;
   }
 
   .gr-tabela-container {

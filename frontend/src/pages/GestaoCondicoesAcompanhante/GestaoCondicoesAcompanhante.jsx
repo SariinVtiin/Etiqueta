@@ -115,13 +115,15 @@ function GestaoCondicoesAcompanhante() {
     return (
       <div className="gra-container">
         <div className="gra-header">
-          <h1>👤 Condições Nutricionais do Acompanhante</h1>
-          <button
-            className="gra-btn-voltar"
-            onClick={() => navigate("/admin/cadastros")}
-          >
-            ← Voltar
-          </button>
+          <div className="gra-header-left">
+            <button className="gra-btn-voltar" onClick={() => navigate("/admin/cadastros")}>
+              ← Voltar
+            </button>
+            <div className="gra-header-text">
+              <h1>👤 Cond. Nutricionais do Acompanhante</h1>
+              <p className="gra-subtitulo">Condições nutricionais específicas para acompanhantes</p>
+            </div>
+          </div>
         </div>
         <div className="gra-carregando">⏳ Carregando...</div>
       </div>
@@ -131,13 +133,15 @@ function GestaoCondicoesAcompanhante() {
   return (
     <div className="gra-container">
       <div className="gra-header">
-        <h1>👤 Condições Nutricionais do Acompanhante</h1>
-        <button
-          className="gra-btn-voltar"
-          onClick={() => navigate("/admin/cadastros")}
-        >
-          ← Voltar
-        </button>
+        <div className="gra-header-left">
+          <button className="gra-btn-voltar" onClick={() => navigate("/admin/cadastros")}>
+            ← Voltar
+          </button>
+          <div className="gra-header-text">
+            <h1>👤 Cond. Nutricionais do Acompanhante</h1>
+            <p className="gra-subtitulo">Condições nutricionais específicas para acompanhantes</p>
+          </div>
+        </div>
       </div>
 
       <div className="gra-info-box">
