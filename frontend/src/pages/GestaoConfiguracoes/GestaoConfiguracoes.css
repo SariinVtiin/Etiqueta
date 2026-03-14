@@ -1,16 +1,28 @@
-/* frontend/src/pages/GestaoConfiguracoes/GestaoConfiguracoes.css */
+/* ============================================
+   SALUSVITA TECH - CONFIGURAÇÕES DO SISTEMA
+   Desenvolvido por FerMax Solution
+   Prefixo: gcfg- (gestão configurações)
+   ============================================ */
 
 .gcfg-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 32px 16px;
+  min-height: calc(100vh - 68px);
+  font-family: var(--app-font-body);
 }
 
+/* ===== HEADER ===== */
 .gcfg-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 28px;
+  padding: 20px 25px;
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
 }
 
 .gcfg-header-left {
@@ -20,42 +32,48 @@
 }
 
 .gcfg-btn-voltar {
-  padding: 8px 16px;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  cursor: pointer;
+  padding: 10px 20px;
+  background: var(--app-gray-100);
+  color: var(--app-gray-700);
+  border: 1px solid var(--app-gray-200);
+  border-radius: var(--app-radius-md);
   font-size: 14px;
-  color: #475569;
-  transition: all 0.2s;
+  font-weight: 600;
+  font-family: var(--app-font-body);
+  cursor: pointer;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .gcfg-btn-voltar:hover {
-  background: #e2e8f0;
+  background: var(--app-gray-200);
+  color: var(--app-gray-800);
+  transform: translateX(-3px);
 }
 
 .gcfg-titulo {
-  font-size: 22px;
+  font-family: var(--app-font-display);
+  font-size: 1.375rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--app-primary);
   margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
 }
 
 .gcfg-subtitulo {
-  font-size: 14px;
-  color: #64748b;
+  font-size: 0.875rem;
+  color: var(--app-gray-500);
   margin: 0;
 }
 
 .gcfg-loading {
   text-align: center;
   padding: 40px;
-  color: #64748b;
+  color: var(--app-gray-500);
   font-size: 15px;
 }
 
-/* ── Cards ── */
+/* ===== CARDS ===== */
 .gcfg-cards {
   display: flex;
   flex-direction: column;
@@ -63,9 +81,10 @@
 }
 
 .gcfg-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  background: var(--app-white);
+  border: 1px solid var(--app-gray-200);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
   overflow: hidden;
 }
 
@@ -74,8 +93,8 @@
   align-items: flex-start;
   gap: 14px;
   padding: 20px 24px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--app-gray-50);
+  border-bottom: 1px solid var(--app-gray-200);
 }
 
 .gcfg-card-icone {
@@ -85,15 +104,16 @@
 }
 
 .gcfg-card-titulo {
-  font-size: 17px;
+  font-family: var(--app-font-display);
+  font-size: 1.0625rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--app-gray-800);
   margin: 0 0 4px 0;
 }
 
 .gcfg-card-desc {
-  font-size: 13px;
-  color: #64748b;
+  font-size: 0.8125rem;
+  color: var(--app-gray-500);
   margin: 0;
 }
 
@@ -104,7 +124,7 @@
   gap: 20px;
 }
 
-/* ── Campo ── */
+/* ===== CAMPO ===== */
 .gcfg-campo {
   display: flex;
   flex-direction: column;
@@ -112,41 +132,42 @@
 }
 
 .gcfg-campo label {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--app-gray-700);
 }
 
 .gcfg-input-hora {
   padding: 10px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 2px solid var(--app-gray-200);
+  border-radius: var(--app-radius-sm);
   font-size: 18px;
   font-weight: 600;
-  color: #0d9488;
+  font-family: var(--app-font-body);
+  color: var(--app-primary);
   width: fit-content;
   min-width: 120px;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
 }
 
 .gcfg-input-hora:focus {
   outline: none;
-  border-color: #0d9488;
+  border-color: var(--app-primary);
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
 
-/* ── Explicação visual ── */
+/* ===== EXPLICAÇÃO VISUAL ===== */
 .gcfg-explicacao {
-  background: #f0fdf9;
+  background: var(--app-primary-50);
   border: 1px solid #99f6e4;
-  border-radius: 10px;
+  border-radius: var(--app-radius-md);
   padding: 16px;
 }
 
 .gcfg-explicacao h4 {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: #0f766e;
+  color: var(--app-primary-dark);
   margin: 0 0 12px 0;
 }
 
@@ -163,8 +184,8 @@
 }
 
 .gcfg-fluxo-grupo strong {
-  font-size: 12px;
-  color: #374151;
+  font-size: 0.75rem;
+  color: var(--app-gray-700);
 }
 
 .gcfg-fluxo-itens {
@@ -176,7 +197,7 @@
 .gcfg-tag {
   padding: 4px 10px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
@@ -193,15 +214,15 @@
 }
 
 .gcfg-obs {
-  font-size: 11px;
-  color: #6b7280;
+  font-size: 0.6875rem;
+  color: var(--app-gray-500);
   margin: 10px 0 0 0;
 }
 
-/* ── Mensagem ── */
+/* ===== MENSAGEM ===== */
 .gcfg-mensagem {
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: var(--app-radius-sm);
   font-size: 14px;
   font-weight: 500;
 }
@@ -218,7 +239,7 @@
   border: 1px solid #fca5a5;
 }
 
-/* ── Ações ── */
+/* ===== AÇÕES ===== */
 .gcfg-acoes {
   display: flex;
   gap: 10px;
@@ -226,36 +247,55 @@
 
 .gcfg-btn-salvar {
   padding: 10px 24px;
-  background: #0d9488;
+  background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-secondary) 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--app-radius-md);
   font-size: 14px;
   font-weight: 600;
+  font-family: var(--app-font-body);
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(13, 148, 136, 0.25);
 }
 
 .gcfg-btn-salvar:hover:not(:disabled) {
-  background: #0f766e;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(13, 148, 136, 0.35);
 }
 
 .gcfg-btn-salvar:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .gcfg-btn-cancelar {
   padding: 10px 20px;
-  background: white;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  background: var(--app-gray-100);
+  color: var(--app-gray-700);
+  border: 1px solid var(--app-gray-200);
+  border-radius: var(--app-radius-md);
   font-size: 14px;
+  font-family: var(--app-font-body);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .gcfg-btn-cancelar:hover {
-  background: #f9fafb;
+  background: var(--app-gray-200);
+}
+
+/* ===== RESPONSIVO ===== */
+@media (max-width: 768px) {
+  .gcfg-container {
+    padding: 16px;
+  }
+
+  .gcfg-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 16px 20px;
+  }
 }

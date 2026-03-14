@@ -190,58 +190,23 @@ function GestaoUsuarios() {
   return (
     <div className="gu-page">
       {/* Header */}
-      <header className="gu-header">
-        <div className="gu-header-left">
-          <button
-            className="gu-btn-voltar"
-            onClick={() => navigate("/admin/cadastros")}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
+        <header className="gu-header">
+          <div className="gu-header-left">
+            <button
+              className="gu-btn-voltar"
+              onClick={() => navigate("/admin/cadastros")}
             >
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
+              ← Voltar
+            </button>
+            <div className="gu-header-text">
+              <h1>👥 Gestão de Usuários</h1>
+              <p>Gerencie os usuários do sistema</p>
+            </div>
+          </div>
+          <button className="gu-btn-novo" onClick={abrirModalCriar}>
+            + Novo Usuário
           </button>
-          <div className="gu-header-icon">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          </div>
-          <div className="gu-header-text">
-            <h1>Gestão de Usuários</h1>
-            <p>Gerencie os usuários do sistema</p>
-          </div>
-        </div>
-        <button className="gu-btn-novo" onClick={abrirModalCriar}>
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          Novo Usuário
-        </button>
-      </header>
+        </header>
 
       {/* Stats */}
       <div className="gu-stats">

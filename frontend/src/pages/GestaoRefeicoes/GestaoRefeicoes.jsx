@@ -215,38 +215,38 @@ function GestaoRefeicoes() {
 
   // ─── RENDER ───────────────────────────────────────────
   return (
-    <div className="gr-container">
+    <div className="grf-container">
       {/* HEADER */}
-      <div className="gr-header">
-        <div className="gr-header-left">
+      <div className="grf-header">
+        <div className="grf-header-left">
           <button
-            className="gr-btn-voltar"
+            className="grf-btn-voltar"
             onClick={() => navigate("/admin/cadastros")}
           >
             ← Voltar
           </button>
           <div>
-            <h1 className="gr-titulo">🍽️ Tipos de Refeição</h1>
-            <p className="gr-subtitulo">
+            <h1 className="grf-titulo">🍽️ Tipos de Refeição</h1>
+            <p className="grf-subtitulo">
               Gerencie as refeições e configure listas personalizadas
             </p>
           </div>
         </div>
-        <button className="gr-btn-novo" onClick={abrirModalNovo}>
+        <button className="grf-btn-novo" onClick={abrirModalNovo}>
           + Nova Refeição
         </button>
       </div>
 
       {/* FILTROS */}
-      <div className="gr-filtros">
+      <div className="grf-filtros">
         <button
-          className={`gr-filtro-btn ${filtro === "ativas" ? "ativo" : ""}`}
+          className={`grf-filtro-btn ${filtro === "ativas" ? "ativo" : ""}`}
           onClick={() => setFiltro("ativas")}
         >
           Ativas
         </button>
         <button
-          className={`gr-filtro-btn ${filtro === "todas" ? "ativo" : ""}`}
+          className={`grf-filtro-btn ${filtro === "todas" ? "ativo" : ""}`}
           onClick={() => setFiltro("todas")}
         >
           Todas
@@ -254,33 +254,33 @@ function GestaoRefeicoes() {
       </div>
 
       {/* LEGENDA */}
-      <div className="gr-legenda">
-        <span className="gr-legenda-item">
-          <span className="gr-badge-normal">Padrão</span> opções normais (Dieta,
+      <div className="grf-legenda">
+        <span className="grf-legenda-item">
+          <span className="grf-badge-normal">Padrão</span> opções normais (Dieta,
           Restrições, etc.)
         </span>
-        <span className="gr-legenda-item">
-          <span className="gr-badge-especial">Lista ✦</span> substitui tudo por
+        <span className="grf-legenda-item">
+          <span className="grf-badge-especial">Lista ✦</span> substitui tudo por
           produtos importados
         </span>
-        <span className="gr-legenda-item">
-          <span className="gr-badge-dia-atual">Dia Atual</span> etiqueta sai com
+        <span className="grf-legenda-item">
+          <span className="grf-badge-dia-atual">Dia Atual</span> etiqueta sai com
           data de hoje
         </span>
-        <span className="gr-legenda-item">
-          <span className="gr-badge-dia-proximo">Dia Seguinte</span> etiqueta
+        <span className="grf-legenda-item">
+          <span className="grf-badge-dia-proximo">Dia Seguinte</span> etiqueta
           sai com data de amanhã
         </span>
       </div>
 
       {/* LISTA */}
-      <div className="gr-lista">
+      <div className="grf-lista">
         {carregando ? (
-          <div className="gr-loading">Carregando...</div>
+          <div className="grf-loading">Carregando...</div>
         ) : refeicoes.length === 0 ? (
-          <div className="gr-vazio">
+          <div className="grf-vazio">
             <p>Nenhuma refeição encontrada.</p>
-            <button className="gr-btn-novo" onClick={abrirModalNovo}>
+            <button className="grf-btn-novo" onClick={abrirModalNovo}>
               + Criar primeira refeição
             </button>
           </div>
@@ -288,31 +288,31 @@ function GestaoRefeicoes() {
           refeicoes.map((r) => (
             <div
               key={r.id}
-              className={`gr-item ${!r.ativa ? "gr-item-inativa" : ""} ${r.tem_lista_personalizada ? "gr-item-especial" : ""}`}
+              className={`grf-item ${!r.ativa ? "grf-item-inativa" : ""} ${r.tem_lista_personalizada ? "grf-item-especial" : ""}`}
             >
-              <div className="gr-item-info">
-                <div className="gr-item-nome">
+              <div className="grf-item-info">
+                <div className="grf-item-nome">
                   {r.nome}
                   {r.tem_lista_personalizada && (
-                    <span className="gr-badge-especial">Lista ✦</span>
+                    <span className="grf-badge-especial">Lista ✦</span>
                   )}
                   {!r.ativa && (
-                    <span className="gr-badge-inativa">Inativa</span>
+                    <span className="grf-badge-inativa">Inativa</span>
                   )}
                   {/* ← NOVO: badge do grupo do dia */}
                   <span
-                    className={`gr-badge-grupo ${r.grupo_dia === "atual" ? "gr-badge-dia-atual" : "gr-badge-dia-proximo"}`}
+                    className={`grf-badge-grupo ${r.grupo_dia === "atual" ? "grf-badge-dia-atual" : "grf-badge-dia-proximo"}`}
                   >
                     {labelGrupoDia(r.grupo_dia)}
                   </span>
                 </div>
                 {r.descricao && (
-                  <div className="gr-item-descricao">{r.descricao}</div>
+                  <div className="grf-item-descricao">{r.descricao}</div>
                 )}
-                <div className="gr-item-meta">
+                <div className="grf-item-meta">
                   <span>Ordem: {r.ordem}</span>
                   {r.tem_lista_personalizada && estatisticas[r.id] && (
-                    <span className="gr-item-stats">
+                    <span className="grf-item-stats">
                       • {estatisticas[r.id].total_ativos || 0} produtos • Última
                       importação:{" "}
                       {formatarData(estatisticas[r.id].ultima_importacao)}
@@ -321,9 +321,9 @@ function GestaoRefeicoes() {
                 </div>
               </div>
 
-              <div className="gr-item-acoes">
+              <div className="grf-item-acoes">
                 <button
-                  className={`gr-btn-lista ${r.tem_lista_personalizada ? "lista-ativa" : "lista-inativa"}`}
+                  className={`grf-btn-lista ${r.tem_lista_personalizada ? "lista-ativa" : "lista-inativa"}`}
                   onClick={() => handleToggleLista(r)}
                   title={
                     r.tem_lista_personalizada
@@ -336,7 +336,7 @@ function GestaoRefeicoes() {
 
                 {r.tem_lista_personalizada && (
                   <button
-                    className="gr-btn-importar"
+                    className="grf-btn-importar"
                     onClick={() => abrirModalImport(r)}
                     title="Importar planilha de produtos"
                   >
@@ -345,13 +345,13 @@ function GestaoRefeicoes() {
                 )}
 
                 <button
-                  className="gr-btn-editar"
+                  className="grf-btn-editar"
                   onClick={() => abrirModalEditar(r)}
                 >
                   ✏️ Editar
                 </button>
                 <button
-                  className={`gr-btn-toggle ${r.ativa ? "desativar" : "ativar"}`}
+                  className={`grf-btn-toggle ${r.ativa ? "desativar" : "ativar"}`}
                   onClick={() => handleToggleAtiva(r)}
                 >
                   {r.ativa ? "🔴 Desativar" : "🟢 Ativar"}
@@ -364,16 +364,16 @@ function GestaoRefeicoes() {
 
       {/* ─── MODAL CRUD ─────────────────────────────────── */}
       {mostrarModal && (
-        <div className="gr-overlay" onClick={fecharModal}>
-          <div className="gr-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="gr-modal-header">
+        <div className="grf-overlay" onClick={fecharModal}>
+          <div className="grf-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="grf-modal-header">
               <h2>{refeicaoEditando ? "Editar Refeição" : "Nova Refeição"}</h2>
-              <button className="gr-modal-fechar" onClick={fecharModal}>
+              <button className="grf-modal-fechar" onClick={fecharModal}>
                 ✕
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="gr-modal-form">
-              <div className="gr-campo">
+            <form onSubmit={handleSubmit} className="grf-modal-form">
+              <div className="grf-campo">
                 <label>Nome *</label>
                 <input
                   type="text"
@@ -385,7 +385,7 @@ function GestaoRefeicoes() {
                   autoFocus
                 />
               </div>
-              <div className="gr-campo">
+              <div className="grf-campo">
                 <label>Descrição</label>
                 <input
                   type="text"
@@ -396,7 +396,7 @@ function GestaoRefeicoes() {
                   placeholder="Opcional"
                 />
               </div>
-              <div className="gr-campo">
+              <div className="grf-campo">
                 <label>Ordem de exibição</label>
                 <input
                   type="number"
@@ -410,11 +410,11 @@ function GestaoRefeicoes() {
               </div>
 
               {/* ← NOVO CAMPO: grupo_dia */}
-              <div className="gr-campo">
+              <div className="grf-campo">
                 <label>Data de consumo na etiqueta *</label>
-                <div className="gr-grupo-dia-opcoes">
+                <div className="grf-grupo-dia-opcoes">
                   <label
-                    className={`gr-radio-opcao ${formData.grupo_dia === "atual" ? "selecionado" : ""}`}
+                    className={`grf-radio-opcao ${formData.grupo_dia === "atual" ? "selecionado" : ""}`}
                   >
                     <input
                       type="radio"
@@ -425,9 +425,9 @@ function GestaoRefeicoes() {
                         setFormData({ ...formData, grupo_dia: "atual" })
                       }
                     />
-                    <div className="gr-radio-conteudo">
-                      <span className="gr-radio-titulo">📅 Dia Atual</span>
-                      <span className="gr-radio-desc">
+                    <div className="grf-radio-conteudo">
+                      <span className="grf-radio-titulo">📅 Dia Atual</span>
+                      <span className="grf-radio-desc">
                         Se prescrito até o corte: etiqueta sai com{" "}
                         <strong>hoje</strong>
                         <br />
@@ -437,7 +437,7 @@ function GestaoRefeicoes() {
                     </div>
                   </label>
                   <label
-                    className={`gr-radio-opcao ${formData.grupo_dia === "proximo" ? "selecionado" : ""}`}
+                    className={`grf-radio-opcao ${formData.grupo_dia === "proximo" ? "selecionado" : ""}`}
                   >
                     <input
                       type="radio"
@@ -448,9 +448,9 @@ function GestaoRefeicoes() {
                         setFormData({ ...formData, grupo_dia: "proximo" })
                       }
                     />
-                    <div className="gr-radio-conteudo">
-                      <span className="gr-radio-titulo">📅 Dia Seguinte</span>
-                      <span className="gr-radio-desc">
+                    <div className="grf-radio-conteudo">
+                      <span className="grf-radio-titulo">📅 Dia Seguinte</span>
+                      <span className="grf-radio-desc">
                         Se prescrito até o corte: etiqueta sai com{" "}
                         <strong>amanhã</strong>
                         <br />
@@ -462,15 +462,15 @@ function GestaoRefeicoes() {
                 </div>
               </div>
 
-              <div className="gr-modal-acoes">
+              <div className="grf-modal-acoes">
                 <button
                   type="button"
-                  className="gr-btn-cancelar"
+                  className="grf-btn-cancelar"
                   onClick={fecharModal}
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="gr-btn-salvar">
+                <button type="submit" className="grf-btn-salvar">
                   {refeicaoEditando ? "Salvar Alterações" : "Criar Refeição"}
                 </button>
               </div>
@@ -481,39 +481,39 @@ function GestaoRefeicoes() {
 
       {/* ─── MODAL IMPORTAÇÃO ───────────────────────────── */}
       {modalImport && (
-        <div className="gr-overlay" onClick={fecharModalImport}>
+        <div className="grf-overlay" onClick={fecharModalImport}>
           <div
-            className="gr-modal gr-modal-import"
+            className="grf-modal grf-modal-import"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="gr-modal-header gr-modal-header-import">
+            <div className="grf-modal-header grf-modal-header-import">
               <div>
                 <h2>📥 Importar Planilha</h2>
-                <p className="gr-modal-subtitulo">{modalImport.nome}</p>
+                <p className="grf-modal-subtitulo">{modalImport.nome}</p>
               </div>
-              <button className="gr-modal-fechar" onClick={fecharModalImport}>
+              <button className="grf-modal-fechar" onClick={fecharModalImport}>
                 ✕
               </button>
             </div>
 
-            <div className="gr-modal-body">
+            <div className="grf-modal-body">
               {estatisticas[modalImport.id] && (
-                <div className="gr-stats-box">
-                  <div className="gr-stat">
-                    <span className="gr-stat-label">Produtos ativos</span>
-                    <span className="gr-stat-valor">
+                <div className="grf-stats-box">
+                  <div className="grf-stat">
+                    <span className="grf-stat-label">Produtos ativos</span>
+                    <span className="grf-stat-valor">
                       {estatisticas[modalImport.id].total_ativos || 0}
                     </span>
                   </div>
-                  <div className="gr-stat">
-                    <span className="gr-stat-label">Versões importadas</span>
-                    <span className="gr-stat-valor">
+                  <div className="grf-stat">
+                    <span className="grf-stat-label">Versões importadas</span>
+                    <span className="grf-stat-valor">
                       {estatisticas[modalImport.id].total_versoes || 0}
                     </span>
                   </div>
-                  <div className="gr-stat">
-                    <span className="gr-stat-label">Última importação</span>
-                    <span className="gr-stat-valor gr-stat-data">
+                  <div className="grf-stat">
+                    <span className="grf-stat-label">Última importação</span>
+                    <span className="grf-stat-valor grf-stat-data">
                       {formatarData(
                         estatisticas[modalImport.id].ultima_importacao,
                       )}
@@ -522,8 +522,8 @@ function GestaoRefeicoes() {
                 </div>
               )}
 
-              <div className="gr-upload-area">
-                <label className="gr-file-label">
+              <div className="grf-upload-area">
+                <label className="grf-file-label">
                   <input
                     type="file"
                     accept=".xlsx,.xls"
@@ -532,16 +532,16 @@ function GestaoRefeicoes() {
                       setResultadoImport(null);
                     }}
                     disabled={importando}
-                    className="gr-file-input"
+                    className="grf-file-input"
                   />
-                  <span className="gr-file-btn">
+                  <span className="grf-file-btn">
                     📁 Selecionar planilha (.xlsx)
                   </span>
                 </label>
                 {arquivoImport && (
-                  <div className="gr-arquivo-info">
+                  <div className="grf-arquivo-info">
                     <span>📄 {arquivoImport.name}</span>
-                    <span className="gr-arquivo-size">
+                    <span className="grf-arquivo-size">
                       ({(arquivoImport.size / 1024).toFixed(1)} KB)
                     </span>
                   </div>
@@ -549,7 +549,7 @@ function GestaoRefeicoes() {
               </div>
 
               <button
-                className="gr-btn-importar-exec"
+                className="grf-btn-importar-exec"
                 onClick={handleImportar}
                 disabled={!arquivoImport || importando}
               >
@@ -557,13 +557,13 @@ function GestaoRefeicoes() {
               </button>
 
               {resultadoImport && (
-                <div className={`gr-resultado ${resultadoImport.tipo}`}>
+                <div className={`grf-resultado ${resultadoImport.tipo}`}>
                   <strong>
                     {resultadoImport.tipo === "sucesso" ? "✅" : "❌"}{" "}
                     {resultadoImport.mensagem}
                   </strong>
                   {resultadoImport.detalhes && (
-                    <div className="gr-resultado-detalhes">
+                    <div className="grf-resultado-detalhes">
                       <p>
                         • Produtos importados:{" "}
                         {resultadoImport.detalhes.total_importado}
@@ -574,23 +574,23 @@ function GestaoRefeicoes() {
                 </div>
               )}
 
-              <div className="gr-instrucoes">
+              <div className="grf-instrucoes">
                 <h4>📋 Formato da planilha</h4>
                 <p>
                   A planilha deve ter as colunas (maiúsculas ou minúsculas):
                 </p>
-                <div className="gr-colunas">
-                  <span className="gr-coluna obrig">
+                <div className="grf-colunas">
+                  <span className="grf-coluna obrig">
                     PRODUTO <small>obrigatório</small>
                   </span>
-                  <span className="gr-coluna">
+                  <span className="grf-coluna">
                     GRAMATURA <small>opcional</small>
                   </span>
-                  <span className="gr-coluna">
+                  <span className="grf-coluna">
                     VALOR <small>opcional</small>
                   </span>
                 </div>
-                <p className="gr-aviso">
+                <p className="grf-aviso">
                   ⚠️ A importação cria uma nova versão. O histórico de
                   prescrições anteriores é preservado.
                 </p>

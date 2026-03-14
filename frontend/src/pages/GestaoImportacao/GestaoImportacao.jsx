@@ -1,8 +1,13 @@
+// frontend/src/pages/GestaoImportacao/GestaoImportacao.jsx
+// ============================================
+// SALUSVITA TECH - IMPORTAR ACRÉSCIMOS
+// Desenvolvido por FerMax Solution
+// ============================================
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./ImportarAcrescimos.css";
+import "./GestaoImportacao.css";
 
-function ImportarAcrescimos() {
+function GestaoImportacao() {
   const navigate = useNavigate();
 
   const [arquivo, setArquivo] = useState(null);
@@ -10,12 +15,12 @@ function ImportarAcrescimos() {
   const [resultado, setResultado] = useState(null);
   const [estatisticas, setEstatisticas] = useState(null);
 
-  // ✅ Base URL configurável (CRA)
+  // Base URL configurável (CRA)
   const API_BASE =
     process.env.REACT_APP_API_URL?.replace(/\/$/, "") ||
     "http://localhost:3001";
 
-  // ✅ Helper padrão com Bearer token
+  // Helper padrão com Bearer token
   const apiFetch = async (path, options = {}) => {
     const token = localStorage.getItem("token");
     const headers = {
@@ -28,10 +33,8 @@ function ImportarAcrescimos() {
       headers,
     });
 
-    // tenta json sempre
     const data = await res.json().catch(() => null);
 
-    // se backend retornar 401/403 etc
     if (!res.ok) {
       const msg =
         (data && (data.erro || data.message)) ||
@@ -143,88 +146,88 @@ function ImportarAcrescimos() {
 
   return (
     <div className="importar-acrescimos-container">
+      {/* Header padronizado */}
+      <div className="ia-header">
+        <button
+          className="ia-btn-voltar"
+          onClick={() => navigate("/admin/cadastros")}
+        >
+          ← Voltar
+        </button>
+        <div className="ia-header-text">
+          <h1 className="ia-titulo">📥 Importar Acréscimos</h1>
+          <p className="ia-subtitulo">
+            Gerencie as importações de suplementos e acréscimos
+          </p>
+        </div>
+      </div>
+
       <div className="card-importacao">
         <div className="card-header">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 12,
-              alignItems: "center",
-            }}
-          >
-            <div>
-              <h2>Importar Acréscimos</h2>
-              <p className="card-descricao">
-                Importe a planilha Excel com os itens de acréscimo disponíveis
-                para prescrições
-              </p>
-            </div>
-
-            {/* ✅ Voltar padrão (rota) */}
-            <button
-              className="btn-voltar"
-              onClick={() => navigate("/admin/cadastros")}
-            >
-              ← Voltar
-            </button>
-          </div>
+          <h2>Suplementos e Acréscimos</h2>
+          <p className="card-descricao">
+            Importe planilhas Excel com os itens de suplementação
+          </p>
         </div>
 
         <div className="card-body">
+          {/* Estatísticas */}
           {estatisticas && (
             <div className="estatisticas-box">
               <div className="stat-item">
-                <span className="stat-label">Total de Itens:</span>
-                <span className="stat-valor">{estatisticas.total}</span>
+                <span className="stat-label">Total de Itens</span>
+                <span className="stat-valor">{estatisticas.total || 0}</span>
               </div>
               <div className="stat-item">
-                <span className="stat-label">Ativos:</span>
-                <span className="stat-valor ativo">{estatisticas.ativos}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Inativos (histórico):</span>
-                <span className="stat-valor inativo">
-                  {estatisticas.inativos}
+                <span className="stat-label">Ativos</span>
+                <span className="stat-valor ativo">
+                  {estatisticas.ativos || 0}
                 </span>
               </div>
               <div className="stat-item">
-                <span className="stat-label">Última Importação:</span>
-                <span className="stat-valor">
+                <span className="stat-label">Inativos</span>
+                <span className="stat-valor inativo">
+                  {estatisticas.inativos || 0}
+                </span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">Última Importação</span>
+                <span className="stat-label" style={{ fontWeight: 600 }}>
                   {formatarData(estatisticas.ultima_importacao)}
                 </span>
               </div>
             </div>
           )}
 
+          {/* Upload de Arquivo */}
           <div className="upload-section">
             <label className="file-label">
               <input
                 type="file"
+                className="file-input"
                 accept=".xlsx,.xls"
                 onChange={handleFileChange}
-                disabled={importando}
-                className="file-input"
               />
-              <span className="file-button">
-                📁 Selecionar Planilha (.xlsx)
-              </span>
+              <div className="file-button">
+                📂 Clique para selecionar a planilha (.xlsx ou .xls)
+              </div>
             </label>
 
             {arquivo && (
               <div className="arquivo-selecionado">
-                <span className="arquivo-nome">{arquivo.name}</span>
+                <span className="arquivo-nome">📄 {arquivo.name}</span>
                 <span className="arquivo-tamanho">
-                  ({(arquivo.size / 1024).toFixed(2)} KB)
+                  ({(arquivo.size / 1024).toFixed(1)} KB)
                 </span>
               </div>
             )}
           </div>
 
+          {/* Botão Importar */}
           <button
+            className="btn-importar"
             onClick={handleImportar}
             disabled={!arquivo || importando}
-            className="btn-importar"
           >
             {importando ? "⏳ Importando..." : "📥 Importar Planilha"}
           </button>
@@ -282,4 +285,4 @@ function ImportarAcrescimos() {
   );
 }
 
-export default ImportarAcrescimos;
+export default GestaoImportacao;

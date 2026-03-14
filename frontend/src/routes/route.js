@@ -15,7 +15,7 @@ import GestaoConfiguracoes from "../pages/GestaoConfiguracoes/GestaoConfiguracoe
 import GestaoCondicoes from "../pages/GestaoCondicoes/GestaoCondicoes";
 import GestaoCondicoesAcompanhante from "../pages/GestaoCondicoesAcompanhante/GestaoCondicoesAcompanhante";
 
-import ImportarAcrescimos from "../components/configuracoes/ImportarAcrescimos";
+import GestaoImportacao from "../pages/GestaoImportacao/GestaoImportacao";
 import GestaoConvenios from "../pages/GestaoConvenios/GestaoConvenios";
 
 import RequireAuth from "./RequireAuth";
@@ -49,7 +49,7 @@ export const routes = [
               { path: "/admin/usuarios", element: <GestaoUsuarios /> },
               { path: "/admin/dietas", element: <GestaoDietas /> },
               { path: "/admin/leitos", element: <GestaoLeitos /> },
-              { path: "/admin/acrescimos", element: <ImportarAcrescimos /> },
+              { path: "/admin/acrescimos", element: <GestaoImportacao /> },
               { path: "/admin/convenios", element: <GestaoConvenios /> },
               { path: "/admin/refeicoes", element: <GestaoRefeicoes /> },
               { path: "/admin/configuracoes",element: <GestaoConfiguracoes />,
