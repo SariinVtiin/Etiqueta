@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SalusVita Tech — Gestão Nutricional Hospitalar Inteligente</title>
+  <meta name="description" content="Sistema completo de gestão nutricional hospitalar. Prescrição à beira leito, rastreabilidade total, mapas de refeição e etiquetas automáticas." />
+  <meta property="og:title" content="SalusVita Tech — Gestão Nutricional Hospitalar" />
+  <meta property="og:description" content="Do leito à cozinha, tudo integrado. Prescrições digitais, rastreabilidade e eficiência operacional." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://salusvitatech.com.br" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/site/css/styles.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <img src="/site/assets/Logo_SalusVita.png" alt="SalusVita Tech" class="nav-logo-img" />
+      </a>
+      <div class="nav-links">
+        <a href="/" class="active">Home</a>
+        <a href="/site/diferenciais">Diferenciais</a>
+        <a href="/site/prescricao">Prescrição</a>
+        <a href="/site/rastreabilidade">Rastreabilidade</a>
+        <a href="/site/como-funciona">Como Funciona</a>
+        <a href="/site/faq">FAQ</a>
+        <div class="nav-btn-group">
+          <a href="/login" class="nav-cta-login">
+            <i data-lucide="log-in"></i> Entrar
+          </a>
+          <a href="/site/contato" class="nav-cta-demo">Solicitar Demo</a>
+        </div>
+      </div>
+      <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="/" class="active">Home</a>
+    <a href="/site/diferenciais">Diferenciais</a>
+    <a href="/site/prescricao">Prescrição</a>
+    <a href="/site/rastreabilidade">Rastreabilidade</a>
+    <a href="/site/como-funciona">Como Funciona</a>
+    <a href="/site/faq">FAQ</a>
+    <div class="mobile-btn-group">
+      <a href="/login" class="mobile-login-btn">Entrar no Sistema</a>
+      <a href="/site/contato" class="mobile-demo-btn">Solicitar Demo</a>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="reveal">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          Sistema em Produção Hospitalar
+        </div>
+        <h1>
+          Gestão Nutricional
+          <span class="line-accent text-gradient">Hospitalar Inteligente</span>
+        </h1>
+        <p class="hero-desc">
+          Do leito à cozinha, tudo conectado em tempo real. Prescrições digitais à beira leito,
+          rastreabilidade completa de cada paciente e etiquetas automáticas para cada bandeja.
+        </p>
+        <div class="hero-actions">
+          <a href="/site/contato" class="btn-primary">Agende uma Demonstração</a>
+          <a href="/site/diferenciais" class="btn-outline">Conheça os Diferenciais</a>
+        </div>
+      </div>
+      <div class="hero-visual reveal" style="transition-delay:.15s">
+        <div class="hero-mock">
+          <div class="hero-mock-header">
+            <div class="mock-dot r"></div>
+            <div class="mock-dot y"></div>
+            <div class="mock-dot g"></div>
+            <span class="hero-mock-title">SalusVita Tech — Painel em Tempo Real</span>
+          </div>
+          <div class="mock-dashboard">
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Prescrições Ativas</div>
+              <div class="mock-stat-value">184</div>
+              <div class="mock-stat-change up">↑ 12% vs ontem</div>
+            </div>
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Bandejas Produzidas</div>
+              <div class="mock-stat-value">731</div>
+              <div class="mock-stat-change up">↑ 98.2% entregas</div>
+            </div>
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Leitos Ocupados</div>
+              <div class="mock-stat-value">92%</div>
+              <div class="mock-stat-change up">UTI + Internação</div>
+            </div>
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Etiquetas Impressas</div>
+              <div class="mock-stat-value">2.4k</div>
+              <div class="mock-stat-change up">↑ Hoje</div>
+            </div>
+            <div class="mock-patient-list">
+              <div class="mock-patient-header">
+                <span>Paciente</span><span>Unidade / Leito</span><span>Dieta</span><span>Status</span>
+              </div>
+              <div class="mock-patient-row">
+                <span>Maria Santos</span><span>UTI Adulto — L04</span><span>Pastosa Hipossódica</span>
+                <span class="mock-pill teal">Ativa</span>
+              </div>
+              <div class="mock-patient-row">
+                <span>Carlos Almeida</span><span>Internação — L12</span><span>Branda Diabética</span>
+                <span class="mock-pill teal">Ativa</span>
+              </div>
+              <div class="mock-patient-row">
+                <span>Ana Ribeiro</span><span>UTI Ped — L02</span><span>Líquida Restrita</span>
+                <span class="mock-pill amber">Pendente</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-float top-right">
+          <div class="hero-float-icon hf-icon-green"><i data-lucide="check-circle"></i></div>
+          <span style="color:var(--emerald-600)">Etiqueta impressa</span>
+        </div>
+        <div class="hero-float bottom-left">
+          <div class="hero-float-icon hf-icon-amber"><i data-lucide="utensils"></i></div>
+          <span style="color:var(--slate-700)">Almoço 11:30 — 184 bandejas</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST BAR -->
+  <div class="trust-bar">
+    <div class="container">
+      <div class="trust-label">Tecnologia aplicada em ambientes hospitalares reais</div>
+      <div class="trust-logos">
+        <div class="trust-item"><span class="trust-item-icon"><i data-lucide="building-2"></i></span> Hospitais Gerais</div>
+        <div class="trust-item"><span class="trust-item-icon"><i data-lucide="stethoscope"></i></span> UTI Adulto &amp; Pediátrica</div>
+        <div class="trust-item"><span class="trust-item-icon"><i data-lucide="heart-pulse"></i></span> TMO &amp; UDT</div>
+        <div class="trust-item"><span class="trust-item-icon"><i data-lucide="utensils-crossed"></i></span> Copas &amp; Cozinhas</div>
+        <div class="trust-item"><span class="trust-item-icon"><i data-lucide="bar-chart-3"></i></span> Gestão Administrativa</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <section class="metrics-strip">
+    <div class="container">
+      <div class="metrics-grid">
+        <div class="metric-card reveal">
+          <div class="metric-number"><span>+</span>12.000</div>
+          <div class="metric-label">Pacientes / Mês</div>
+        </div>
+        <div class="metric-card reveal" style="transition-delay:.08s">
+          <div class="metric-number">99<span>.9%</span></div>
+          <div class="metric-label">Disponibilidade</div>
+        </div>
+        <div class="metric-card reveal" style="transition-delay:.16s">
+          <div class="metric-number"><span>&lt;</span>2s</div>
+          <div class="metric-label">Tempo de Resposta</div>
+        </div>
+        <div class="metric-card reveal" style="transition-delay:.24s">
+          <div class="metric-number">0</div>
+          <div class="metric-label">Erros de Prescrição</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIFERENCIAIS PREVIEW -->
+  <section class="features-section section-pad">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label"><i data-lucide="sparkles"></i> Nossos Diferenciais</div>
+        <h2 class="section-title">Tudo que a nutrição hospitalar<br/>moderna precisa, em um só sistema</h2>
+        <p class="section-desc">Cada módulo foi desenhado com nutricionistas e equipes de cozinha reais, para resolver problemas reais do dia a dia hospitalar.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card reveal">
+          <div class="feature-icon"><i data-lucide="clipboard-list"></i></div>
+          <h3>Prescrição à Beira Leito</h3>
+          <p>O nutricionista prescreve diretamente ao lado do paciente, com acesso a todas as restrições e condições.</p>
+          <a href="/site/prescricao" class="feature-link">Saiba mais <i data-lucide="arrow-right"></i></a>
+        </div>
+        <div class="feature-card reveal" style="transition-delay:.06s">
+          <div class="feature-icon"><i data-lucide="scan-search"></i></div>
+          <h3>Rastreabilidade Total</h3>
+          <p>Cada paciente, cada refeição, cada bandeja — tudo rastreável com data, hora e responsável.</p>
+          <a href="/site/rastreabilidade" class="feature-link">Saiba mais <i data-lucide="arrow-right"></i></a>
+        </div>
+        <div class="feature-card reveal" style="transition-delay:.12s">
+          <div class="feature-icon"><i data-lucide="tag"></i></div>
+          <h3>Etiquetas Automáticas</h3>
+          <p>Geração e impressão instantânea de etiquetas personalizadas por paciente, dieta e horário.</p>
+          <a href="/site/diferenciais" class="feature-link">Saiba mais <i data-lucide="arrow-right"></i></a>
+        </div>
+        <div class="feature-card reveal" style="transition-delay:.18s">
+          <div class="feature-icon"><i data-lucide="map"></i></div>
+          <h3>Mapas de Refeição</h3>
+          <p>Visualização consolidada de todas as refeições por unidade com código de cores e filtros.</p>
+          <a href="/site/diferenciais" class="feature-link">Saiba mais <i data-lucide="arrow-right"></i></a>
+        </div>
+        <div class="feature-card reveal" style="transition-delay:.24s">
+          <div class="feature-icon"><i data-lucide="bed-double"></i></div>
+          <h3>Gestão de Leitos</h3>
+          <p>Controle em tempo real de ocupação, admissões, transferências e altas.</p>
+          <a href="/site/diferenciais" class="feature-link">Saiba mais <i data-lucide="arrow-right"></i></a>
+        </div>
+        <div class="feature-card reveal" style="transition-delay:.30s">
+          <div class="feature-icon"><i data-lucide="shield-check"></i></div>
+          <h3>Segurança &amp; Auditoria</h3>
+          <p>Autenticação JWT, controle por perfil, logs completos e sessões seguras. LGPD by design.</p>
+          <a href="/site/diferenciais" class="feature-link">Saiba mais <i data-lucide="arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section section-pad">
+    <div class="container">
+      <div class="cta-inner reveal">
+        <h2>Pronto para <span>transformar</span><br/>a nutrição do seu hospital?</h2>
+        <p class="cta-sub">Agende uma demonstração gratuita e veja o SalusVita Tech funcionando com dados reais.</p>
+        <div class="cta-form">
+          <input class="cta-input" type="email" placeholder="Seu e-mail institucional" />
+          <button class="cta-btn">Solicitar Demo</button>
+        </div>
+        <p class="cta-note">Sem compromisso. Resposta em até 24 horas.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <img src="/site/assets/Logo_SalusVita.png" alt="SalusVita Tech" class="footer-brand-logo" />
+          <p class="footer-brand-desc">Gestão nutricional hospitalar inteligente. Uma solução FerMax Solutions Tecnologia.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Produto</h4>
+          <a href="/site/diferenciais">Diferenciais</a>
+          <a href="/site/prescricao">Prescrição</a>
+          <a href="/site/rastreabilidade">Rastreabilidade</a>
+          <a href="/site/como-funciona">Como Funciona</a>
+        </div>
+        <div class="footer-col">
+          <h4>Empresa</h4>
+          <a href="#">Sobre a FerMax</a>
+          <a href="#">Clientes</a>
+          <a href="#">Blog</a>
+          <a href="#">Carreiras</a>
+        </div>
+        <div class="footer-col">
+          <h4>Suporte</h4>
+          <a href="/site/faq">FAQ</a>
+          <a href="#">Status do Sistema</a>
+          <a href="/site/contato">Contato</a>
+          <a href="#">LGPD</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-copy">© 2025 <span>FerMax Solutions Tecnologia Ltda.</span> Todos os direitos reservados.</p>
+        <div class="footer-socials">
+          <a class="footer-social-btn" href="https://instagram.com/salusvitatech" target="_blank" rel="noopener" aria-label="Instagram"><i data-lucide="instagram"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="/site/js/main.js"></script>
+</body>
+</html>
