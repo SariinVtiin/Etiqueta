@@ -23,6 +23,9 @@ import RequireAuth from "./RequireAuth";
 import RequireAdmin from "./RequireAdmin";
 import AppShell from "../layouts/AppShell";
 
+import Faturamento from "../pages/Faturamento/Faturamento";
+import GestaoTabelaPrecos from "../pages/GestaoTabelaPrecos/GestaoTabelaPrecos";
+
 export const routes = [
   { path: "/login", element: <Login /> },
 
@@ -58,6 +61,9 @@ export const routes = [
                 path: "/admin/configuracoes",
                 element: <GestaoConfiguracoes />,
               },
+
+              { path: "/faturamento", element: <Faturamento /> },
+              { path: "/admin/tabela-precos", element: <GestaoTabelaPrecos /> },
 
               { path: "/admin/condicoes", element: <GestaoCondicoes /> },
               {

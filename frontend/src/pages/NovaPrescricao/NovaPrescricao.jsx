@@ -317,6 +317,22 @@ function NovaPrescricao() {
       const promessas = dadosParaConfirmar.refeicoes.map(async (refeicao) => {
         const partesData = dadosParaConfirmar.dataNascimento.split("/");
         const dataFormatada = `${partesData[2]}-${partesData[1]}-${partesData[0]}`;
+        const normalizarTexto = (valor) =>
+          String(valor || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim()
+            .toLowerCase();
+
+        const acompanhanteRefeicoesDaPrescricao = [
+          ...new Set(dadosParaConfirmar.acompanhanteRefeicoes || []),
+        ].filter(
+          (item) => normalizarTexto(item) === normalizarTexto(refeicao.tipo),
+        );
+
+        const temAcompanhanteNaPrescricao =
+          Boolean(dadosParaConfirmar.temAcompanhante) &&
+          acompanhanteRefeicoesDaPrescricao.length > 0;
 
         const prescricao = {
           cpf: dadosParaConfirmar.cpf,
@@ -344,12 +360,17 @@ function NovaPrescricao() {
           itensEspeciaisIds: refeicao.isEspecial
             ? refeicao.itensEspeciaisIds || []
             : [],
-          temAcompanhante: dadosParaConfirmar.temAcompanhante || false,
-          tipoAcompanhante: dadosParaConfirmar.tipoAcompanhante || null,
-          acompanhanteRefeicoes: dadosParaConfirmar.acompanhanteRefeicoes || [],
-          acompanhanteRestricoesIds:
-            dadosParaConfirmar.acompanhanteRestricoesIds || [],
-          acompanhanteObsLivre: dadosParaConfirmar.acompanhanteObsLivre || "",
+          temAcompanhante: temAcompanhanteNaPrescricao,
+          tipoAcompanhante: temAcompanhanteNaPrescricao
+            ? dadosParaConfirmar.tipoAcompanhante || null
+            : null,
+          acompanhanteRefeicoes: acompanhanteRefeicoesDaPrescricao,
+          acompanhanteRestricoesIds: temAcompanhanteNaPrescricao
+            ? dadosParaConfirmar.acompanhanteRestricoesIds || []
+            : [],
+          acompanhanteObsLivre: temAcompanhanteNaPrescricao
+            ? dadosParaConfirmar.acompanhanteObsLivre || ""
+            : "",
         };
 
         return await criarPrescricao(prescricao);

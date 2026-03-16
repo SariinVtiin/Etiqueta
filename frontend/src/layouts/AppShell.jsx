@@ -128,6 +128,20 @@ const Icons = {
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   ),
+  wallet: (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 7H7a2 2 0 0 1 0-4h12" />
+      <path d="M3 5v14a2 2 0 0 0 2 2h16V7H5a2 2 0 0 0-2-2z" />
+      <path d="M18 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+    </svg>
+  ),
 };
 
 export default function AppShell() {
@@ -272,6 +286,14 @@ export default function AppShell() {
           </NavLink>
 
           <NavLink
+            to="/nova-prescricao"
+            className={({ isActive }) => `menu-btn ${isActive ? "active" : ""}`}
+          >
+            {Icons.plus}
+            <span>Nova Prescrição</span>
+          </NavLink>
+
+          <NavLink
             to="/prescricoes"
             className={({ isActive }) => `menu-btn ${isActive ? "active" : ""}`}
           >
@@ -287,13 +309,17 @@ export default function AppShell() {
             <span>Pacientes</span>
           </NavLink>
 
-          <NavLink
-            to="/nova-prescricao"
-            className={({ isActive }) => `menu-btn ${isActive ? "active" : ""}`}
-          >
-            {Icons.plus}
-            <span>Nova Prescrição</span>
-          </NavLink>
+          {isAdmin() && (
+            <NavLink
+              to="/faturamento"
+              className={({ isActive }) =>
+                `menu-btn ${isActive ? "active" : ""}`
+              }
+            >
+              {Icons.wallet}
+              <span>Faturamento</span>
+            </NavLink>
+          )}
 
           {isAdmin() && (
             <NavLink

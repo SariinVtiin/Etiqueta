@@ -1,0 +1,292 @@
+.fat-page {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fat-header,
+.fat-filters,
+.fat-annual-box,
+.fat-table-box,
+.fat-card,
+.fat-insight-box {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+.fat-header {
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+.fat-header h1,
+.fat-section-title h2 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.fat-header p,
+.fat-section-title span {
+  color: #64748b;
+  margin: 6px 0 0;
+}
+
+.fat-header-actions,
+.fat-filter-actions,
+.fat-pagination-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fat-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fat-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fat-btn-primary {
+  background: #0f8f87;
+  color: #fff;
+}
+
+.fat-btn-secondary {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.fat-cards,
+.fat-insights {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.fat-card,
+.fat-insight-box {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fat-card span,
+.fat-insight-box span,
+.fat-filters label span {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.fat-card strong,
+.fat-insight-box strong,
+.fat-month-card strong {
+  color: #0f172a;
+  font-size: 1.6rem;
+}
+
+.fat-warning-box {
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.fat-filters {
+  padding: 20px;
+}
+
+.fat-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.fat-grid-4 {
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+}
+
+.fat-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fat-filters input,
+.fat-filters select {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+}
+
+.fat-filter-actions {
+  margin-top: 16px;
+}
+
+.fat-alert-error,
+.fat-empty {
+  background: #fff;
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  padding: 16px;
+  color: #b91c1c;
+}
+
+.fat-annual-box,
+.fat-table-box {
+  padding: 20px;
+}
+
+.fat-section-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.fat-month-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.fat-month-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fat-month-card span {
+  color: #64748b;
+}
+
+.fat-table-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fat-table-wrapper {
+  overflow-x: auto;
+}
+
+.fat-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.fat-table th,
+.fat-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  vertical-align: top;
+  font-size: 0.94rem;
+}
+
+.fat-table thead {
+  background: #0f8f87;
+}
+
+.fat-table thead th {
+  color: #fff;
+  white-space: nowrap;
+}
+
+.fat-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.fat-table tbody tr.is-pending {
+  background: #fff7ed;
+}
+
+.fat-cell-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fat-cell-main strong {
+  color: #0f172a;
+}
+
+.fat-cell-main span {
+  color: #64748b;
+  font-size: 0.83rem;
+}
+
+.fat-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.fat-badge-cobrado {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.fat-badge-pendente_preco {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.fat-badge-cancelado {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.fat-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (max-width: 1100px) {
+  .fat-cards,
+  .fat-insights,
+  .fat-grid-4,
+  .fat-month-grid {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .fat-page {
+    padding: 16px;
+  }
+
+  .fat-header,
+  .fat-pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fat-cards,
+  .fat-insights,
+  .fat-grid-4,
+  .fat-month-grid {
+    grid-template-columns: 1fr;
+  }
+}

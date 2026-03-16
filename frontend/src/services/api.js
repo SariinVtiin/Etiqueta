@@ -1262,3 +1262,103 @@ export const toggleConvenioAtivo = async (id, ativa) => {
   }
   return response.json();
 };
+
+// ====================================
+// FUNÇÕES DE FATURAMENTO
+// ====================================
+
+const appendFilters = (params, filtros = {}) => {
+  Object.entries(filtros).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      params.append(key, value);
+    }
+  });
+};
+
+export const listarResumoFaturamento = async (filtros = {}) => {
+  const params = new URLSearchParams();
+  appendFilters(params, filtros);
+
+  const response = await fetchAuth(
+    `${API_URL}/faturamento/resumo?${params.toString()}`,
+  );
+  return handleResponse(response);
+};
+
+export const listarAnaliticoFaturamento = async (filtros = {}) => {
+  const params = new URLSearchParams();
+  appendFilters(params, filtros);
+
+  const response = await fetchAuth(
+    `${API_URL}/faturamento/analitico?${params.toString()}`,
+  );
+  return handleResponse(response);
+};
+
+export const exportarFaturamentoExcel = async (filtros = {}) => {
+  const params = new URLSearchParams();
+  appendFilters(params, filtros);
+
+  const response = await fetchAuth(
+    `${API_URL}/faturamento/exportar?${params.toString()}`,
+  );
+
+  if (!response.ok) {
+    const erro = await response
+      .json()
+      .catch(() => ({ erro: "Erro ao exportar faturamento" }));
+    throw new Error(erro.erro || "Erro ao exportar faturamento");
+  }
+
+  return response.blob();
+};
+
+export const reprocessarHistoricoFaturamento = async () => {
+  const response = await fetchAuth(
+    `${API_URL}/faturamento/reprocessar-historico`,
+    {
+      method: "POST",
+    },
+  );
+  return handleResponse(response);
+};
+
+export const listarOpcoesFiltroFaturamento = async () => {
+  const response = await fetchAuth(`${API_URL}/faturamento/opcoes-filtro`);
+  return handleResponse(response);
+};
+
+// ====================================
+// FUNÇÕES DE TABELA DE PREÇOS
+// ====================================
+
+export const listarTabelaPrecos = async (incluirInativas = false) => {
+  const response = await fetchAuth(
+    `${API_URL}/tabela-precos${incluirInativas ? "?incluirInativas=true" : ""}`,
+  );
+  return handleResponse(response);
+};
+
+export const criarPrecoFaturamento = async (payload) => {
+  const response = await fetchAuth(`${API_URL}/tabela-precos`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(response);
+};
+
+export const atualizarPrecoFaturamento = async (id, payload) => {
+  const response = await fetchAuth(`${API_URL}/tabela-precos/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(response);
+};
+
+export const togglePrecoFaturamento = async (id, ativo) => {
+  const response = await fetchAuth(`${API_URL}/tabela-precos/${id}/toggle`, {
+    method: "PATCH",
+    body: JSON.stringify({ ativo }),
+  });
+  return handleResponse(response);
+};

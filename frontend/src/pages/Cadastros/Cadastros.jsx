@@ -101,9 +101,7 @@ function Cadastros() {
         >
           <div className="card-icon">👥</div>
           <h3>Cond. Nutricional Acompanhante</h3>
-          <p>
-            Gerenciar condições nutricionais específicas para acompanhantes
-          </p>
+          <p>Gerenciar condições nutricionais específicas para acompanhantes</p>
           <button className="card-button">Acessar</button>
         </div>
 
@@ -128,6 +126,15 @@ function Cadastros() {
           <button className="card-button">Acessar</button>
         </div>
 
+        <div
+          className="cadastro-card"
+          onClick={() => navigate("/admin/tabela-precos")}
+        >
+          <div className="card-icon">💰</div>
+          <h3>Tabela de Preços</h3>
+          <p>Gerenciar os valores base usados no faturamento do sistema</p>
+          <button className="card-button">Acessar</button>
+        </div>
       </div>
 
       <RelatorioLogin

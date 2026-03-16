@@ -1,0 +1,169 @@
+.gtp-page {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.gtp-header,
+.gtp-form-box,
+.gtp-table-box {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+.gtp-header h1 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.gtp-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.gtp-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.gtp-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gtp-form span {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.gtp-form input,
+.gtp-form select,
+.gtp-search {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+}
+
+.gtp-col-span-2 {
+  grid-column: span 2;
+}
+
+.gtp-form-actions,
+.gtp-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.gtp-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.gtp-btn-primary {
+  background: #0f8f87;
+  color: #fff;
+}
+
+.gtp-btn-secondary {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.gtp-toolbar {
+  margin-bottom: 16px;
+}
+
+.gtp-search {
+  width: 100%;
+  max-width: 420px;
+}
+
+.gtp-table-wrapper {
+  overflow-x: auto;
+}
+
+.gtp-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.gtp-table th,
+.gtp-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  font-size: 0.94rem;
+}
+
+.gtp-table thead {
+  background: #0f8f87;
+}
+
+.gtp-table thead th {
+  color: #fff;
+}
+
+.gtp-empty,
+.gtp-empty-row {
+  color: #64748b;
+  text-align: center;
+  padding: 18px;
+}
+
+.gtp-badge {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.gtp-badge.is-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.gtp-badge.is-inactive {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.gtp-btn-link {
+  background: none;
+  border: none;
+  color: #0f8f87;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+@media (max-width: 960px) {
+  .gtp-form {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .gtp-page {
+    padding: 16px;
+  }
+
+  .gtp-form {
+    grid-template-columns: 1fr;
+  }
+
+  .gtp-col-span-2 {
+    grid-column: span 1;
+  }
+}
