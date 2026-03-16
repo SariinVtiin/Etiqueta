@@ -284,7 +284,6 @@ export default function AppShell() {
             {Icons.home}
             <span>Início</span>
           </NavLink>
- 
 
           <NavLink
             to="/nova-prescricao"
@@ -301,7 +300,7 @@ export default function AppShell() {
             {Icons.clipboard}
             <span>Prescrições</span>
           </NavLink>
- 
+
           <NavLink
             to="/pacientes"
             className={({ isActive }) => `menu-btn ${isActive ? "active" : ""}`}
@@ -309,42 +308,28 @@ export default function AppShell() {
             {Icons.users}
             <span>Pacientes</span>
           </NavLink>
- 
+
           <NavLink
-            to="/nova-prescricao"
+            to="/faturamento"
             className={({ isActive }) => `menu-btn ${isActive ? "active" : ""}`}
           >
-            {Icons.plus}
-            <span>Nova Prescrição</span>
+            {Icons.wallet}
+            <span>Faturamento</span>
           </NavLink>
- 
+
           {temAlgumaPermissao([
-            'cadastros',
-            'cadastros_usuarios',
-            'cadastros_leitos',
-            'cadastros_dietas',
-            'cadastros_condicoes',
-            'cadastros_condicoes_acompanhante',
-            'cadastros_refeicoes',
-            'cadastros_acrescimos',
-            'cadastros_configuracoes',
-            'cadastros_convenios',
-            'cadastros_logs',
+            "cadastros",
+            "cadastros_usuarios",
+            "cadastros_leitos",
+            "cadastros_dietas",
+            "cadastros_condicoes",
+            "cadastros_condicoes_acompanhante",
+            "cadastros_refeicoes",
+            "cadastros_acrescimos",
+            "cadastros_configuracoes",
+            "cadastros_convenios",
+            "cadastros_logs",
           ]) && (
-
-          {isAdmin() && (
-            <NavLink
-              to="/faturamento"
-              className={({ isActive }) =>
-                `menu-btn ${isActive ? "active" : ""}`
-              }
-            >
-              {Icons.wallet}
-              <span>Faturamento</span>
-            </NavLink>
-          )}
-
-          {isAdmin() && (
             <NavLink
               to="/admin/cadastros"
               className={() => `menu-btn ${isAdminSection ? "active" : ""}`}

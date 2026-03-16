@@ -13,7 +13,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import "./Cadastros.css";
 import RelatorioLogin from "../../components/RelatorioLogin/RelatorioLogin";
 
-
 function Cadastros() {
   const navigate = useNavigate();
   const { temPermissao } = useAuth();
@@ -49,7 +48,8 @@ function Cadastros() {
       permissao: "cadastros_condicoes",
       icon: "🩺",
       titulo: "Condição Nutricional",
-      descricao: "Gerenciar condições nutricionais para prescrições (HPS, DM, IRC, etc.)",
+      descricao:
+        "Gerenciar condições nutricionais para prescrições (HPS, DM, IRC, etc.)",
       acao: () => navigate("/admin/condicoes"),
       botao: "Acessar",
     },
@@ -73,7 +73,8 @@ function Cadastros() {
       permissao: "cadastros_refeicoes",
       icon: "🍽️",
       titulo: "Tipos de Refeição",
-      descricao: "Gerenciar refeições disponíveis (Desjejum, Almoço, Jantar...)",
+      descricao:
+        "Gerenciar refeições disponíveis (Desjejum, Almoço, Jantar...)",
       acao: () => navigate("/admin/refeicoes"),
       botao: "Acessar",
     },
@@ -81,7 +82,8 @@ function Cadastros() {
       permissao: "cadastros_condicoes_acompanhante",
       icon: "👥",
       titulo: "Cond. Nutricional Acompanhante",
-      descricao: "Gerenciar condições nutricionais específicas para acompanhantes",
+      descricao:
+        "Gerenciar condições nutricionais específicas para acompanhantes",
       acao: () => navigate("/admin/condicoes-acompanhante"),
       botao: "Acessar",
     },
@@ -99,6 +101,14 @@ function Cadastros() {
       titulo: "Convênios",
       descricao: "Gerenciar tipos de convênio (SUS, Particular, etc.)",
       acao: () => navigate("/admin/convenios"),
+      botao: "Acessar",
+    },
+    {
+      permissao: "cadastros_tabela_precos",
+      icon: "💰",
+      titulo: "Tabela de Preços",
+      descricao: "Gerenciar os valores base usados no faturamento do sistema",
+      acao: () => navigate("/admin/tabela-precos"),
       botao: "Acessar",
     },
   ];
@@ -133,96 +143,7 @@ function Cadastros() {
             </div>
           ))}
         </div>
-
-        {/* Condição Nutricional (seu projeto renomeou de restrição -> condição) */}
-        <div
-          className="cadastro-card"
-          onClick={() => navigate("/admin/condicoes")}
-        >
-          <div className="card-icon">🩺</div>
-          <h3>Condição Nutricional</h3>
-          <p>
-            Gerenciar condições nutricionais para prescrições (HPS, DM, IRC,
-            etc.)
-          </p>
-          <button className="card-button">Acessar</button>
-        </div>
-
-        {/* ✅ Acréscimos (AGORA COMO ROTA) */}
-        <div
-          className="cadastro-card"
-          onClick={() => navigate("/admin/acrescimos")}
-        >
-          <div className="card-icon">📥</div>
-          <h3>Acréscimos</h3>
-          <p>Importar planilha de suplementos e acréscimos</p>
-          <button className="card-button">Acessar</button>
-        </div>
-
-        {/* Logs de Login */}
-        <div
-          className="cadastro-card"
-          onClick={() => setRelatorioLoginAberto(true)}
-        >
-          <div className="card-icon">🔐</div>
-          <h3>Logs de Login</h3>
-          <p>Gerar relatório Excel com histórico de acessos ao sistema</p>
-          <button className="card-button">Gerar Relatório</button>
-        </div>
-
-        {/* Tipos de Refeição */}
-        <div
-          className="cadastro-card"
-          onClick={() => navigate("/admin/refeicoes")}
-        >
-          <div className="card-icon">🍽️</div>
-          <h3>Tipos de Refeição</h3>
-          <p>Gerenciar refeições disponíveis (Desjejum, Almoço, Jantar...)</p>
-          <button className="card-button">Acessar</button>
-        </div>
-
-        {/* Condições Nutricionais do Acompanhante */}
-        <div
-          className="cadastro-card"
-          onClick={() => navigate("/admin/condicoes-acompanhante")}
-        >
-          <div className="card-icon">👥</div>
-          <h3>Cond. Nutricional Acompanhante</h3>
-          <p>Gerenciar condições nutricionais específicas para acompanhantes</p>
-          <button className="card-button">Acessar</button>
-        </div>
-
-        {/* Configurações */}
-        <div
-          className="cadastro-card"
-          onClick={() => navigate("/admin/configuracoes")}
-        >
-          <div className="card-icon">⚙️</div>
-          <h3>Configurações</h3>
-          <p>Opções gerais do sistema</p>
-          <button className="card-button">Acessar</button>
-        </div>
-
-        <div
-          className="cadastro-card"
-          onClick={() => navigate("/admin/convenios")}
-        >
-          <div className="card-icon">🏦</div>
-          <h3>Convênios</h3>
-          <p>Gerenciar tipos de convênio (SUS, Particular, etc.)</p>
-          <button className="card-button">Acessar</button>
-        </div>
-
-        <div
-          className="cadastro-card"
-          onClick={() => navigate("/admin/tabela-precos")}
-        >
-          <div className="card-icon">💰</div>
-          <h3>Tabela de Preços</h3>
-          <p>Gerenciar os valores base usados no faturamento do sistema</p>
-          <button className="card-button">Acessar</button>
-        </div>
-      </div>
+      )}
 
       <RelatorioLogin
         isOpen={relatorioLoginAberto}

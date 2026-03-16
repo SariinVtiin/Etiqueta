@@ -51,23 +51,22 @@ export const routes = [
           // --- Páginas principais (protegidas por permissão) ---
           {
             element: <ProtectedRoute permissao="dashboard" />,
-            children: [
-              { path: "/dashboard", element: <Dashboard /> },
-            ],
+            children: [{ path: "/dashboard", element: <Dashboard /> }],
           },
 
           {
             element: <ProtectedRoute permissao="prescricoes" />,
-            children: [
-              { path: "/prescricoes", element: <Prescricoes /> },
-            ],
+            children: [{ path: "/prescricoes", element: <Prescricoes /> }],
           },
 
           {
             element: <ProtectedRoute permissao="pacientes" />,
-            children: [
-              { path: "/pacientes", element: <Pacientes /> },
-            ],
+            children: [{ path: "/pacientes", element: <Pacientes /> }],
+          },
+
+          {
+            element: <ProtectedRoute permissao="faturamento" />,
+            children: [{ path: "/faturamento", element: <Faturamento /> }],
           },
 
           {
@@ -81,7 +80,10 @@ export const routes = [
           {
             element: <ProtectedRoute permissao="cadastros" />,
             children: [
-              { path: "/admin", element: <Navigate to="/admin/cadastros" replace /> },
+              {
+                path: "/admin",
+                element: <Navigate to="/admin/cadastros" replace />,
+              },
               { path: "/admin/cadastros", element: <Cadastros /> },
             ],
           },
@@ -96,16 +98,12 @@ export const routes = [
 
           {
             element: <ProtectedRoute permissao="cadastros_dietas" />,
-            children: [
-              { path: "/admin/dietas", element: <GestaoDietas /> },
-            ],
+            children: [{ path: "/admin/dietas", element: <GestaoDietas /> }],
           },
 
           {
             element: <ProtectedRoute permissao="cadastros_leitos" />,
-            children: [
-              { path: "/admin/leitos", element: <GestaoLeitos /> },
-            ],
+            children: [{ path: "/admin/leitos", element: <GestaoLeitos /> }],
           },
 
           {
@@ -123,16 +121,28 @@ export const routes = [
           },
 
           {
+            element: <ProtectedRoute permissao="cadastros_tabela_precos" />,
+            children: [
+              { path: "/admin/tabela-precos", element: <GestaoTabelaPrecos /> },
+            ],
+          },
+
+          {
             element: <ProtectedRoute permissao="cadastros_refeicoes" />,
             children: [
               { path: "/admin/refeicoes", element: <GestaoRefeicoes /> },
+            ],
+          },
+
+          {
+            element: <ProtectedRoute permissao="cadastros_configuracoes" />,
+            children: [
               {
                 path: "/admin/configuracoes",
                 element: <GestaoConfiguracoes />,
               },
-
-              { path: "/faturamento", element: <Faturamento /> },
-              { path: "/admin/tabela-precos", element: <GestaoTabelaPrecos /> },
+            ],
+          },
 
           {
             element: <ProtectedRoute permissao="cadastros_condicoes" />,
@@ -142,9 +152,14 @@ export const routes = [
           },
 
           {
-            element: <ProtectedRoute permissao="cadastros_condicoes_acompanhante" />,
+            element: (
+              <ProtectedRoute permissao="cadastros_condicoes_acompanhante" />
+            ),
             children: [
-              { path: "/admin/condicoes-acompanhante", element: <GestaoCondicoesAcompanhante /> },
+              {
+                path: "/admin/condicoes-acompanhante",
+                element: <GestaoCondicoesAcompanhante />,
+              },
             ],
           },
 
