@@ -218,17 +218,19 @@ function GestaoLeitos() {
   // ============================================
   if (carregando) {
     return (
-      <div className="gl-container">
-        <div className="gl-header">
-          <h1>🏥 Setores e Leitos</h1>
+      <div className="gl-header">
+        <div className="gl-header-left">
           <button
             className="gl-btn-voltar"
             onClick={() => navigate("/admin/cadastros")}
           >
             ← Voltar
           </button>
+          <div className="gl-header-text">
+            <h1>🏥 Setores e Leitos</h1>
+            <p className="gl-subtitulo">Gerenciar setores hospitalares e leitos</p>
+          </div>
         </div>
-        <div className="gl-carregando">⏳ Carregando...</div>
       </div>
     );
   }
@@ -237,13 +239,18 @@ function GestaoLeitos() {
     <div className="gl-container">
       {/* Header */}
       <div className="gl-header">
-        <h1>🏥 Setores e Leitos</h1>
-        <button
-          className="gl-btn-voltar"
-          onClick={() => navigate("/admin/cadastros")}
-        >
-          ← Voltar
-        </button>
+        <div className="gl-header-left">
+          <button
+            className="gl-btn-voltar"
+            onClick={() => navigate("/admin/cadastros")}
+          >
+            ← Voltar
+          </button>
+          <div className="gl-header-text">
+            <h1>🏥 Setores e Leitos</h1>
+            <p className="gl-subtitulo">Gerenciar setores hospitalares e leitos</p>
+          </div>
+        </div>
       </div>
 
       {/* Barra de Ações */}

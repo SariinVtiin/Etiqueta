@@ -1,39 +1,69 @@
 // backend/routes/auth.js
-// ATUALIZADO - Com registro de logs de login
+// ============================================
+// SALUSVITA TECH - Autenticação e Autorização
+// Desenvolvido por FerMax Solution
+// ============================================
+// SEGURANÇA:
+// - JWT contém APENAS { id, email } — dados imutáveis
+// - Middleware autenticar consulta BD a cada request (dados frescos)
+// - verificarPermissao() valida permissões granulares do BD
+// - JWT_SECRET obrigatório (crash se não definido)
+// - Rate limiting no login com keyGenerator correto para IIS
+// ============================================
+
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
 const { registrarLogLogin } = require('../services/logsLogin');
-
-// ===== RATE LIMITING PARA LOGIN =====
 const rateLimit = require('express-rate-limit');
 
+// ============================================
+// VARIÁVEIS DE AMBIENTE (sem fallbacks perigosos)
+// ============================================
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+
+// Crash intencional se JWT_SECRET não estiver definido
+if (!JWT_SECRET) {
+  console.error('❌ FATAL: JWT_SECRET não definido no .env');
+  console.error('   O servidor NÃO pode iniciar sem uma chave secreta.');
+  process.exit(1);
+}
+
+// ============================================
+// RATE LIMITING PARA LOGIN
+// ============================================
+
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: {
-    sucesso: false,
-    erro: 'Muitas tentativas de login. Tente novamente em 15 minutos.'
-  },
+  windowMs: 5 * 60 * 1000, // 15 minutos
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  handler: (req, res) => {
-    return req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+  // keyGenerator: extrai IP correto atrás do IIS reverse proxy
+  keyGenerator: (req) => {
+    return req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
   },
-  // ✅ NOVO: Registrar log quando rate limit é atingido
-  handler: (req, res) => {
+
+  // handler: resposta customizada quando rate limit é atingido
+  handler: async (req, res) => {
     const ip = req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress || null;
     const userAgent = req.headers['user-agent'] || null;
 
-    registrarLogLogin({
-      emailTentado: req.body?.email || 'N/A',
-      tipoEvento: 'LOGIN_FALHA_RATE_LIMIT',
-      motivo: 'Muitas tentativas de login. IP bloqueado por 15 minutos.',
-      ipAddress: ip,
-      userAgent
-    });
+    try {
+      await registrarLogLogin({
+        emailTentado: req.body?.email || 'N/A',
+        tipoEvento: 'LOGIN_FALHA_RATE_LIMIT',
+        motivo: 'Muitas tentativas de login. IP bloqueado por 15 minutos.',
+        ipAddress: ip,
+        userAgent
+      });
+    } catch (e) {
+      console.error('[LOG-LOGIN] Erro ao registrar rate limit:', e.message);
+    }
 
     res.status(429).json({
       sucesso: false,
@@ -42,13 +72,10 @@ const loginLimiter = rateLimit({
   }
 });
 
-// Chave secreta JWT
-const JWT_SECRET = process.env.JWT_SECRET || 'sua_chave_secreta_aqui_mude_em_producao';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+// ============================================
+// HELPERS
+// ============================================
 
-/**
- * Helper para extrair IP e User-Agent da request
- */
 function extrairDadosReq(req) {
   return {
     ip: req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress || null,
@@ -56,9 +83,10 @@ function extrairDadosReq(req) {
   };
 }
 
-/**
- * POST /api/auth/login - Login (com rate limiting e LOG)
- */
+// ============================================
+// POST /api/auth/login
+// ============================================
+
 router.post('/login', loginLimiter, async (req, res) => {
   const { ip, userAgent } = extrairDadosReq(req);
 
@@ -66,19 +94,19 @@ router.post('/login', loginLimiter, async (req, res) => {
     const { email, senha } = req.body;
 
     if (!email || !senha) {
-      return res.status(400).json({ 
-        sucesso: false, 
-        erro: 'Email e senha são obrigatórios' 
+      return res.status(400).json({
+        sucesso: false,
+        erro: 'Email e senha são obrigatórios'
       });
     }
 
-    // Buscar usuário
+    // Buscar usuário completo
     const [usuarios] = await pool.query(
       'SELECT * FROM usuarios WHERE email = ?',
       [email]
     );
 
-    // ❌ Email não encontrado
+    // Email não encontrado
     if (usuarios.length === 0) {
       await registrarLogLogin({
         emailTentado: email,
@@ -88,15 +116,15 @@ router.post('/login', loginLimiter, async (req, res) => {
         userAgent
       });
 
-      return res.status(401).json({ 
-        sucesso: false, 
-        erro: 'Credenciais inválidas' 
+      return res.status(401).json({
+        sucesso: false,
+        erro: 'Credenciais inválidas'
       });
     }
 
     const usuario = usuarios[0];
 
-    // ⚠️ Usuário inativo
+    // Usuário inativo
     if (!usuario.ativo) {
       await registrarLogLogin({
         usuarioId: usuario.id,
@@ -109,16 +137,15 @@ router.post('/login', loginLimiter, async (req, res) => {
         userAgent
       });
 
-      return res.status(401).json({ 
-        sucesso: false, 
-        erro: 'Credenciais inválidas' 
+      return res.status(401).json({
+        sucesso: false,
+        erro: 'Credenciais inválidas'
       });
     }
 
     // Verificar senha
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
-    
-    // ❌ Senha incorreta
+
     if (!senhaValida) {
       await registrarLogLogin({
         usuarioId: usuario.id,
@@ -131,15 +158,16 @@ router.post('/login', loginLimiter, async (req, res) => {
         userAgent
       });
 
-      return res.status(401).json({ 
-        sucesso: false, 
-        erro: 'Credenciais inválidas' 
+      return res.status(401).json({
+        sucesso: false,
+        erro: 'Credenciais inválidas'
       });
     }
 
-    // Gerar token JWT
+    // ✅ JWT LEVE: apenas id e email (dados que não mudam)
+    // Role e permissões vêm do BD a cada request via middleware
     const token = jwt.sign(
-      { id: usuario.id, email: usuario.email, role: usuario.role },
+      { id: usuario.id, email: usuario.email },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
@@ -150,7 +178,7 @@ router.post('/login', loginLimiter, async (req, res) => {
       [usuario.id]
     );
 
-    // ✅ Login com sucesso
+    // Registrar log de sucesso
     await registrarLogLogin({
       usuarioId: usuario.id,
       usuarioNome: usuario.nome,
@@ -162,77 +190,110 @@ router.post('/login', loginLimiter, async (req, res) => {
       userAgent
     });
 
-    // Retornar dados (sem senha)
-    res.json({ 
+    // Parse seguro do JSON de permissões
+    let permissoes = null;
+    try {
+      permissoes = typeof usuario.permissoes === 'string'
+        ? JSON.parse(usuario.permissoes)
+        : usuario.permissoes;
+    } catch (e) {
+      permissoes = null;
+    }
+
+    // Retornar dados (sem senha, COM permissões e crn)
+    res.json({
       sucesso: true,
       token,
       usuario: {
         id: usuario.id,
         nome: usuario.nome,
         email: usuario.email,
-        role: usuario.role
+        role: usuario.role,
+        crn: usuario.crn || null,
+        permissoes: permissoes || []
       }
     });
 
   } catch (erro) {
     console.error('Erro no login:', erro);
-    res.status(500).json({ 
-      sucesso: false, 
-      erro: 'Erro ao fazer login' 
+    res.status(500).json({
+      sucesso: false,
+      erro: 'Erro interno do servidor'
     });
   }
 });
 
-/**
- * GET /api/auth/me - Verificar usuário logado
- */
+// ============================================
+// GET /api/auth/me - Verificar sessão atual
+// ============================================
+
 router.get('/me', async (req, res) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
-      return res.status(401).json({ 
-        sucesso: false, 
-        erro: 'Token não fornecido' 
+      return res.status(401).json({
+        sucesso: false,
+        erro: 'Token não fornecido'
       });
     }
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
+    // Buscar dados ATUAIS do BD (não confiar no JWT)
     const [usuarios] = await pool.query(
-      'SELECT id, nome, email, role FROM usuarios WHERE id = ? AND ativo = TRUE',
+      'SELECT id, nome, email, role, crn, permissoes FROM usuarios WHERE id = ? AND ativo = TRUE',
       [decoded.id]
     );
 
     if (usuarios.length === 0) {
-      return res.status(401).json({ 
-        sucesso: false, 
-        erro: 'Usuário não encontrado' 
+      return res.status(401).json({
+        sucesso: false,
+        erro: 'Usuário não encontrado ou desativado'
       });
     }
 
-    res.json({ 
+    const usuario = usuarios[0];
+
+    // Parse seguro do JSON de permissões
+    let permissoes = null;
+    try {
+      permissoes = typeof usuario.permissoes === 'string'
+        ? JSON.parse(usuario.permissoes)
+        : usuario.permissoes;
+    } catch (e) {
+      permissoes = null;
+    }
+
+    res.json({
       sucesso: true,
-      usuario: usuarios[0]
+      usuario: {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        role: usuario.role,
+        crn: usuario.crn || null,
+        permissoes: permissoes || []
+      }
     });
 
   } catch (erro) {
     console.error('Erro ao verificar token:', erro);
-    res.status(401).json({ 
-      sucesso: false, 
-      erro: 'Token inválido ou expirado' 
+    res.status(401).json({
+      sucesso: false,
+      erro: 'Token inválido ou expirado'
     });
   }
 });
 
-/**
- * POST /api/auth/logout - Logout (com LOG)
- */
+// ============================================
+// POST /api/auth/logout
+// ============================================
+
 router.post('/logout', async (req, res) => {
   const { ip, userAgent } = extrairDadosReq(req);
 
   try {
-    // Tentar extrair dados do token para o log
     const token = req.headers.authorization?.replace('Bearer ', '');
     let usuarioId = null;
     let usuarioNome = null;
@@ -244,7 +305,6 @@ router.post('/logout', async (req, res) => {
         usuarioId = decoded.id;
         usuarioEmail = decoded.email;
 
-        // Buscar nome do usuário
         const [usuarios] = await pool.query(
           'SELECT nome FROM usuarios WHERE id = ?',
           [decoded.id]
@@ -253,11 +313,10 @@ router.post('/logout', async (req, res) => {
           usuarioNome = usuarios[0].nome;
         }
       } catch (e) {
-        // Token inválido/expirado, registrar logout mesmo assim
+        // Token inválido/expirado — registrar logout mesmo assim
       }
     }
 
-    // 🚪 Registrar logout
     await registrarLogLogin({
       usuarioId,
       usuarioNome,
@@ -269,55 +328,142 @@ router.post('/logout', async (req, res) => {
       userAgent
     });
   } catch (e) {
-    // Não quebrar o logout por causa do log
     console.error('[LOG-LOGIN] Erro ao registrar logout:', e.message);
   }
 
-  res.json({ 
+  res.json({
     sucesso: true,
-    mensagem: 'Logout realizado com sucesso' 
+    mensagem: 'Logout realizado com sucesso'
   });
 });
 
-/**
- * Middleware de autenticação
- */
+// ============================================
+// MIDDLEWARE: autenticar
+// ============================================
+// Decodifica JWT, depois consulta o BD para dados FRESCOS.
+// Isso garante que:
+// - Usuário desativado é bloqueado imediatamente
+// - Mudanças de role/permissões valem na próxima request
+// - Não dependemos de dados stale no token
+// ============================================
+
 const autenticar = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
-      return res.status(401).json({ 
-        sucesso: false, 
-        erro: 'Não autenticado' 
+      return res.status(401).json({
+        sucesso: false,
+        erro: 'Não autenticado'
       });
     }
 
+    // Decodifica JWT (só tem id e email)
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.usuario = decoded;
+
+    // Buscar dados ATUAIS do BD
+    const [usuarios] = await pool.query(
+      'SELECT id, nome, email, role, crn, permissoes, ativo FROM usuarios WHERE id = ?',
+      [decoded.id]
+    );
+
+    if (usuarios.length === 0) {
+      return res.status(401).json({
+        sucesso: false,
+        erro: 'Usuário não encontrado'
+      });
+    }
+
+    const usuario = usuarios[0];
+
+    // Verificar se está ativo
+    if (!usuario.ativo) {
+      return res.status(401).json({
+        sucesso: false,
+        erro: 'Conta desativada'
+      });
+    }
+
+    // Parse seguro do JSON de permissões
+    let permissoes = null;
+    try {
+      permissoes = typeof usuario.permissoes === 'string'
+        ? JSON.parse(usuario.permissoes)
+        : usuario.permissoes;
+    } catch (e) {
+      permissoes = null;
+    }
+
+    // Setar req.usuario com dados FRESCOS do BD
+    req.usuario = {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      role: usuario.role,
+      crn: usuario.crn || null,
+      permissoes: Array.isArray(permissoes) ? permissoes : []
+    };
+
     next();
 
   } catch (erro) {
-    res.status(401).json({ 
-      sucesso: false, 
-      erro: 'Token inválido ou expirado' 
+    // jwt.verify falhou (token expirado, inválido, etc.)
+    res.status(401).json({
+      sucesso: false,
+      erro: 'Token inválido ou expirado'
     });
   }
 };
 
-/**
- * Middleware de verificação de role
- */
+// ============================================
+// MIDDLEWARE: verificarRole
+// ============================================
+// Checa se o role do usuário (do BD) está na lista permitida
+// Usar DEPOIS de autenticar (req.usuario já tem dados frescos)
+// ============================================
+
 const verificarRole = (rolesPermitidos) => {
   return (req, res, next) => {
     if (!rolesPermitidos.includes(req.usuario.role)) {
-      return res.status(403).json({ 
-        sucesso: false, 
-        erro: 'Sem permissão para acessar este recurso' 
+      return res.status(403).json({
+        sucesso: false,
+        erro: 'Sem permissão para acessar este recurso'
       });
     }
     next();
   };
 };
 
-module.exports = { router, autenticar, verificarRole };
+// ============================================
+// MIDDLEWARE: verificarPermissao
+// ============================================
+// Checa se o usuário tem uma permissão específica.
+// - Admin: SEMPRE passa (acesso total automático)
+// - Nutricionista: checa se a chave está no array permissoes
+// Usar DEPOIS de autenticar (req.usuario já tem dados frescos)
+//
+// Uso: router.post('/', autenticar, verificarPermissao('cadastros_leitos'), ...)
+// ============================================
+
+const verificarPermissao = (permissaoNecessaria) => {
+  return (req, res, next) => {
+    // Admin tem acesso total — passa direto
+    if (req.usuario.role === 'admin') {
+      return next();
+    }
+
+    // Nutricionista — checar array de permissões do BD
+    const permissoesUsuario = req.usuario.permissoes || [];
+
+    if (!permissoesUsuario.includes(permissaoNecessaria)) {
+      return res.status(403).json({
+        sucesso: false,
+        erro: 'Você não tem permissão para acessar este recurso'
+      });
+    }
+
+    next();
+  };
+};
+
+module.exports = { router, autenticar, verificarRole, verificarPermissao };

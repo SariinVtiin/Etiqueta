@@ -1,22 +1,22 @@
 // frontend/src/services/api.js
+// ============================================
+// SALUSVITA TECH - API Service
+// Desenvolvido por FerMax Solution
+// ============================================
+// SEGURANÇA:
+// - sessionStorage (expira ao fechar navegador)
+// - TODAS as chamadas usam fetchAuth (interceptor 401 global)
+// - fetchConfigAuth ELIMINADO (era bypass do interceptor)
+// ============================================
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 /**
- * Obter token do localStorage
+ * Obter token do sessionStorage
  */
 const getToken = () => {
-  return localStorage.getItem("token");
+  return sessionStorage.getItem("token");
 };
-
-/**
- * Configuração padrão para fetch com autenticação
- */
-const fetchConfigAuth = () => ({
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getToken()}`,
-  },
-});
 
 /**
  * Flag para evitar múltiplos redirects simultâneos
@@ -29,14 +29,13 @@ let isRedirecting = false;
 const redirectToLogin = () => {
   if (isRedirecting) return;
   isRedirecting = true;
-  localStorage.removeItem("token");
-  localStorage.removeItem("usuario");
+  sessionStorage.removeItem("token");
   window.location.href = "/login";
 };
 
 /**
  * Fetch centralizado com interceptação de 401
- * Toda chamada autenticada deve usar esta função
+ * TODA chamada autenticada DEVE usar esta função
  */
 const fetchAuth = async (url, options = {}) => {
   const config = {
@@ -50,7 +49,6 @@ const fetchAuth = async (url, options = {}) => {
 
   const response = await fetch(url, config);
 
-  // Intercepta 401 GLOBALMENTE — sessão expirada
   if (response.status === 401) {
     redirectToLogin();
     throw new Error("Sessão expirada. Faça login novamente.");
@@ -60,14 +58,31 @@ const fetchAuth = async (url, options = {}) => {
 };
 
 /**
- * Handler genérico de erros (para funções que já usam)
+ * fetchAuth para uploads (FormData — sem Content-Type, o browser define)
  */
-const handleResponse = async (response) => {
-  // 401 já foi tratado pelo fetchAuth, mas mantemos por segurança
+const fetchAuthUpload = async (url, options = {}) => {
+  const config = {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+      ...(options.headers || {}),
+    },
+  };
+
+  const response = await fetch(url, config);
+
   if (response.status === 401) {
     redirectToLogin();
     throw new Error("Sessão expirada. Faça login novamente.");
   }
+
+  return response;
+};
+
+/**
+ * Handler genérico de respostas
+ */
+const handleResponse = async (response) => {
   if (!response.ok) {
     const error = await response
       .json()
@@ -82,234 +97,257 @@ const handleResponse = async (response) => {
 // ============================================
 
 export const testarConexao = async () => {
-  try {
-    const response = await fetch(`${API_URL}/teste`);
-    return handleResponse(response);
-  } catch (erro) {
-    console.error("Erro ao testar conexão:", erro);
-    throw erro;
-  }
+  const response = await fetch(`${API_URL}/teste`);
+  return handleResponse(response);
 };
 
 export const buscarStatus = async () => {
-  try {
-    const response = await fetch(`${API_URL}/status`);
-    return handleResponse(response);
-  } catch (erro) {
-    console.error("Erro ao buscar status:", erro);
-    throw erro;
-  }
+  const response = await fetch(`${API_URL}/status`);
+  return handleResponse(response);
 };
 
 // ============================================
 // ENDPOINTS - LEITOS
 // ============================================
 
-export const listarLeitos = async () => {
-  try {
-    const response = await fetchAuth(`${API_URL}/leitos`);
-    return handleResponse(response);
-  } catch (erro) {
-    console.error("Erro ao listar leitos:", erro);
-    throw erro;
-  }
+export const listarLeitos = async (todas = false) => {
+  const url = todas ? `${API_URL}/leitos?todas=true` : `${API_URL}/leitos`;
+  const response = await fetchAuth(url);
+  return handleResponse(response);
+};
+
+export const listarSetores = async () => {
+  const response = await fetchAuth(`${API_URL}/leitos/setores`);
+  return handleResponse(response);
+};
+
+export const criarLeito = async (leito) => {
+  const response = await fetchAuth(`${API_URL}/leitos`, {
+    method: "POST",
+    body: JSON.stringify(leito),
+  });
+  return handleResponse(response);
+};
+
+export const criarLeitosLote = async (dados) => {
+  const response = await fetchAuth(`${API_URL}/leitos/lote`, {
+    method: "POST",
+    body: JSON.stringify(dados),
+  });
+  return handleResponse(response);
+};
+
+export const atualizarLeito = async (id, leito) => {
+  const response = await fetchAuth(`${API_URL}/leitos/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(leito),
+  });
+  return handleResponse(response);
+};
+
+export const toggleLeitoAtivo = async (id, ativo) => {
+  const response = await fetchAuth(`${API_URL}/leitos/${id}/toggle`, {
+    method: "PATCH",
+    body: JSON.stringify({ ativo }),
+  });
+  return handleResponse(response);
 };
 
 // ============================================
 // ENDPOINTS - PRESCRIÇÕES
 // ============================================
 
-/**
- * Listar prescrições com filtros
- */
 export const listarPrescricoes = async (filtros = {}) => {
-  try {
-    const params = new URLSearchParams();
+  const params = new URLSearchParams();
+  if (filtros.busca) params.append("busca", filtros.busca);
+  if (filtros.dataInicio) params.append("dataInicio", filtros.dataInicio);
+  if (filtros.dataFim) params.append("dataFim", filtros.dataFim);
+  if (filtros.setor) params.append("setor", filtros.setor);
+  if (filtros.refeicao) params.append("refeicao", filtros.refeicao);
+  if (filtros.page) params.append("page", filtros.page);
+  if (filtros.limit) params.append("limit", filtros.limit);
 
-    if (filtros.busca) params.append("busca", filtros.busca);
-    if (filtros.dataInicio) params.append("dataInicio", filtros.dataInicio);
-    if (filtros.dataFim) params.append("dataFim", filtros.dataFim);
-    if (filtros.setor) params.append("setor", filtros.setor);
-    if (filtros.refeicao) params.append("refeicao", filtros.refeicao);
-    if (filtros.page) params.append("page", filtros.page);
-    if (filtros.limit) params.append("limit", filtros.limit);
-
-    const url = `${API_URL}/prescricoes?${params.toString()}`;
-    const response = await fetch(url, fetchConfigAuth());
-    return handleResponse(response);
-  } catch (erro) {
-    console.error("Erro ao listar prescrições:", erro);
-    throw erro;
-  }
+  const response = await fetchAuth(`${API_URL}/prescricoes?${params.toString()}`);
+  return handleResponse(response);
 };
 
-/**
- * Buscar prescrição por ID
- */
 export const buscarPrescricao = async (id) => {
-  try {
-    const response = await fetch(
-      `${API_URL}/prescricoes/${id}`,
-      fetchConfigAuth(),
-    );
-    return handleResponse(response);
-  } catch (erro) {
-    console.error("Erro ao buscar prescrição:", erro);
-    throw erro;
-  }
+  const response = await fetchAuth(`${API_URL}/prescricoes/${id}`);
+  return handleResponse(response);
 };
 
-/**
- * Criar nova prescrição
- */
 export const criarPrescricao = async (prescricao) => {
-  try {
-    const response = await fetch(`${API_URL}/prescricoes`, {
-      method: "POST",
-      ...fetchConfigAuth(),
-      body: JSON.stringify(prescricao),
-    });
-    return handleResponse(response);
-  } catch (erro) {
-    console.error("Erro ao criar prescrição:", erro);
-    throw erro;
-  }
+  const response = await fetchAuth(`${API_URL}/prescricoes`, {
+    method: "POST",
+    body: JSON.stringify(prescricao),
+  });
+  return handleResponse(response);
 };
 
-/**
- * Atualizar prescrição
- */
 export const atualizarPrescricao = async (id, prescricao) => {
-  try {
-    const response = await fetch(`${API_URL}/prescricoes/${id}`, {
-      method: "PUT",
-      ...fetchConfigAuth(),
-      body: JSON.stringify(prescricao),
-    });
-    return handleResponse(response);
-  } catch (erro) {
-    console.error("Erro ao atualizar prescrição:", erro);
-    throw erro;
-  }
+  const response = await fetchAuth(`${API_URL}/prescricoes/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(prescricao),
+  });
+  return handleResponse(response);
 };
 
-/**
- * Deletar prescrição
- */
 export const deletarPrescricao = async (id) => {
+  const response = await fetchAuth(`${API_URL}/prescricoes/${id}`, {
+    method: "DELETE",
+  });
+  return handleResponse(response);
+};
+
+// ============================================
+// ENDPOINTS - ETIQUETAS
+// ============================================
+
+export const gerarEtiquetas = async (prescricaoId) => {
+  const response = await fetchAuth(`${API_URL}/etiquetas/gerar/${prescricaoId}`, {
+    method: "POST",
+  });
+  return handleResponse(response);
+};
+
+export const listarEtiquetas = async (prescricaoId) => {
+  const response = await fetchAuth(`${API_URL}/etiquetas/prescricao/${prescricaoId}`);
+  return handleResponse(response);
+};
+
+export const marcarEtiquetaImpressa = async (id) => {
+  const response = await fetchAuth(`${API_URL}/etiquetas/${id}/imprimir`, {
+    method: "PATCH",
+  });
+  return handleResponse(response);
+};
+
+export const imprimirEtiquetasLote = async (ids) => {
+  const response = await fetchAuth(`${API_URL}/etiquetas/imprimir-lote`, {
+    method: "POST",
+    body: JSON.stringify({ ids }),
+  });
+  return handleResponse(response);
+};
+
+export const deletarEtiqueta = async (id) => {
+  const response = await fetchAuth(`${API_URL}/etiquetas/${id}`, {
+    method: "DELETE",
+  });
+  return handleResponse(response);
+};
+
+// ============================================
+// ENDPOINTS - PACIENTES
+// ============================================
+
+export const buscarPacientePorCpf = async (cpf) => {
   try {
-    const response = await fetch(`${API_URL}/prescricoes/${id}`, {
-      method: "DELETE",
-      ...fetchConfigAuth(),
-    });
-    return handleResponse(response);
+    const cpfLimpo = String(cpf || "").replace(/\D/g, "");
+    const response = await fetchAuth(`${API_URL}/pacientes/cpf/${cpfLimpo}`);
+    const dados = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return { sucesso: false, paciente: null };
+      }
+      throw new Error(dados.erro || "Erro ao buscar paciente");
+    }
+
+    return dados;
   } catch (erro) {
-    console.error("Erro ao deletar prescrição:", erro);
+    console.error("Erro na busca de paciente:", erro);
+    if (
+      erro.message &&
+      (erro.message.includes("404") || erro.message.includes("Paciente"))
+    ) {
+      return { sucesso: false, paciente: null };
+    }
     throw erro;
   }
 };
 
-// ====================================
-// FUNÇÕES DE USUÁRIOS (ADMIN)
-// ====================================
+export const listarPacientes = async ({ busca = "", page = 1, limit = 10 } = {}) => {
+  const params = new URLSearchParams();
+  if (busca) params.append("busca", busca);
+  params.append("page", page);
+  params.append("limit", limit);
 
-/**
- * Listar todos os usuários
- */
+  const response = await fetchAuth(`${API_URL}/pacientes?${params.toString()}`);
+  return handleResponse(response);
+};
+
+export const listarPrescricoesPaciente = async (cpf) => {
+  const cpfLimpo = String(cpf || "").replace(/\D/g, "");
+  const response = await fetchAuth(`${API_URL}/pacientes/${cpfLimpo}/prescricoes`);
+  return handleResponse(response);
+};
+
+export const verificarCodigoAtendimento = async (codigo, cpfAtual) => {
+  try {
+    const cpfLimpo = cpfAtual ? cpfAtual.replace(/\D/g, "") : "";
+    const response = await fetchAuth(
+      `${API_URL}/pacientes/verificar-codigo/${codigo}?cpf=${cpfLimpo}`,
+    );
+    return await response.json();
+  } catch (erro) {
+    console.error("Erro ao verificar código:", erro);
+    return { sucesso: false, disponivel: true };
+  }
+};
+
+// ============================================
+// ENDPOINTS - USUÁRIOS (ADMIN)
+// ============================================
+
 export const listarUsuarios = async (busca = "") => {
   const params = busca ? `?busca=${encodeURIComponent(busca)}` : "";
   const response = await fetchAuth(`${API_URL}/usuarios${params}`);
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao listar usuários");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
-/**
- * Criar novo usuário
- */
 export const criarUsuario = async (usuario) => {
   const response = await fetchAuth(`${API_URL}/usuarios`, {
     method: "POST",
     body: JSON.stringify(usuario),
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao criar usuário");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
-/**
- * Atualizar usuário
- */
 export const atualizarUsuario = async (id, usuario) => {
-  const response = await fetch(`${API_URL}/usuarios/${id}`, {
-    ...fetchConfigAuth(),
+  const response = await fetchAuth(`${API_URL}/usuarios/${id}`, {
     method: "PUT",
     body: JSON.stringify(usuario),
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao atualizar usuário");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
-/**
- * Desativar usuário
- */
 export const desativarUsuario = async (id) => {
-  const response = await fetch(`${API_URL}/usuarios/${id}`, {
-    ...fetchConfigAuth(),
-    method: "DELETE",
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao desativar usuário");
-  }
-  return response.json();
-};
-
-/**
- * Ativar usuário
- */
-export const ativarUsuario = async (id) => {
-  const response = await fetch(`${API_URL}/usuarios/${id}/ativar`, {
-    ...fetchConfigAuth(),
+  const response = await fetchAuth(`${API_URL}/usuarios/${id}/desativar`, {
     method: "POST",
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao ativar usuário");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
-/**
- * Resetar senha do usuário
- */
+export const ativarUsuario = async (id) => {
+  const response = await fetchAuth(`${API_URL}/usuarios/${id}/ativar`, {
+    method: "POST",
+  });
+  return handleResponse(response);
+};
+
 export const resetarSenhaUsuario = async (id, novaSenha) => {
-  const response = await fetch(`${API_URL}/usuarios/${id}/resetar-senha`, {
-    ...fetchConfigAuth(),
+  const response = await fetchAuth(`${API_URL}/usuarios/${id}/resetar-senha`, {
     method: "POST",
     body: JSON.stringify({ novaSenha }),
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao resetar senha");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
-// ====================================
-// FUNÇÕES DE AUDITORIA (ADMIN)
-// ====================================
+// ============================================
+// ENDPOINTS - AUDITORIA (ADMIN)
+// ============================================
 
-/**
- * Listar logs de auditoria
- */
 export const listarLogsAuditoria = async (filtros = {}) => {
   const params = new URLSearchParams();
   if (filtros.usuarioId) params.append("usuarioId", filtros.usuarioId);
@@ -323,551 +361,314 @@ export const listarLogsAuditoria = async (filtros = {}) => {
   if (filtros.limit) params.append("limit", filtros.limit);
 
   const queryString = params.toString();
-  const url = `${API_URL}/auditoria/logs${queryString ? "?" + queryString : ""}`;
-
-  const response = await fetch(url, fetchConfigAuth());
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao listar logs");
-  }
-  return response.json();
-};
-
-/**
- * Obter estatísticas de auditoria
- */
-export const obterEstatisticasAuditoria = async () => {
-  const response = await fetch(
-    `${API_URL}/auditoria/estatisticas`,
-    fetchConfigAuth(),
+  const response = await fetchAuth(
+    `${API_URL}/auditoria/logs${queryString ? "?" + queryString : ""}`,
   );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao obter estatísticas");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
-// ====================================
-// FUNÇÕES DE DIETAS
-// ====================================
+export const obterEstatisticasAuditoria = async () => {
+  const response = await fetchAuth(`${API_URL}/auditoria/estatisticas`);
+  return handleResponse(response);
+};
 
-/**
- * Listar todas as dietas
- */
+// ============================================
+// ENDPOINTS - DIETAS
+// ============================================
+
 export const listarDietas = async () => {
-  const response = await fetch(`${API_URL}/dietas`, fetchConfigAuth());
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao listar dietas");
-  }
-  return response.json();
+  const response = await fetchAuth(`${API_URL}/dietas`);
+  return handleResponse(response);
 };
 
-/**
- * Criar nova dieta
- */
+export const listarDietasAtivas = async () => {
+  const response = await fetchAuth(`${API_URL}/dietas?apenasAtivas=true`);
+  return handleResponse(response);
+};
+
 export const criarDieta = async (dieta) => {
-  const response = await fetch(`${API_URL}/dietas`, {
-    ...fetchConfigAuth(),
+  const response = await fetchAuth(`${API_URL}/dietas`, {
     method: "POST",
     body: JSON.stringify(dieta),
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao criar dieta");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
-/**
- * Atualizar dieta
- */
 export const atualizarDieta = async (id, dieta) => {
-  const response = await fetch(`${API_URL}/dietas/${id}`, {
-    ...fetchConfigAuth(),
+  const response = await fetchAuth(`${API_URL}/dietas/${id}`, {
     method: "PUT",
     body: JSON.stringify(dieta),
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao atualizar dieta");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
-/**
- * Ativar/Desativar dieta
- */
 export const toggleDietaAtiva = async (id, ativa) => {
-  const response = await fetch(`${API_URL}/dietas/${id}/toggle`, {
-    ...fetchConfigAuth(),
+  const response = await fetchAuth(`${API_URL}/dietas/${id}/toggle`, {
     method: "PATCH",
     body: JSON.stringify({ ativa }),
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao alterar status da dieta");
-  }
-  return response.json();
-};
-
-// ====================================
-// FUNÇÕES DE ETIQUETAS (IMPRESSÃO)
-// ====================================
-
-/**
- * Listar todas as etiquetas
- */
-export const listarEtiquetas = async () => {
-  const response = await fetch(`${API_URL}/etiquetas`, fetchConfigAuth());
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao listar etiquetas");
-  }
-  return response.json();
-};
-
-/**
- * Listar etiquetas pendentes
- */
-export const listarEtiquetasPendentes = async () => {
-  const response = await fetch(
-    `${API_URL}/etiquetas/pendentes`,
-    fetchConfigAuth(),
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao buscar pendentes");
-  }
-  return response.json();
-};
-
-/**
- * Criar etiqueta
- *
- * @param {Object} etiqueta - Dados da etiqueta
- * @param {string} etiqueta.leito - Número do leito
- * @param {string} etiqueta.dieta - Nome da dieta
- * @param {string} [etiqueta.obs1] - Observação 1 (ex: condições nutricionais)
- * @param {string} [etiqueta.obs2] - Observação 2 (ex: exclusões)
- * @param {string} [etiqueta.obs3] - Observação 3 (ex: acréscimos)
- * @param {string} [etiqueta.usuario] - Nome do usuário que criou
- */
-export const criarEtiqueta = async (etiqueta) => {
-  const response = await fetch(`${API_URL}/etiquetas`, {
-    ...fetchConfigAuth(),
-    method: "POST",
-    body: JSON.stringify(etiqueta),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao criar etiqueta");
-  }
-  return response.json();
-};
-
-/**
- * Marcar etiqueta como impressa
- */
-export const marcarEtiquetaImpressa = async (id) => {
-  const response = await fetch(`${API_URL}/etiquetas/${id}/imprimir`, {
-    ...fetchConfigAuth(),
-    method: "PATCH",
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao marcar impressão");
-  }
-  return response.json();
-};
-
-/**
- * Imprimir múltiplas etiquetas
- */
-export const imprimirEtiquetasLote = async (ids) => {
-  const response = await fetch(`${API_URL}/etiquetas/imprimir-lote`, {
-    ...fetchConfigAuth(),
-    method: "POST",
-    body: JSON.stringify({ ids }),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao imprimir lote");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 // ============================================
-// PACIENTES - FUNÇÃO NOVA
+// ENDPOINTS - CONDIÇÕES NUTRICIONAIS
 // ============================================
 
-/**
- * Buscar paciente por CPF (auto-completar)
- * ✅ CORRIGIDO: URL sem /api duplicado
- */
-export const buscarPacientePorCPF = async (cpf) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("Token não encontrado");
-    }
-
-    const cpfLimpo = cpf.replace(/\D/g, "");
-
-    // ✅ CORRIGIDO: era /api/pacientes/ (duplicava /api)
-    const resposta = await fetch(`${API_URL}/pacientes/buscar/${cpfLimpo}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    const dados = await resposta.json();
-
-    if (!resposta.ok) {
-      if (resposta.status === 404) {
-        return { sucesso: false, paciente: null };
-      }
-      throw new Error(dados.erro || "Erro ao buscar paciente");
-    }
-
-    return dados;
-  } catch (erro) {
-    console.error("Erro na busca de paciente:", erro);
-    // Retornar paciente null ao invés de lançar erro (para não quebrar o formulário)
-    if (
-      erro.message &&
-      (erro.message.includes("404") || erro.message.includes("Paciente"))
-    ) {
-      return { sucesso: false, paciente: null };
-    }
-    throw erro;
-  }
-};
-
-/**
- * Listar pacientes com busca e paginação
- */
-export const listarPacientes = async ({
-  busca = "",
-  page = 1,
-  limit = 10,
-} = {}) => {
-  try {
-    const params = new URLSearchParams();
-
-    if (busca) params.append("busca", busca);
-    params.append("page", page);
-    params.append("limit", limit);
-
-    const response = await fetchAuth(
-      `${API_URL}/pacientes?${params.toString()}`,
-    );
-    return handleResponse(response);
-  } catch (erro) {
-    console.error("Erro ao listar pacientes:", erro);
-    throw erro;
-  }
-};
-
-/**
- * Listar prescrições de um paciente pelo CPF
- */
-export const listarPrescricoesPaciente = async (cpf) => {
-  try {
-    const cpfLimpo = String(cpf || "").replace(/\D/g, "");
-    const response = await fetchAuth(
-      `${API_URL}/pacientes/${cpfLimpo}/prescricoes`,
-    );
-    return handleResponse(response);
-  } catch (erro) {
-    console.error("Erro ao listar prescrições do paciente:", erro);
-    throw erro;
-  }
-};
-
-/**
- * Verificar se código de atendimento já está em uso por outro CPF
- */
-export const verificarCodigoAtendimento = async (codigo, cpfAtual) => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) throw new Error("Token não encontrado");
-
-    const cpfLimpo = cpfAtual ? cpfAtual.replace(/\D/g, "") : "";
-
-    const resposta = await fetch(
-      `${API_URL}/pacientes/verificar-codigo/${codigo}?cpf=${cpfLimpo}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    return await resposta.json();
-  } catch (erro) {
-    console.error("Erro ao verificar código:", erro);
-    return { sucesso: false, disponivel: true }; // Em caso de erro, deixa prosseguir
-  }
-};
-
-/**
- * Deletar etiqueta
- */
-export const deletarEtiqueta = async (id) => {
-  const response = await fetch(`${API_URL}/etiquetas/${id}`, {
-    ...fetchConfigAuth(),
-    method: "DELETE",
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao deletar");
-  }
-  return response.json();
-};
-
-// ====================================
-// FUNÇÕES DE ACRÉSCIMOS
-// ====================================
-
-/**
- * Listar acréscimos ativos
- */
-export const listarAcrescimos = async () => {
-  const response = await fetch(`${API_URL}/acrescimos`, fetchConfigAuth());
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao listar acréscimos");
-  }
-  return response.json();
-};
-
-/**
- * Buscar acréscimos por IDs (para relatórios)
- */
-export const buscarAcrescimosPorIds = async (ids) => {
-  if (!ids || ids.length === 0) {
-    return { sucesso: true, acrescimos: [] };
-  }
-
-  const idsString = Array.isArray(ids) ? ids.join(",") : ids;
-  const response = await fetch(
-    `${API_URL}/acrescimos/buscar/${idsString}`,
-    fetchConfigAuth(),
-  );
-
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao buscar acréscimos");
-  }
-  return response.json();
-};
-
-/**
- * Obter estatísticas de acréscimos
- */
-export const obterEstatisticasAcrescimos = async () => {
-  const response = await fetch(
-    `${API_URL}/acrescimos/estatisticas`,
-    fetchConfigAuth(),
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao obter estatísticas");
-  }
-  return response.json();
-};
-
-// ====================================
-// FUNÇÕES DE CONDIÇÕES NUTRICIONAIS
-// ====================================
-
-/**
- * Listar todas as condições nutricionais (ativas ou todas)
- */
 export const listarRestricoes = async (todas = false) => {
   const url = todas
     ? `${API_URL}/restricoes?todas=true`
     : `${API_URL}/restricoes`;
-  const response = await fetch(url, fetchConfigAuth());
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao listar condições nutricionais");
-  }
-  return response.json();
+  const response = await fetchAuth(url);
+  return handleResponse(response);
 };
 
-/**
- * Buscar condição nutricional por ID
- */
-export const buscarRestricao = async (id) => {
-  const response = await fetch(
-    `${API_URL}/restricoes/${id}`,
-    fetchConfigAuth(),
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao buscar condição nutricional");
-  }
-  return response.json();
-};
-
-/**
- * Criar nova condição nutricional
- */
 export const criarRestricao = async (restricao) => {
-  const response = await fetch(`${API_URL}/restricoes`, {
-    ...fetchConfigAuth(),
+  const response = await fetchAuth(`${API_URL}/restricoes`, {
     method: "POST",
     body: JSON.stringify(restricao),
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao criar condição nutricional");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
-/**
- * Atualizar condição nutricional
- */
 export const atualizarRestricao = async (id, restricao) => {
-  const response = await fetch(`${API_URL}/restricoes/${id}`, {
-    ...fetchConfigAuth(),
+  const response = await fetchAuth(`${API_URL}/restricoes/${id}`, {
     method: "PUT",
     body: JSON.stringify(restricao),
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao atualizar condição nutricional");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
-/**
- * Ativar/Desativar condição nutricional
- */
 export const toggleRestricaoAtiva = async (id, ativa) => {
-  const response = await fetch(`${API_URL}/restricoes/${id}/toggle`, {
-    ...fetchConfigAuth(),
+  const response = await fetchAuth(`${API_URL}/restricoes/${id}/toggle`, {
     method: "PATCH",
     body: JSON.stringify({ ativa }),
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(
-      erro.erro || "Erro ao alterar status da condição nutricional",
-    );
-  }
-  return response.json();
-};
-
-/**
- * Reordenar condições nutricionais
- */
-export const reordenarRestricoes = async (restricoes) => {
-  const response = await fetch(`${API_URL}/restricoes/reordenar`, {
-    ...fetchConfigAuth(),
-    method: "POST",
-    body: JSON.stringify({ restricoes }),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao reordenar condições nutricionais");
-  }
-  return response.json();
-};
-
-// ====================================
-// FUNÇÕES DE LEITOS - GESTÃO COMPLETA
-// ====================================
-
-/**
- * Listar leitos (ativos ou todos)
- */
-export const listarLeitosCompleto = async (todas = false) => {
-  const url = todas ? `${API_URL}/leitos?todas=true` : `${API_URL}/leitos`;
-  const response = await fetch(url, fetchConfigAuth());
   return handleResponse(response);
 };
 
-/**
- * Listar setores únicos
- */
-export const listarSetores = async () => {
-  const response = await fetch(`${API_URL}/leitos/setores`, fetchConfigAuth());
+export const reordenarRestricoes = async (condicoes) => {
+  const response = await fetchAuth(`${API_URL}/restricoes/reordenar`, {
+    method: "POST",
+    body: JSON.stringify({ condicoes }),
+  });
   return handleResponse(response);
 };
 
-/**
- * Criar novo leito
- */
-export const criarLeito = async (leito) => {
-  const response = await fetch(`${API_URL}/leitos`, {
-    ...fetchConfigAuth(),
-    method: "POST",
-    body: JSON.stringify(leito),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao criar leito");
-  }
-  return response.json();
+// ============================================
+// ENDPOINTS - CONDIÇÕES NUTRICIONAIS ACOMPANHANTE
+// ============================================
+
+export const listarRestricoesAcompanhante = async (todas = false) => {
+  const url = todas
+    ? `${API_URL}/restricoes-acompanhante?todas=true`
+    : `${API_URL}/restricoes-acompanhante`;
+  const response = await fetchAuth(url);
+  return handleResponse(response);
 };
 
-/**
- * Criar leitos em lote
- */
-export const criarLeitosLote = async (dados) => {
-  const response = await fetch(`${API_URL}/leitos/lote`, {
-    ...fetchConfigAuth(),
+export const criarRestricaoAcompanhante = async (restricao) => {
+  const response = await fetchAuth(`${API_URL}/restricoes-acompanhante`, {
     method: "POST",
-    body: JSON.stringify(dados),
+    body: JSON.stringify(restricao),
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao criar leitos em lote");
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
-/**
- * Atualizar leito
- */
-export const atualizarLeito = async (id, leito) => {
-  const response = await fetch(`${API_URL}/leitos/${id}`, {
-    ...fetchConfigAuth(),
+export const atualizarRestricaoAcompanhante = async (id, restricao) => {
+  const response = await fetchAuth(`${API_URL}/restricoes-acompanhante/${id}`, {
     method: "PUT",
-    body: JSON.stringify(leito),
+    body: JSON.stringify(restricao),
   });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao atualizar leito");
-  }
-  return response.json();
+  return handleResponse(response);
+};
+
+export const toggleRestricaoAcompanhanteAtiva = async (id, ativa) => {
+  const response = await fetchAuth(`${API_URL}/restricoes-acompanhante/${id}/toggle`, {
+    method: "PATCH",
+    body: JSON.stringify({ ativa }),
+  });
+  return handleResponse(response);
+};
+
+// ============================================
+// ENDPOINTS - CONVÊNIOS
+// ============================================
+
+export const listarConvenios = async (todas = false) => {
+  const url = todas
+    ? `${API_URL}/convenios?incluirInativas=true`
+    : `${API_URL}/convenios`;
+  const response = await fetchAuth(url);
+  return handleResponse(response);
+};
+
+export const criarConvenio = async (convenio) => {
+  const response = await fetchAuth(`${API_URL}/convenios`, {
+    method: "POST",
+    body: JSON.stringify(convenio),
+  });
+  return handleResponse(response);
+};
+
+export const atualizarConvenio = async (id, convenio) => {
+  const response = await fetchAuth(`${API_URL}/convenios/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(convenio),
+  });
+  return handleResponse(response);
+};
+
+export const toggleConvenioAtivo = async (id, ativa) => {
+  const response = await fetchAuth(`${API_URL}/convenios/${id}/toggle`, {
+    method: "PATCH",
+    body: JSON.stringify({ ativa }),
+  });
+  return handleResponse(response);
+};
+
+// ============================================
+// ENDPOINTS - REFEIÇÕES
+// ============================================
+
+export const listarRefeicoes = async (incluirInativas = false) => {
+  const url = incluirInativas
+    ? `${API_URL}/refeicoes?incluirInativas=true`
+    : `${API_URL}/refeicoes`;
+  const response = await fetchAuth(url);
+  return handleResponse(response);
+};
+
+export const criarRefeicao = async (refeicao) => {
+  const response = await fetchAuth(`${API_URL}/refeicoes`, {
+    method: "POST",
+    body: JSON.stringify(refeicao),
+  });
+  return handleResponse(response);
+};
+
+export const atualizarRefeicao = async (id, refeicao) => {
+  const response = await fetchAuth(`${API_URL}/refeicoes/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(refeicao),
+  });
+  return handleResponse(response);
+};
+
+export const toggleRefeicaoAtiva = async (id, ativa) => {
+  const response = await fetchAuth(`${API_URL}/refeicoes/${id}/toggle`, {
+    method: "PATCH",
+    body: JSON.stringify({ ativa }),
+  });
+  return handleResponse(response);
+};
+
+export const toggleListaPersonalizada = async (id, tem_lista_personalizada) => {
+  const response = await fetchAuth(`${API_URL}/refeicoes/${id}/toggle-lista`, {
+    method: "PATCH",
+    body: JSON.stringify({ tem_lista_personalizada }),
+  });
+  return handleResponse(response);
+};
+
+export const listarItensRefeicao = async (refeicaoId) => {
+  const response = await fetchAuth(`${API_URL}/refeicoes/${refeicaoId}/itens`);
+  return handleResponse(response);
+};
+
+export const buscarItensRefeicaoPorIds = async (ids) => {
+  if (!ids || ids.length === 0) return { sucesso: true, itens: [] };
+  const response = await fetchAuth(
+    `${API_URL}/refeicoes/itens/buscar/${ids.join(",")}`,
+  );
+  return handleResponse(response);
 };
 
 /**
- * Ativar/Desativar leito
+ * Importar planilha Excel (FormData — usa fetchAuthUpload sem Content-Type)
  */
-export const toggleLeitoAtivo = async (id, ativo) => {
-  const response = await fetch(`${API_URL}/leitos/${id}/toggle`, {
-    ...fetchConfigAuth(),
-    method: "PATCH",
-    body: JSON.stringify({ ativo }),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao alterar status do leito");
-  }
-  return response.json();
+export const importarItensRefeicao = async (refeicaoId, arquivo) => {
+  const formData = new FormData();
+  formData.append("arquivo", arquivo);
+
+  const response = await fetchAuthUpload(
+    `${API_URL}/refeicoes/${refeicaoId}/itens/importar`,
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
+  return handleResponse(response);
 };
+
+export const buscarEstatisticasItensRefeicao = async (refeicaoId) => {
+  const response = await fetchAuth(
+    `${API_URL}/refeicoes/${refeicaoId}/itens/estatisticas`,
+  );
+  return handleResponse(response);
+};
+
+// ============================================
+// ENDPOINTS - ACRÉSCIMOS
+// ============================================
+
+export const listarAcrescimos = async () => {
+  const response = await fetchAuth(`${API_URL}/acrescimos`);
+  return handleResponse(response);
+};
+
+export const buscarAcrescimosPorIds = async (ids) => {
+  if (!ids || ids.length === 0) return { sucesso: true, acrescimos: [] };
+  const idsString = Array.isArray(ids) ? ids.join(",") : ids;
+  const response = await fetchAuth(`${API_URL}/acrescimos/buscar/${idsString}`);
+  return handleResponse(response);
+};
+
+export const obterEstatisticasAcrescimos = async () => {
+  const response = await fetchAuth(`${API_URL}/acrescimos/estatisticas`);
+  return handleResponse(response);
+};
+
+/**
+ * Importar acréscimos via Excel (FormData)
+ */
+export const importarAcrescimos = async (arquivo) => {
+  const formData = new FormData();
+  formData.append("arquivo", arquivo);
+
+  const response = await fetchAuthUpload(`${API_URL}/acrescimos/importar`, {
+    method: "POST",
+    body: formData,
+  });
+  return handleResponse(response);
+};
+
+export const desativarTodosAcrescimos = async () => {
+  const response = await fetchAuth(`${API_URL}/acrescimos/desativar-todos`, {
+    method: "POST",
+  });
+  return handleResponse(response);
+};
+
+// ============================================
+// ENDPOINTS - CONFIGURAÇÕES
+// ============================================
+
+export const buscarConfiguracoes = async () => {
+  const response = await fetchAuth(`${API_URL}/configuracoes`);
+  return handleResponse(response);
+};
+
+export const atualizarConfiguracao = async (chave, valor) => {
+  const response = await fetchAuth(`${API_URL}/configuracoes/${chave}`, {
+    method: "PUT",
+    body: JSON.stringify({ valor }),
+  });
+  return handleResponse(response);
+};
+
+// ============================================
+// ENDPOINTS - LOGS DE LOGIN
+// ============================================
 
 export const exportarLogsLogin = async (filtros = {}) => {
   const params = new URLSearchParams();
@@ -879,11 +680,7 @@ export const exportarLogsLogin = async (filtros = {}) => {
   const queryString = params.toString();
   const url = `${API_URL}/logs-login/exportar${queryString ? "?" + queryString : ""}`;
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${getToken()}`,
-    },
-  });
+  const response = await fetchAuth(url);
 
   if (!response.ok) {
     const erro = await response
@@ -898,7 +695,6 @@ export const exportarLogsLogin = async (filtros = {}) => {
   const link = document.createElement("a");
   link.href = urlBlob;
 
-  // Extrair nome do arquivo do header ou gerar um
   const contentDisposition = response.headers.get("Content-Disposition");
   let nomeArquivo = `logs_login_${filtros.dataInicio}_a_${filtros.dataFim}.xlsx`;
   if (contentDisposition) {
@@ -915,350 +711,23 @@ export const exportarLogsLogin = async (filtros = {}) => {
   return { sucesso: true, mensagem: "Relatório baixado com sucesso!" };
 };
 
-/**
- * Listar usuários para filtro do relatório de logs
- */
 export const listarUsuariosLogsLogin = async () => {
-  const response = await fetch(
-    `${API_URL}/logs-login/usuarios`,
-    fetchConfigAuth(),
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao listar usuários");
-  }
-  return response.json();
+  const response = await fetchAuth(`${API_URL}/logs-login/usuarios`);
+  return handleResponse(response);
 };
 
-/**
- * Listar apenas dietas ativas (para uso em prescrições)
- */
-export const listarDietasAtivas = async () => {
-  const response = await fetch(
-    `${API_URL}/dietas?apenasAtivas=true`,
-    fetchConfigAuth(),
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao listar dietas");
-  }
-  return response.json();
-};
-
-// ====================================
-// FUNÇÕES DE REFEIÇÕES
-// ====================================
-
-/**
- * Listar tipos de refeição
- * @param {boolean} incluirInativas - Se true, retorna também as inativas
- */
-export const listarRefeicoes = async (incluirInativas = false) => {
-  const response = await fetch(
-    `${API_URL}/refeicoes${incluirInativas ? "?incluirInativas=true" : ""}`,
-    fetchConfigAuth(),
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao listar refeições");
-  }
-  return response.json();
-};
-
-/**
- * Criar tipo de refeição
- */
-export const criarRefeicao = async (refeicao) => {
-  const response = await fetch(`${API_URL}/refeicoes`, {
-    ...fetchConfigAuth(),
-    method: "POST",
-    body: JSON.stringify(refeicao),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao criar refeição");
-  }
-  return response.json();
-};
-
-/**
- * Atualizar tipo de refeição
- */
-export const atualizarRefeicao = async (id, refeicao) => {
-  const response = await fetch(`${API_URL}/refeicoes/${id}`, {
-    ...fetchConfigAuth(),
-    method: "PUT",
-    body: JSON.stringify(refeicao),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao atualizar refeição");
-  }
-  return response.json();
-};
-
-/**
- * Ativar/Desativar tipo de refeição
- */
-export const toggleRefeicaoAtiva = async (id, ativa) => {
-  const response = await fetch(`${API_URL}/refeicoes/${id}/toggle`, {
-    ...fetchConfigAuth(),
-    method: "PATCH",
-    body: JSON.stringify({ ativa }),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao alterar status");
-  }
-  return response.json();
-};
-
-export const toggleListaPersonalizada = async (id, tem_lista_personalizada) => {
-  const response = await fetch(`${API_URL}/refeicoes/${id}/toggle-lista`, {
-    ...fetchConfigAuth(),
-    method: "PATCH",
-    body: JSON.stringify({ tem_lista_personalizada }),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao alterar lista");
-  }
-  return response.json();
-};
-
-/**
- * Listar itens ativos de uma refeição especial
- */
-export const listarItensRefeicao = async (refeicaoId) => {
-  const response = await fetch(
-    `${API_URL}/refeicoes/${refeicaoId}/itens`,
-    fetchConfigAuth(),
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao listar itens");
-  }
-  return response.json();
-};
-
-/**
- * Buscar itens por IDs (para exibir histórico de prescrições)
- */
-export const buscarItensRefeicaoPorIds = async (ids) => {
-  if (!ids || ids.length === 0) return { sucesso: true, itens: [] };
-  const response = await fetch(
-    `${API_URL}/refeicoes/itens/buscar/${ids.join(",")}`,
-    fetchConfigAuth(),
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao buscar itens");
-  }
-  return response.json();
-};
-
-/**
- * Importar planilha Excel para uma refeição especial
- */
-export const importarItensRefeicao = async (refeicaoId, arquivo) => {
-  const formData = new FormData();
-  formData.append("arquivo", arquivo);
-
-  const response = await fetch(
-    `${API_URL}/refeicoes/${refeicaoId}/itens/importar`,
-    {
-      method: "POST",
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      body: formData,
-    },
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao importar");
-  }
-  return response.json();
-};
-
-/**
- * Estatísticas de itens de uma refeição
- */
-export const buscarEstatisticasItensRefeicao = async (refeicaoId) => {
-  const response = await fetch(
-    `${API_URL}/refeicoes/${refeicaoId}/itens/estatisticas`,
-    fetchConfigAuth(),
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao buscar estatísticas");
-  }
-  return response.json();
-};
-
-/**
- * Buscar todas as configurações do sistema
- */
-export const buscarConfiguracoes = async () => {
-  const response = await fetch(`${API_URL}/configuracoes`, fetchConfigAuth());
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao buscar configurações");
-  }
-  return response.json();
-};
-
-/**
- * Atualizar uma configuração do sistema
- */
-export const atualizarConfiguracao = async (chave, valor) => {
-  const response = await fetch(`${API_URL}/configuracoes/${chave}`, {
-    ...fetchConfigAuth(),
-    method: "PUT",
-    body: JSON.stringify({ valor }),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao atualizar configuração");
-  }
-  return response.json();
-};
+export { buscarPacientePorCpf as buscarPacientePorCPF };
+export { listarLeitos as listarLeitosCompleto };
 
 // ============================================
-// FUNÇÕES DE CONDIÇÕES NUTRICIONAIS DO ACOMPANHANTE
+// ENDPOINTS - PERMISSÕES (NOVO)
 // ============================================
 
 /**
- * Listar condições nutricionais do acompanhante (ativas ou todas)
+ * Buscar constantes de permissões do backend
+ * Retorna: labels, grupos, perfil padrão
  */
-export const listarRestricoesAcompanhante = async (todas = false) => {
-  const url = todas
-    ? `${API_URL}/restricoes-acompanhante?todas=true`
-    : `${API_URL}/restricoes-acompanhante`;
-  const response = await fetch(url, fetchConfigAuth());
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(
-      erro.erro || "Erro ao listar condições nutricionais do acompanhante",
-    );
-  }
-  return response.json();
-};
-
-/**
- * Criar condição nutricional do acompanhante
- */
-export const criarRestricaoAcompanhante = async (restricao) => {
-  const response = await fetch(`${API_URL}/restricoes-acompanhante`, {
-    ...fetchConfigAuth(),
-    method: "POST",
-    body: JSON.stringify(restricao),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao criar condição nutricional");
-  }
-  return response.json();
-};
-
-/**
- * Atualizar condição nutricional do acompanhante
- */
-export const atualizarRestricaoAcompanhante = async (id, restricao) => {
-  const response = await fetch(`${API_URL}/restricoes-acompanhante/${id}`, {
-    ...fetchConfigAuth(),
-    method: "PUT",
-    body: JSON.stringify(restricao),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao atualizar condição nutricional");
-  }
-  return response.json();
-};
-
-/**
- * Ativar/Desativar condição nutricional do acompanhante
- */
-export const toggleRestricaoAcompanhanteAtiva = async (id, ativa) => {
-  const response = await fetch(
-    `${API_URL}/restricoes-acompanhante/${id}/toggle`,
-    {
-      ...fetchConfigAuth(),
-      method: "PATCH",
-      body: JSON.stringify({ ativa }),
-    },
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(
-      erro.erro || "Erro ao alterar status da condição nutricional",
-    );
-  }
-  return response.json();
-};
-
-// ====================================
-// FUNÇÕES DE CONVÊNIOS
-// ====================================
-
-/**
- * Listar convênios (ativos ou todos)
- */
-export const listarConvenios = async (todas = false) => {
-  const response = await fetch(
-    `${API_URL}/convenios${todas ? "?incluirInativas=true" : ""}`,
-    fetchConfigAuth(),
-  );
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao listar convênios");
-  }
-  return response.json();
-};
-
-/**
- * Criar convênio
- */
-export const criarConvenio = async (convenio) => {
-  const response = await fetch(`${API_URL}/convenios`, {
-    ...fetchConfigAuth(),
-    method: "POST",
-    body: JSON.stringify(convenio),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao criar convênio");
-  }
-  return response.json();
-};
-
-/**
- * Atualizar convênio
- */
-export const atualizarConvenio = async (id, convenio) => {
-  const response = await fetch(`${API_URL}/convenios/${id}`, {
-    ...fetchConfigAuth(),
-    method: "PUT",
-    body: JSON.stringify(convenio),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao atualizar convênio");
-  }
-  return response.json();
-};
-
-/**
- * Ativar/Desativar convênio
- */
-export const toggleConvenioAtivo = async (id, ativa) => {
-  const response = await fetch(`${API_URL}/convenios/${id}/toggle`, {
-    ...fetchConfigAuth(),
-    method: "PATCH",
-    body: JSON.stringify({ ativa }),
-  });
-  if (!response.ok) {
-    const erro = await response.json();
-    throw new Error(erro.erro || "Erro ao alterar status do convênio");
-  }
-  return response.json();
+export const buscarPermissoesConfig = async () => {
+  const response = await fetchAuth(`${API_URL}/usuarios/permissoes-config`);
+  return handleResponse(response);
 };

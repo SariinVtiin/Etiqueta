@@ -59,7 +59,7 @@
 
 .dashboard-page.mounted {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 
 /* Loading */
@@ -1273,3 +1273,4 @@
   outline: 2px solid var(--db-primary);
   outline-offset: 2px;
 }
+

@@ -283,3 +283,28 @@
 .cadastro-card:nth-child(7) { animation-delay: 0.3s; }
 .cadastro-card:nth-child(8) { animation-delay: 0.35s; }
 .cadastro-card:nth-child(9) { animation-delay: 0.4s; }
+
+/* ============================================
+   SALUSVITA TECH - CADASTROS (ADIÇÃO)
+   ============================================
+   ADICIONAR ao final do Cadastros.css existente
+   ============================================ */
+
+/* Estado vazio: sem permissões */
+.cadastros-vazio {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--app-gray-500);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  border: 1px dashed var(--app-gray-300);
+  margin-top: 20px;
+}
+
+.cadastros-vazio p:first-child {
+  font-weight: 600;
+  color: var(--app-gray-700);
+  font-size: 1rem;
+}
