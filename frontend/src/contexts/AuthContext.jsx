@@ -1,4 +1,12 @@
 // frontend/src/contexts/AuthContext.jsx
+// ============================================
+// SALUSVITA TECH - Contexto de Autenticação
+// Desenvolvido por FerMax Solution
+// ============================================
+// SEGURANÇA: sessionStorage (expira ao fechar navegador)
+// NOVO: temPermissao() para controle granular de acesso
+// ============================================
+
 import React, { createContext, useState, useContext, useEffect, useRef, useCallback } from 'react';
 
 const AuthContext = createContext({});
@@ -8,7 +16,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://177.207.236.78:9091/api
 export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(sessionStorage.getItem('token'));
 
   // Ref para evitar execução dupla no StrictMode
   const verificacaoIniciada = useRef(false);
@@ -19,7 +27,7 @@ export const AuthProvider = ({ children }) => {
     verificacaoIniciada.current = true;
 
     const verificarToken = async () => {
-      const tokenSalvo = localStorage.getItem('token');
+      const tokenSalvo = sessionStorage.getItem('token');
 
       if (!tokenSalvo) {
         setCarregando(false);
@@ -38,13 +46,13 @@ export const AuthProvider = ({ children }) => {
           setUsuario(data.usuario);
           setToken(tokenSalvo);
         } else {
-          localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
           setToken(null);
           setUsuario(null);
         }
       } catch (erro) {
         console.error('Erro ao verificar token:', erro);
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         setToken(null);
         setUsuario(null);
       } finally {
@@ -69,7 +77,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.erro || 'Erro ao fazer login');
       }
 
-      localStorage.setItem('token', data.token);
+      sessionStorage.setItem('token', data.token);
       setToken(data.token);
       setUsuario(data.usuario);
 
@@ -81,8 +89,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(async () => {
-    // Tentar registrar logout no backend (fire-and-forget)
-    const tokenAtual = localStorage.getItem('token');
+    const tokenAtual = sessionStorage.getItem('token');
     if (tokenAtual) {
       try {
         await fetch(`${API_URL}/auth/logout`, {
@@ -93,14 +100,11 @@ export const AuthProvider = ({ children }) => {
           }
         });
       } catch (e) {
-        // Não impedir logout se a chamada falhar
         console.error('Erro ao registrar logout:', e);
       }
     }
 
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('usuario');
+    sessionStorage.removeItem('token');
     setToken(null);
     setUsuario(null);
   }, []);
@@ -113,6 +117,38 @@ export const AuthProvider = ({ children }) => {
     return usuario?.role === 'nutricionista';
   }, [usuario]);
 
+  /**
+   * Verifica se o usuário tem uma permissão específica.
+   * - Admin: SEMPRE retorna true (acesso total)
+   * - Nutricionista: checa o array de permissões
+   * 
+   * Uso: temPermissao('prescricoes') / temPermissao('cadastros_leitos')
+   * 
+   * NOTA: Isso é para UX (esconder/mostrar elementos).
+   * A segurança REAL está no backend (middleware verificarPermissao).
+   */
+  const temPermissao = useCallback((permissao) => {
+    if (!usuario) return false;
+    if (usuario.role === 'admin') return true;
+    
+    const permissoes = usuario.permissoes || [];
+    return permissoes.includes(permissao);
+  }, [usuario]);
+
+  /**
+   * Verifica se o usuário tem PELO MENOS UMA das permissões informadas.
+   * Útil para: mostrar o menu "Cadastros" se tem qualquer permissão de cadastro.
+   * 
+   * Uso: temAlgumaPermissao(['cadastros_leitos', 'cadastros_dietas', ...])
+   */
+  const temAlgumaPermissao = useCallback((permissoes) => {
+    if (!usuario) return false;
+    if (usuario.role === 'admin') return true;
+    
+    const permissoesUsuario = usuario.permissoes || [];
+    return permissoes.some(p => permissoesUsuario.includes(p));
+  }, [usuario]);
+
   const valorContexto = {
     usuario,
     token,
@@ -121,6 +157,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     isAdmin,
     isNutricionista,
+    temPermissao,
+    temAlgumaPermissao,
     autenticado: !!usuario
   };
 

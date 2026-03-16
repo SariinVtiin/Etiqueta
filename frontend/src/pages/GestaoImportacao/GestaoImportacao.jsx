@@ -2,9 +2,19 @@
 // ============================================
 // SALUSVITA TECH - IMPORTAR ACRÉSCIMOS
 // Desenvolvido por FerMax Solution
+// Prefixo CSS: ia- (importar acréscimos)
 // ============================================
+// CORRIGIDO: Usa api.js centralizado (sessionStorage + fetchAuth)
+// CORRIGIDO: ModalAlerta em vez de alert/confirm
+// ============================================
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  obterEstatisticasAcrescimos,
+  importarAcrescimos,
+} from "../../services/api";
+import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
 import "./GestaoImportacao.css";
 
 function GestaoImportacao() {
@@ -15,48 +25,36 @@ function GestaoImportacao() {
   const [resultado, setResultado] = useState(null);
   const [estatisticas, setEstatisticas] = useState(null);
 
-  // Base URL configurável (CRA)
-  const API_BASE =
-    process.env.REACT_APP_API_URL?.replace(/\/$/, "") ||
-    "http://localhost:3001";
-
-  // Helper padrão com Bearer token
-  const apiFetch = async (path, options = {}) => {
-    const token = localStorage.getItem("token");
-    const headers = {
-      ...(options.headers || {}),
-      Authorization: token ? `Bearer ${token}` : "",
-    };
-
-    const res = await fetch(`${API_BASE}${path}`, {
-      ...options,
-      headers,
-    });
-
-    const data = await res.json().catch(() => null);
-
-    if (!res.ok) {
-      const msg =
-        (data && (data.erro || data.message)) ||
-        `Erro HTTP ${res.status} ao chamar ${path}`;
-      throw new Error(msg);
-    }
-
-    return data;
-  };
+  // Modal de alerta/confirmação padronizado
+  const [modalAlerta, setModalAlerta] = useState({
+    visivel: false,
+    titulo: "",
+    mensagem: "",
+    tipo: "info",
+    onConfirmar: null,
+  });
 
   useEffect(() => {
     carregarEstatisticas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const carregarEstatisticas = async () => {
     try {
-      const data = await apiFetch("/api/acrescimos/estatisticas");
+      const data = await obterEstatisticasAcrescimos();
       if (data?.sucesso) setEstatisticas(data.estatisticas);
     } catch (erro) {
       console.error("Erro ao carregar estatísticas:", erro);
     }
+  };
+
+  const mostrarAlerta = (titulo, mensagem, tipo = "info") => {
+    setModalAlerta({
+      visivel: true,
+      titulo,
+      mensagem,
+      tipo,
+      onConfirmar: () => setModalAlerta((prev) => ({ ...prev, visivel: false })),
+    });
   };
 
   const handleFileChange = (e) => {
@@ -65,13 +63,13 @@ function GestaoImportacao() {
     if (file) {
       const extensao = file.name.split(".").pop().toLowerCase();
       if (extensao !== "xlsx" && extensao !== "xls") {
-        alert("Apenas arquivos .xlsx ou .xls são permitidos!");
+        mostrarAlerta("Formato inválido", "Apenas arquivos .xlsx ou .xls são permitidos.", "erro");
         e.target.value = "";
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        alert("Arquivo muito grande! Máximo: 5MB");
+        mostrarAlerta("Arquivo muito grande", "Tamanho máximo permitido: 5MB.", "erro");
         e.target.value = "";
         return;
       }
@@ -83,32 +81,29 @@ function GestaoImportacao() {
 
   const handleImportar = async () => {
     if (!arquivo) {
-      alert("Selecione um arquivo primeiro!");
+      mostrarAlerta("Nenhum arquivo", "Selecione um arquivo primeiro.", "erro");
       return;
     }
 
-    const confirmacao = window.confirm(
-      `ATENÇÃO!\n\n` +
-        `Esta ação irá:\n` +
-        `1. DESATIVAR todos os ${estatisticas?.ativos || 0} itens atuais\n` +
-        `2. IMPORTAR os novos itens da planilha\n\n` +
-        `Prescrições antigas continuarão com valores corretos.\n\n` +
-        `Deseja continuar?`,
-    );
+    // Confirmação via ModalAlerta
+    setModalAlerta({
+      visivel: true,
+      titulo: "Confirmar importação",
+      mensagem: `Esta ação irá:\n\n1. DESATIVAR todos os ${estatisticas?.ativos || 0} itens atuais\n2. IMPORTAR os novos itens da planilha\n\nPrescrições antigas continuarão com valores corretos.\n\nDeseja continuar?`,
+      tipo: "confirmar",
+      onConfirmar: async () => {
+        setModalAlerta((prev) => ({ ...prev, visivel: false }));
+        await executarImportacao();
+      },
+    });
+  };
 
-    if (!confirmacao) return;
-
+  const executarImportacao = async () => {
     setImportando(true);
     setResultado(null);
 
     try {
-      const formData = new FormData();
-      formData.append("arquivo", arquivo);
-
-      const data = await apiFetch("/api/acrescimos/importar", {
-        method: "POST",
-        body: formData,
-      });
+      const data = await importarAcrescimos(arquivo);
 
       if (data?.sucesso) {
         setResultado({
@@ -274,6 +269,16 @@ function GestaoImportacao() {
           </div>
         </div>
       </div>
+
+      {/* Modal Alerta Padronizado */}
+      <ModalAlerta
+        visivel={modalAlerta.visivel}
+        titulo={modalAlerta.titulo}
+        mensagem={modalAlerta.mensagem}
+        tipo={modalAlerta.tipo}
+        onConfirmar={modalAlerta.onConfirmar}
+        onCancelar={() => setModalAlerta((prev) => ({ ...prev, visivel: false }))}
+      />
     </div>
   );
 }

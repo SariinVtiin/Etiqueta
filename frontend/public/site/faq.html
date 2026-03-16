@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ — SalusVita Tech</title>
+  <meta name="description" content="Perguntas frequentes sobre o SalusVita Tech. Tire suas dúvidas sobre implantação, segurança, integração e mais." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/site/css/styles.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo"><img src="/site/assets/Logo_SalusVita.png" alt="SalusVita Tech" class="nav-logo-img" /></a>
+      <div class="nav-links">
+        <a href="/">Home</a><a href="/site/diferenciais">Diferenciais</a><a href="/site/prescricao">Prescrição</a><a href="/site/rastreabilidade">Rastreabilidade</a><a href="/site/como-funciona">Como Funciona</a><a href="/site/faq" class="active">FAQ</a>
+        <div class="nav-btn-group"><a href="/login" class="nav-cta-login"><i data-lucide="log-in"></i> Entrar</a><a href="/site/contato" class="nav-cta-demo">Solicitar Demo</a></div>
+      </div>
+      <button class="nav-hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="/">Home</a><a href="/site/diferenciais">Diferenciais</a><a href="/site/prescricao">Prescrição</a><a href="/site/rastreabilidade">Rastreabilidade</a><a href="/site/como-funciona">Como Funciona</a><a href="/site/faq" class="active">FAQ</a>
+    <div class="mobile-btn-group"><a href="/login" class="mobile-login-btn">Entrar</a><a href="/site/contato" class="mobile-demo-btn">Solicitar Demo</a></div>
+  </div>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="container">
+      <div class="section-label"><i data-lucide="help-circle"></i> Perguntas Frequentes</div>
+      <h1 class="section-title">Tire suas dúvidas</h1>
+      <p class="section-desc">As respostas para as perguntas mais comuns sobre o SalusVita Tech.</p>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <section class="faq-section section-pad">
+    <div class="container">
+      <div class="faq-list">
+        <div class="faq-item reveal">
+          <button class="faq-question">
+            <span>Preciso instalar algum software nos computadores do hospital?</span>
+            <span class="faq-chevron">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Não. O SalusVita Tech é 100% web — funciona em qualquer navegador moderno (Chrome, Edge, Firefox, Safari). Basta acessar o endereço do sistema. Funciona inclusive em tablets na beira do leito.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal" style="transition-delay:.05s">
+          <button class="faq-question">
+            <span>O sistema funciona offline?</span>
+            <span class="faq-chevron">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>O sistema requer conexão com a rede do hospital para funcionar em tempo real. Porém, a infraestrutura pode ser instalada on-premise no servidor do próprio hospital, garantindo independência da internet externa.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal" style="transition-delay:.1s">
+          <button class="faq-question">
+            <span>Como é a segurança dos dados dos pacientes?</span>
+            <span class="faq-chevron">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Utilizamos autenticação JWT com sessões seguras, controle de acesso por perfil, proteção contra brute-force, e todos os dados são armazenados em banco de dados MySQL com backups regulares. O sistema é projetado com princípios de LGPD desde a sua arquitetura.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal" style="transition-delay:.15s">
+          <button class="faq-question">
+            <span>Qual o tempo de implantação?</span>
+            <span class="faq-chevron">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>A implantação básica pode ser feita em 1 a 2 semanas, incluindo configuração do servidor, cadastro de unidades, tipos de dieta e treinamento da equipe. O sistema já vem pré-configurado com as estruturas mais comuns de hospitais.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal" style="transition-delay:.2s">
+          <button class="faq-question">
+            <span>O sistema se integra com prontuário eletrônico?</span>
+            <span class="faq-chevron">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>A arquitetura do SalusVita Tech possui uma API RESTful que permite integração com sistemas de prontuário eletrônico e outros sistemas hospitalares. Integrações específicas podem ser desenvolvidas sob demanda.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal" style="transition-delay:.25s">
+          <button class="faq-question">
+            <span>Posso personalizar os tipos de dieta e refeição?</span>
+            <span class="faq-chevron">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Sim! O painel administrativo permite criar, editar e desativar tipos de dieta, condições nutricionais, tipos de refeição, suplementos e acréscimos. Tudo sem necessidade de programação.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section section-pad">
+    <div class="container">
+      <div class="cta-inner reveal">
+        <h2>Ainda tem <span>dúvidas</span>?</h2>
+        <p class="cta-sub">Entre em contato ou agende uma demonstração para ver tudo funcionando na prática.</p>
+        <div class="cta-form"><input class="cta-input" type="email" placeholder="Seu e-mail institucional" /><button class="cta-btn">Falar Conosco</button></div>
+        <p class="cta-note">Resposta em até 24 horas.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div><img src="/site/assets/Logo_SalusVita.png" alt="SalusVita Tech" class="footer-brand-logo" /><p class="footer-brand-desc">Gestão nutricional hospitalar inteligente. Uma solução FerMax Solutions Tecnologia.</p></div>
+        <div class="footer-col"><h4>Produto</h4><a href="/site/diferenciais">Diferenciais</a><a href="/site/prescricao">Prescrição</a><a href="/site/rastreabilidade">Rastreabilidade</a><a href="/site/como-funciona">Como Funciona</a></div>
+        <div class="footer-col"><h4>Empresa</h4><a href="#">Sobre a FerMax</a><a href="#">Clientes</a><a href="#">Blog</a><a href="#">Carreiras</a></div>
+        <div class="footer-col"><h4>Suporte</h4><a href="/site/faq">FAQ</a><a href="#">Status do Sistema</a><a href="/site/contato">Contato</a><a href="#">LGPD</a></div>
+      </div>
+      <div class="footer-bottom"><p class="footer-copy">© 2025 <span>FerMax Solutions Tecnologia Ltda.</span> Todos os direitos reservados.</p><div class="footer-socials"><a class="footer-social-btn" href="https://instagram.com/salusvitatech" target="_blank" rel="noopener" aria-label="Instagram"><i data-lucide="instagram"></i></a><a class="footer-social-btn" href="https://instagram.com/salusvitatech" target="_blank" rel="noopener" aria-label="Instagram"><i data-lucide="instagram"></i></a></div></div>
+    </div>
+  </footer>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="/site/js/main.js"></script>
+</body>
+</html>

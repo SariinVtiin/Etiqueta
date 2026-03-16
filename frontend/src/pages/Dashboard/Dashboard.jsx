@@ -1,10 +1,11 @@
 // frontend/src/pages/Dashboard/Dashboard.jsx
 // ✅ MELHORADO: Visual profissional, dados mais relevantes, melhor UX
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { listarPrescricoes } from "../../services/api";
 import "./Dashboard.css";
+import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
 
 // Ícones SVG inline
 const Icons = {
@@ -236,6 +237,7 @@ const Icons = {
 function Dashboard() {
   const { usuario } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const irParaPrescricoes = () => navigate("/prescricoes");
   const irParaNovaPrescricao = () => navigate("/nova-prescricao");
@@ -261,6 +263,21 @@ function Dashboard() {
     carregarEstatisticas();
   }, []);
 
+  const [alertaPermissao, setAlertaPermissao] = useState({
+    visivel: false,
+    rota: "",
+  });
+
+  useEffect(() => {
+    if (location.state?.semPermissao) {
+      window.history.replaceState({}, document.title);
+      setAlertaPermissao({
+        visivel: true,
+        rota: location.state.rotaBloqueada || "",
+      });
+    }
+  }, [location.state]);
+  
   const carregarEstatisticas = async () => {
     try {
       setCarregando(true);
@@ -403,7 +420,7 @@ function Dashboard() {
     estatisticas.totalOntem,
   );
 
-  return (
+return (
     <div className={`dashboard-page ${mounted ? "mounted" : ""}`}>
       {/* Header de Boas-vindas */}
       <header className="dashboard-header">
@@ -823,6 +840,16 @@ function Dashboard() {
           </ul>
         </div>
       </section>
+
+      {/* Alerta de sem permissão */}
+      <ModalAlerta
+        visivel={alertaPermissao.visivel}
+        titulo="Acesso negado"
+        mensagem="Você não tem permissão para acessar esta página. Entre em contato com o administrador do sistema."
+        tipo="erro"
+        onConfirmar={() => setAlertaPermissao({ visivel: false, rota: "" })}
+        onCancelar={() => setAlertaPermissao({ visivel: false, rota: "" })}
+      />
     </div>
   );
 }

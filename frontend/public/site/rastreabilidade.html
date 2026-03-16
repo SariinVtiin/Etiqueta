@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rastreabilidade — SalusVita Tech</title>
+  <meta name="description" content="Rastreabilidade total: cada paciente, cada refeição, cada bandeja rastreada com trilha de auditoria completa." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/site/css/styles.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo"><img src="/site/assets/Logo_SalusVita.png" alt="SalusVita Tech" class="nav-logo-img" /></a>
+      <div class="nav-links">
+        <a href="/">Home</a><a href="/site/diferenciais">Diferenciais</a><a href="/site/prescricao">Prescrição</a><a href="/site/rastreabilidade" class="active">Rastreabilidade</a><a href="/site/como-funciona">Como Funciona</a><a href="/site/faq">FAQ</a>
+        <div class="nav-btn-group"><a href="/login" class="nav-cta-login"><i data-lucide="log-in"></i> Entrar</a><a href="/site/contato" class="nav-cta-demo">Solicitar Demo</a></div>
+      </div>
+      <button class="nav-hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="/">Home</a><a href="/site/diferenciais">Diferenciais</a><a href="/site/prescricao">Prescrição</a><a href="/site/rastreabilidade" class="active">Rastreabilidade</a><a href="/site/como-funciona">Como Funciona</a><a href="/site/faq">FAQ</a>
+    <div class="mobile-btn-group"><a href="/login" class="mobile-login-btn">Entrar</a><a href="/site/contato" class="mobile-demo-btn">Solicitar Demo</a></div>
+  </div>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="container">
+      <div class="section-label"><i data-lucide="scan-search"></i> Segurança do Paciente</div>
+      <h1 class="section-title">Rastreabilidade Total</h1>
+      <p class="section-desc">Cada paciente, cada refeição, cada bandeja — tudo rastreado com trilha de auditoria completa.</p>
+    </div>
+  </div>
+
+  <!-- SPOTLIGHT -->
+  <section class="spotlight section-pad" style="background: var(--white);">
+    <div class="container">
+      <div class="spotlight-grid reverse">
+        <div class="reveal">
+          <h2>Saiba exatamente o que foi prescrito, <span class="text-gradient">quando e por quem</span></h2>
+          <p class="spotlight-desc">
+            O SalusVita Tech cria uma trilha de auditoria completa para toda a cadeia nutricional. Do momento da prescrição até a entrega da bandeja ao paciente.
+          </p>
+          <div class="spotlight-bullets">
+            <div class="spotlight-bullet"><div class="sb-check"><i data-lucide="check"></i></div><span><strong>Histórico completo:</strong> todas as prescrições anteriores de cada paciente preservadas.</span></div>
+            <div class="spotlight-bullet"><div class="sb-check"><i data-lucide="check"></i></div><span><strong>Versionamento:</strong> alterações em suplementos e dietas com controle de versão automático.</span></div>
+            <div class="spotlight-bullet"><div class="sb-check"><i data-lucide="check"></i></div><span><strong>Logs de acesso:</strong> quem acessou, o que alterou, quando e de onde.</span></div>
+            <div class="spotlight-bullet"><div class="sb-check"><i data-lucide="check"></i></div><span><strong>Exportação auditável:</strong> relatórios em Excel e PDF prontos para auditorias e acreditações.</span></div>
+          </div>
+        </div>
+        <div class="spotlight-visual reveal" style="transition-delay:.12s">
+          <div class="sv-card">
+            <div class="sv-card-bar">
+              <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+              <span class="sv-card-bar-label">Trilha de Auditoria — Paciente #1042</span>
+            </div>
+            <div class="sv-card-body">
+              <div class="sv-field"><span class="sv-field-label">10:32</span><span class="sv-field-val">Prescrição criada — Dra. Camila</span></div>
+              <div class="sv-field"><span class="sv-field-label">10:33</span><span class="sv-field-val">Etiqueta gerada — Almoço 11:30</span></div>
+              <div class="sv-field"><span class="sv-field-label">10:45</span><span class="sv-field-val">Mapa atualizado — UTI Adulto</span></div>
+              <div class="sv-field"><span class="sv-field-label">11:20</span><span class="sv-field-val">Bandeja preparada — Cozinha Central</span></div>
+              <div class="sv-field"><span class="sv-field-label">11:28</span><span class="mock-pill teal">Entregue — Copa UTI</span></div>
+              <div class="sv-field"><span class="sv-field-label">14:00</span><span class="sv-field-val">Suplemento alterado — versão 2</span></div>
+              <div class="sv-field"><span class="sv-field-label">18:00</span><span class="mock-pill blue">Jantar confirmado — 247 bandejas</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section section-pad">
+    <div class="container">
+      <div class="cta-inner reveal">
+        <h2>Pronto para <span>rastrear</span> tudo?</h2>
+        <p class="cta-sub">Veja como a rastreabilidade funciona na prática. Agende uma demonstração.</p>
+        <div class="cta-form"><input class="cta-input" type="email" placeholder="Seu e-mail institucional" /><button class="cta-btn">Solicitar Demo</button></div>
+        <p class="cta-note">Sem compromisso. Resposta em até 24 horas.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div><img src="/site/assets/Logo_SalusVita.png" alt="SalusVita Tech" class="footer-brand-logo" /><p class="footer-brand-desc">Gestão nutricional hospitalar inteligente. Uma solução FerMax Solutions Tecnologia.</p></div>
+        <div class="footer-col"><h4>Produto</h4><a href="/site/diferenciais">Diferenciais</a><a href="/site/prescricao">Prescrição</a><a href="/site/rastreabilidade">Rastreabilidade</a><a href="/site/como-funciona">Como Funciona</a></div>
+        <div class="footer-col"><h4>Empresa</h4><a href="#">Sobre a FerMax</a><a href="#">Clientes</a><a href="#">Blog</a><a href="#">Carreiras</a></div>
+        <div class="footer-col"><h4>Suporte</h4><a href="/site/faq">FAQ</a><a href="#">Status do Sistema</a><a href="/site/contato">Contato</a><a href="#">LGPD</a></div>
+      </div>
+      <div class="footer-bottom"><p class="footer-copy">© 2025 <span>FerMax Solutions Tecnologia Ltda.</span> Todos os direitos reservados.</p><div class="footer-socials"><a class="footer-social-btn" href="https://instagram.com/salusvitatech" target="_blank" rel="noopener" aria-label="Instagram"><i data-lucide="instagram"></i></a><a class="footer-social-btn" href="https://instagram.com/salusvitatech" target="_blank" rel="noopener" aria-label="Instagram"><i data-lucide="instagram"></i></a></div></div>
+    </div>
+  </footer>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="/site/js/main.js"></script>
+</body>
+</html>

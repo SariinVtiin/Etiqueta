@@ -1,20 +1,24 @@
 // backend/routes/leitos.js
-// ✅ PROTEGIDO: Agora exige autenticação (JWT) em todas as rotas.
-// ✅ ADMIN: CRUD (POST/PUT/PATCH) restrito a admin.
+// ============================================
+// SALUSVITA TECH - Gestão de Leitos
+// Desenvolvido por FerMax Solution
+// ============================================
+// PROTEGIDO: Autenticação JWT em todas as rotas
+// PERMISSÃO: Escrita requer 'cadastros_leitos'
+// SEGURANÇA: Erros internos não vazam para o cliente
+// ============================================
 
 const express = require("express");
 const router = express.Router();
 const { pool } = require("../config/database");
+const { autenticar, verificarPermissao } = require("./auth");
 
-// ✅ Importa middlewares de autenticação/role
-const { autenticar, verificarRole } = require("./auth");
-
-// ✅ Tudo em /api/leitos agora exige login
+// Tudo em /api/leitos exige login
 router.use(autenticar);
 
 /**
- * GET /api/leitos - Listar leitos (ativos por padrão, ?todas=true para todos)
- * Qualquer usuário autenticado pode ver.
+ * GET /api/leitos - Listar leitos
+ * Qualquer usuário autenticado pode ver (alimenta dropdowns de prescrição)
  */
 router.get("/", async (req, res) => {
   try {
@@ -32,13 +36,12 @@ router.get("/", async (req, res) => {
     });
   } catch (erro) {
     console.error("Erro ao buscar leitos:", erro);
-    res.status(500).json({ sucesso: false, erro: erro.message });
+    res.status(500).json({ sucesso: false, erro: "Erro interno do servidor" });
   }
 });
 
 /**
  * GET /api/leitos/setores - Listar setores únicos
- * Qualquer usuário autenticado pode ver.
  */
 router.get("/setores", async (req, res) => {
   try {
@@ -51,14 +54,13 @@ router.get("/setores", async (req, res) => {
     });
   } catch (erro) {
     console.error("Erro ao buscar setores:", erro);
-    res.status(500).json({ sucesso: false, erro: erro.message });
+    res.status(500).json({ sucesso: false, erro: "Erro interno do servidor" });
   }
 });
 
 /**
- * GET /api/leitos/disponiveis - Listar leitos disponíveis (sem paciente)
+ * GET /api/leitos/disponiveis - Listar leitos disponíveis
  * IMPORTANTE: Esta rota DEVE ficar ANTES de /:id
- * Qualquer usuário autenticado pode ver.
  */
 router.get("/disponiveis", async (req, res) => {
   try {
@@ -80,36 +82,37 @@ router.get("/disponiveis", async (req, res) => {
     });
   } catch (erro) {
     console.error("Erro ao buscar leitos disponíveis:", erro);
-    res.status(500).json({ sucesso: false, erro: erro.message });
+    res.status(500).json({ sucesso: false, erro: "Erro interno do servidor" });
   }
 });
 
 /**
  * GET /api/leitos/:id - Buscar leito por ID
- * Qualquer usuário autenticado pode ver.
  */
 router.get("/:id", async (req, res) => {
   try {
     const [leitos] = await pool.query("SELECT * FROM leitos WHERE id = ?", [
       req.params.id,
     ]);
+
     if (leitos.length === 0) {
       return res
         .status(404)
         .json({ sucesso: false, erro: "Leito não encontrado" });
     }
+
     res.json({ sucesso: true, leito: leitos[0] });
   } catch (erro) {
     console.error("Erro ao buscar leito:", erro);
-    res.status(500).json({ sucesso: false, erro: erro.message });
+    res.status(500).json({ sucesso: false, erro: "Erro interno do servidor" });
   }
 });
 
 /**
- * POST /api/leitos - Criar novo leito
- * ✅ Apenas admin
+ * POST /api/leitos - Criar leito individual
+ * Requer permissão: cadastros_leitos
  */
-router.post("/", verificarRole(["admin"]), async (req, res) => {
+router.post("/", verificarPermissao('cadastros_leitos'), async (req, res) => {
   try {
     const { numero, setor, andar } = req.body;
 
@@ -119,7 +122,6 @@ router.post("/", verificarRole(["admin"]), async (req, res) => {
         .json({ sucesso: false, erro: "Número e setor são obrigatórios" });
     }
 
-    // Verificar duplicata (mesmo numero + setor)
     const [existente] = await pool.query(
       "SELECT id FROM leitos WHERE numero = ? AND setor = ? AND ativo = TRUE",
       [numero, setor.toUpperCase()],
@@ -132,65 +134,43 @@ router.post("/", verificarRole(["admin"]), async (req, res) => {
       });
     }
 
-    const [resultado] = await pool.query(
+    const [result] = await pool.query(
       "INSERT INTO leitos (numero, setor, andar, ativo) VALUES (?, ?, ?, TRUE)",
       [numero, setor.toUpperCase(), andar || null],
     );
 
     res.status(201).json({
       sucesso: true,
-      mensagem: `Leito ${numero} criado com sucesso no setor ${setor}`,
-      leito: {
-        id: resultado.insertId,
-        numero,
-        setor: setor.toUpperCase(),
-        andar,
-        ativo: true,
-      },
+      mensagem: `Leito ${numero} criado no setor ${setor}`,
+      id: result.insertId,
     });
   } catch (erro) {
     console.error("Erro ao criar leito:", erro);
-    res.status(500).json({ sucesso: false, erro: erro.message });
+    res.status(500).json({ sucesso: false, erro: "Erro interno do servidor" });
   }
 });
 
 /**
- * POST /api/leitos/lote - Criar múltiplos leitos de uma vez
- * ✅ Apenas admin
+ * POST /api/leitos/lote - Criar leitos em lote
+ * Requer permissão: cadastros_leitos
  */
-router.post("/lote", verificarRole(["admin"]), async (req, res) => {
+router.post("/lote", verificarPermissao('cadastros_leitos'), async (req, res) => {
   try {
-    const { setor, andar, numeroInicio, numeroFim } = req.body;
+    const { setor, inicio, fim, andar } = req.body;
 
-    if (!setor || !numeroInicio || !numeroFim) {
+    if (!setor || !inicio || !fim) {
       return res.status(400).json({
         sucesso: false,
-        erro: "Setor, número inicial e número final são obrigatórios",
-      });
-    }
-
-    const inicio = parseInt(numeroInicio);
-    const fim = parseInt(numeroFim);
-
-    if (isNaN(inicio) || isNaN(fim) || inicio > fim) {
-      return res.status(400).json({
-        sucesso: false,
-        erro: "Intervalo de números inválido",
-      });
-    }
-
-    if (fim - inicio > 100) {
-      return res.status(400).json({
-        sucesso: false,
-        erro: "Máximo de 100 leitos por lote",
+        erro: "Setor, início e fim são obrigatórios",
       });
     }
 
     let criados = 0;
     let duplicados = 0;
 
-    for (let num = inicio; num <= fim; num++) {
-      const numero = num.toString();
+    for (let i = parseInt(inicio); i <= parseInt(fim); i++) {
+      const numero = i.toString();
+
       const [existente] = await pool.query(
         "SELECT id FROM leitos WHERE numero = ? AND setor = ? AND ativo = TRUE",
         [numero, setor.toUpperCase()],
@@ -215,15 +195,15 @@ router.post("/lote", verificarRole(["admin"]), async (req, res) => {
     });
   } catch (erro) {
     console.error("Erro ao criar leitos em lote:", erro);
-    res.status(500).json({ sucesso: false, erro: erro.message });
+    res.status(500).json({ sucesso: false, erro: "Erro interno do servidor" });
   }
 });
 
 /**
  * PUT /api/leitos/:id - Atualizar leito
- * ✅ Apenas admin
+ * Requer permissão: cadastros_leitos
  */
-router.put("/:id", verificarRole(["admin"]), async (req, res) => {
+router.put("/:id", verificarPermissao('cadastros_leitos'), async (req, res) => {
   try {
     const { numero, setor, andar } = req.body;
 
@@ -233,7 +213,6 @@ router.put("/:id", verificarRole(["admin"]), async (req, res) => {
         .json({ sucesso: false, erro: "Número e setor são obrigatórios" });
     }
 
-    // Verificar duplicata (excluindo o próprio)
     const [existente] = await pool.query(
       "SELECT id FROM leitos WHERE numero = ? AND setor = ? AND ativo = TRUE AND id != ?",
       [numero, setor.toUpperCase(), req.params.id],
@@ -257,15 +236,15 @@ router.put("/:id", verificarRole(["admin"]), async (req, res) => {
     });
   } catch (erro) {
     console.error("Erro ao atualizar leito:", erro);
-    res.status(500).json({ sucesso: false, erro: erro.message });
+    res.status(500).json({ sucesso: false, erro: "Erro interno do servidor" });
   }
 });
 
 /**
  * PATCH /api/leitos/:id/toggle - Ativar/Desativar leito
- * ✅ Apenas admin
+ * Requer permissão: cadastros_leitos
  */
-router.patch("/:id/toggle", verificarRole(["admin"]), async (req, res) => {
+router.patch("/:id/toggle", verificarPermissao('cadastros_leitos'), async (req, res) => {
   try {
     const { ativo } = req.body;
 
@@ -280,7 +259,7 @@ router.patch("/:id/toggle", verificarRole(["admin"]), async (req, res) => {
     });
   } catch (erro) {
     console.error("Erro ao alterar status do leito:", erro);
-    res.status(500).json({ sucesso: false, erro: erro.message });
+    res.status(500).json({ sucesso: false, erro: "Erro interno do servidor" });
   }
 });
 

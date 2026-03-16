@@ -1,179 +1,179 @@
 // backend/routes/dietas.js
+// ============================================
+// SALUSVITA TECH - Gestão de Dietas
+// Desenvolvido por FerMax Solution
+// ============================================
+// PERMISSÃO: Escrita requer 'cadastros_dietas'
+// SEGURANÇA: Erros internos não vazam para o cliente
+// ============================================
+
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
-const { autenticar, verificarRole } = require('./auth');
+const { autenticar, verificarPermissao } = require('./auth');
 
+/**
+ * GET /api/dietas - Listar dietas
+ * Qualquer usuário autenticado pode ver (alimenta dropdowns de prescrição)
+ */
 router.get('/', autenticar, async (req, res) => {
   try {
     const { apenasAtivas } = req.query;
 
     let query = 'SELECT * FROM dietas';
-    
-    // Se pedir apenas ativas OU não for admin, filtra
     if (apenasAtivas === 'true') {
       query += ' WHERE ativa = TRUE';
     }
-
     query += ' ORDER BY nome';
 
     const [dietas] = await pool.query(query);
-    
-    res.json({ 
-      sucesso: true, 
+
+    res.json({
+      sucesso: true,
       total: dietas.length,
-      dietas 
+      dietas
     });
   } catch (erro) {
     console.error('Erro ao buscar dietas:', erro);
-    res.status(500).json({ sucesso: false, erro: erro.message });
+    res.status(500).json({ sucesso: false, erro: 'Erro interno do servidor' });
   }
 });
+
 /**
  * GET /api/dietas/:id - Buscar dieta por ID
  */
 router.get('/:id', autenticar, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const [dietas] = await pool.query(
       'SELECT * FROM dietas WHERE id = ?',
       [id]
     );
-    
+
     if (dietas.length === 0) {
-      return res.status(404).json({ 
-        sucesso: false, 
-        erro: 'Dieta não encontrada' 
+      return res.status(404).json({
+        sucesso: false,
+        erro: 'Dieta não encontrada'
       });
     }
-    
-    res.json({ 
-      sucesso: true, 
-      dieta: dietas[0] 
+
+    res.json({
+      sucesso: true,
+      dieta: dietas[0]
     });
   } catch (erro) {
     console.error('Erro ao buscar dieta:', erro);
-    res.status(500).json({ 
-      sucesso: false, 
-      erro: erro.message 
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro interno do servidor' });
   }
 });
 
 /**
- * POST /api/dietas - Criar nova dieta (apenas admin)
+ * POST /api/dietas - Criar nova dieta
+ * Requer permissão: cadastros_dietas
  */
-router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
+router.post('/', autenticar, verificarPermissao('cadastros_dietas'), async (req, res) => {
   try {
     const { nome, codigo, descricao } = req.body;
-    
+
     if (!nome || !codigo) {
-      return res.status(400).json({ 
-        sucesso: false, 
-        erro: 'Nome e código são obrigatórios' 
+      return res.status(400).json({
+        sucesso: false,
+        erro: 'Nome e código são obrigatórios'
       });
     }
 
-    // Verificar se código já existe
     const [dietasExistentes] = await pool.query(
       'SELECT id FROM dietas WHERE codigo = ?',
       [codigo]
     );
 
     if (dietasExistentes.length > 0) {
-      return res.status(409).json({ 
-        sucesso: false, 
-        erro: 'Código já cadastrado' 
+      return res.status(409).json({
+        sucesso: false,
+        erro: 'Código já cadastrado'
       });
     }
 
-    // Inserir dieta
     const [result] = await pool.query(
       'INSERT INTO dietas (nome, codigo, descricao, ativa) VALUES (?, ?, ?, TRUE)',
       [nome, codigo, descricao || null]
     );
-    
-    res.status(201).json({ 
-      sucesso: true, 
+
+    res.status(201).json({
+      sucesso: true,
       mensagem: 'Dieta criada com sucesso',
       id: result.insertId
     });
   } catch (erro) {
     console.error('Erro ao criar dieta:', erro);
-    res.status(500).json({ 
-      sucesso: false, 
-      erro: erro.message 
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro interno do servidor' });
   }
 });
 
 /**
- * PUT /api/dietas/:id - Atualizar dieta (apenas admin)
+ * PUT /api/dietas/:id - Atualizar dieta
+ * Requer permissão: cadastros_dietas
  */
-router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
+router.put('/:id', autenticar, verificarPermissao('cadastros_dietas'), async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, codigo, descricao } = req.body;
-    
+
     if (!nome || !codigo) {
-      return res.status(400).json({ 
-        sucesso: false, 
-        erro: 'Nome e código são obrigatórios' 
+      return res.status(400).json({
+        sucesso: false,
+        erro: 'Nome e código são obrigatórios'
       });
     }
 
-    // Verificar se código já existe em outra dieta
     const [codigoExistente] = await pool.query(
       'SELECT id FROM dietas WHERE codigo = ? AND id != ?',
       [codigo, id]
     );
 
     if (codigoExistente.length > 0) {
-      return res.status(409).json({ 
-        sucesso: false, 
-        erro: 'Código já cadastrado para outra dieta' 
+      return res.status(409).json({
+        sucesso: false,
+        erro: 'Código já cadastrado para outra dieta'
       });
     }
 
-    // Atualizar dieta
     const [result] = await pool.query(
       'UPDATE dietas SET nome = ?, codigo = ?, descricao = ? WHERE id = ?',
       [nome, codigo, descricao || null, id]
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ 
-        sucesso: false, 
-        erro: 'Dieta não encontrada' 
+      return res.status(404).json({
+        sucesso: false,
+        erro: 'Dieta não encontrada'
       });
     }
-    
-    res.json({ 
-      sucesso: true, 
-      mensagem: 'Dieta atualizada com sucesso' 
+
+    res.json({
+      sucesso: true,
+      mensagem: 'Dieta atualizada com sucesso'
     });
   } catch (erro) {
     console.error('Erro ao atualizar dieta:', erro);
-    res.status(500).json({ 
-      sucesso: false, 
-      erro: erro.message 
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro interno do servidor' });
   }
 });
 
 /**
- * PATCH /api/dietas/:id/toggle - Ativar/Desativar dieta (apenas admin)
+ * PATCH /api/dietas/:id/toggle - Ativar/Desativar dieta
+ * Requer permissão: cadastros_dietas
  */
-router.patch('/:id/toggle', autenticar, verificarRole(['admin']), async (req, res) => {
+router.patch('/:id/toggle', autenticar, verificarPermissao('cadastros_dietas'), async (req, res) => {
   try {
     const { id } = req.params;
     const { ativa } = req.body;
-    
+
     if (typeof ativa !== 'boolean') {
-      return res.status(400).json({ 
-        sucesso: false, 
-        erro: 'Status ativo deve ser true ou false' 
+      return res.status(400).json({
+        sucesso: false,
+        erro: 'Status ativo deve ser true ou false'
       });
     }
 
@@ -183,22 +183,19 @@ router.patch('/:id/toggle', autenticar, verificarRole(['admin']), async (req, re
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ 
-        sucesso: false, 
-        erro: 'Dieta não encontrada' 
+      return res.status(404).json({
+        sucesso: false,
+        erro: 'Dieta não encontrada'
       });
     }
-    
-    res.json({ 
-      sucesso: true, 
-      mensagem: `Dieta ${ativa ? 'ativada' : 'desativada'} com sucesso` 
+
+    res.json({
+      sucesso: true,
+      mensagem: `Dieta ${ativa ? 'ativada' : 'desativada'} com sucesso`
     });
   } catch (erro) {
     console.error('Erro ao alterar status da dieta:', erro);
-    res.status(500).json({ 
-      sucesso: false, 
-      erro: erro.message 
-    });
+    res.status(500).json({ sucesso: false, erro: 'Erro interno do servidor' });
   }
 });
 
