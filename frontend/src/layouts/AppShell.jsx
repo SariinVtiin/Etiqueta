@@ -1,9 +1,9 @@
+﻿
 // frontend/src/layouts/AppShell.jsx
 import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -159,81 +159,80 @@ export default function AppShell() {
   const [restricoesAcompanhante, setRestricoesAcompanhante] = useState([]);
   const [convenios, setConvenios] = useState([]);
 
-  // Evita dupla execução de fetch no StrictMode (dev)
-  const loadOnceRef = useRef(false);
-
   const carregarDadosBD = useCallback(async () => {
     if (!autenticado) return;
 
-    try {
-      setCarregandoDados(true);
+    setCarregandoDados(true);
 
-      const respostaLeitos = await listarLeitos();
-      if (respostaLeitos?.sucesso) {
-        const leitosPorNucleo = {};
-        respostaLeitos.leitos.forEach((leito) => {
-          const setor = leito.setor || "SEM SETOR";
-          if (!leitosPorNucleo[setor]) leitosPorNucleo[setor] = [];
-          leitosPorNucleo[setor].push(leito.numero);
-        });
-        setNucleos(leitosPorNucleo);
-      }
+    // Todas as chamadas em paralelo
+    const [
+      resLeitos,
+      resDietas,
+      resRestricoes,
+      resRestAcomp,
+      resConvenios,
+      resRefeicoes,
+    ] = await Promise.allSettled([
+      listarLeitos(),
+      listarDietas(),
+      listarRestricoes(),
+      listarRestricoesAcompanhante(),
+      listarConvenios(),
+      listarRefeicoes(),
+    ]);
 
-      const respostaDietas = await listarDietas();
-      if (respostaDietas?.sucesso) {
-        setDietas(
-          respostaDietas.dietas.filter(
-            (d) => d.ativa === 1 || d.ativa === true,
-          ),
-        );
-      }
-
-      const respostaRestricoes = await listarRestricoes();
-      if (respostaRestricoes?.sucesso) {
-        setRestricoes(respostaRestricoes.restricoes);
-      }
-
-      const respostaRestAcomp = await listarRestricoesAcompanhante();
-      if (respostaRestAcomp?.sucesso) {
-        setRestricoesAcompanhante(respostaRestAcomp.restricoes);
-      }
-
-      const respostaConvenios = await listarConvenios();
-      if (respostaConvenios?.sucesso) {
-        setConvenios(
-          respostaConvenios.convenios.filter(
-            (c) => c.ativa === 1 || c.ativa === true,
-          ),
-        );
-      }
-
-      const respostaRefeicoes = await listarRefeicoes();
-      if (respostaRefeicoes?.sucesso) {
-        setTiposAlimentacao(respostaRefeicoes.refeicoes);
-      }
-    } catch (erro) {
-      console.error("Erro ao carregar dados do BD:", erro);
-
-      setNucleos({
-        INTERNAÇÃO: Array.from({ length: 61 }, (_, i) => (601 + i).toString()),
-        "UTI PEDIÁTRICA": Array.from({ length: 15 }, (_, i) =>
-          (501 + i).toString(),
-        ),
-        "UTI ADULTO": Array.from({ length: 16 }, (_, i) =>
-          (541 + i).toString(),
-        ),
-        UDT: Array.from({ length: 18 }, (_, i) => (1 + i).toString()),
-        TMO: Array.from({ length: 14 }, (_, i) => (301 + i).toString()),
+    if (resLeitos.status === "fulfilled" && resLeitos.value?.sucesso) {
+      const leitosPorNucleo = {};
+      resLeitos.value.leitos.forEach((leito) => {
+        const setor = leito.setor || "SEM SETOR";
+        if (!leitosPorNucleo[setor]) leitosPorNucleo[setor] = [];
+        leitosPorNucleo[setor].push(leito.numero);
       });
-    } finally {
-      setCarregandoDados(false);
+      setNucleos(leitosPorNucleo);
     }
+
+    if (resDietas.status === "fulfilled" && resDietas.value?.sucesso) {
+      setDietas(
+        resDietas.value.dietas.filter(
+          (d) => d.ativa === 1 || d.ativa === true,
+        ),
+      );
+    }
+
+    if (resRestricoes.status === "fulfilled" && resRestricoes.value?.sucesso) {
+      setRestricoes(resRestricoes.value.restricoes);
+    }
+
+    if (resRestAcomp.status === "fulfilled" && resRestAcomp.value?.sucesso) {
+      setRestricoesAcompanhante(resRestAcomp.value.restricoes);
+    }
+
+    if (resConvenios.status === "fulfilled" && resConvenios.value?.sucesso) {
+      setConvenios(
+        resConvenios.value.convenios.filter(
+          (c) => c.ativa === 1 || c.ativa === true,
+        ),
+      );
+    }
+
+    if (resRefeicoes.status === "fulfilled" && resRefeicoes.value?.sucesso) {
+      setTiposAlimentacao(resRefeicoes.value.refeicoes);
+    }
+
+    // Log de erros
+    [resLeitos, resDietas, resRestricoes, resRestAcomp, resConvenios, resRefeicoes]
+      .forEach((r, i) => {
+        if (r.status === "rejected") {
+          const nomes = ["leitos", "dietas", "restrições", "restrições acomp.", "convênios", "refeições"];
+          console.error(`Erro ao carregar ${nomes[i]}:`, r.reason);
+        }
+      });
+
+    setCarregandoDados(false);
   }, [autenticado]);
 
   useEffect(() => {
     if (!autenticado) return;
-    if (loadOnceRef.current) return;
-    loadOnceRef.current = true;
     carregarDadosBD();
   }, [autenticado, carregarDadosBD]);
 
@@ -254,17 +253,17 @@ export default function AppShell() {
     [location.pathname],
   );
 
-  if (carregandoDados) {
-    return (
-      <div className="loading-global">
-        <div className="loading-spinner"></div>
-        <p>Carregando dados do sistema...</p>
-      </div>
-    );
-  }
+  console.log('>>> APPSHELL RENDER - nucleos:', Object.keys(nucleos), 'carregando:', carregandoDados);
 
   return (
     <div className="App">
+      {carregandoDados && (
+        <div className="loading-global">
+          <div className="loading-spinner"></div>
+          <p>Carregando dados do sistema...</p>
+        </div>
+      )}
+
       <header className="user-header">
         <div className="user-info">
           <span className="user-name">

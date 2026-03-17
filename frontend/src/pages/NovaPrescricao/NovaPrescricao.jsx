@@ -17,6 +17,8 @@ function NovaPrescricao() {
     convenios = [],
   } = useOutletContext() || {};
 
+  console.log('>>> NUCLEOS em NovaPrescricao:', JSON.stringify(nucleos));
+
   const [formData, setFormData] = useState({
     cpf: "",
     codigoAtendimento: "",

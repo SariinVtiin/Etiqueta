@@ -251,7 +251,7 @@ export const deletarEtiqueta = async (id) => {
 export const buscarPacientePorCpf = async (cpf) => {
   try {
     const cpfLimpo = String(cpf || "").replace(/\D/g, "");
-    const response = await fetchAuth(`${API_URL}/pacientes/cpf/${cpfLimpo}`);
+    const response = await fetchAuth(`${API_URL}/pacientes/buscar/${cpfLimpo}`);
     const dados = await response.json();
 
     if (!response.ok) {
