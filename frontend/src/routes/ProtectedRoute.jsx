@@ -3,17 +3,21 @@
 // SALUSVITA TECH - Rota Protegida por Permissão
 // Desenvolvido por FerMax Solution
 // ============================================
-// CORRIGIDO: Redireciona com state de "sem permissão"
-// para que o Dashboard mostre um alerta ao usuário.
+// CORRIGIDO: Repassa o context do AppShell para os filhos
+// para que useOutletContext() funcione em todas as páginas.
 // ============================================
 
 import React from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useOutletContext } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function ProtectedRoute({ permissao }) {
   const { carregando, temPermissao } = useAuth();
   const location = useLocation();
+
+  // ✅ CORREÇÃO: Pega o context que o AppShell passou via <Outlet context={...}>
+  // e repassa para os filhos, mantendo a cadeia de contexto intacta.
+  const outletContext = useOutletContext();
 
   if (carregando) {
     return (
@@ -38,5 +42,6 @@ export default function ProtectedRoute({ permissao }) {
     );
   }
 
-  return <Outlet />;
+  // ✅ CORREÇÃO: Repassa o context do AppShell para os filhos
+  return <Outlet context={outletContext} />;
 }
