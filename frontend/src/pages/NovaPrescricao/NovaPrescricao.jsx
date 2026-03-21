@@ -3,10 +3,10 @@ import { useOutletContext } from "react-router-dom";
 import "./NovaPrescricao.css";
 import ModalConfirmacao from "../../components/common/ModalConfirmacao";
 import FormularioPaciente from "../../components/forms/FormularioPaciente";
-import SeletorAcrescimos from "../../components/forms/SeletorAcrescimos";
+import SeletorAcrescimos from "../../features/prescricao/components/SeletorAcrescimos";
 import { criarPrescricao } from "../../services/api";
-import SeletorItensEspeciais from "../../components/forms/SeletorItensEspeciais/SeletorItensEspeciais";
-import SecaoAcompanhante from "../../components/forms/SecaoAcompanhante/SecaoAcompanhante";
+import SeletorItensEspeciais from "../../features/prescricao/components/SeletorItensEspeciais/SeletorItensEspeciais";
+import SecaoAcompanhante from "../../features/prescricao/components/SecaoAcompanhante/SecaoAcompanhante";
 
 function NovaPrescricao() {
   const {

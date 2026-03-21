@@ -1,6 +1,6 @@
 // frontend/src/components/forms/SeletorItensEspeciais/SeletorItensEspeciais.jsx
 import React, { useState, useEffect } from 'react';
-import { listarItensRefeicao } from '../../../services/api';
+import { listarItensRefeicao } from '../../../../services/api';
 import './SeletorItensEspeciais.css';
 
 function SeletorItensEspeciais({ refeicaoId, itensSelecionados = [], onChange }) {

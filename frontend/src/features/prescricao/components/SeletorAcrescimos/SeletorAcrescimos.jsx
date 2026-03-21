@@ -1,6 +1,6 @@
 // frontend/src/components/forms/SeletorAcrescimos.jsx
 import React, { useState, useEffect } from 'react';
-import { listarAcrescimos } from '../../services/api';
+import { listarAcrescimos } from '../../../../services/api';
 import './SeletorAcrescimos.css';
 
 function SeletorAcrescimos({ acrescimosSelecionados = [], onChange, refeicao }) {

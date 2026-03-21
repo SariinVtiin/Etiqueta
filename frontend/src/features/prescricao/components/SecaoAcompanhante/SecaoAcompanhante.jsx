@@ -1,7 +1,7 @@
 // frontend/src/components/forms/SecaoAcompanhante/SecaoAcompanhante.jsx
 // Componente reutilizável para a seção de acompanhante no formulário de prescrição
 import React, { useState, useEffect } from 'react';
-import { listarRestricoesAcompanhante } from '../../../services/api';
+import { listarRestricoesAcompanhante } from '../../../../services/api';
 import './SecaoAcompanhante.css';
 
 // Refeições permitidas por tipo de acompanhante
