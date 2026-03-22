@@ -13,30 +13,29 @@
  */
 const PERMISSOES_VALIDAS = [
   // --- Páginas principais ---
-  'dashboard',
-  'prescricoes',
-  'nova_prescricao',
-  'pacientes',
+  "dashboard",
+  "prescricoes",
+  "nova_prescricao",
+  "pacientes",
 
   // --- Hub de cadastros (acesso ao menu) ---
-  'cadastros',
+  "cadastros",
 
   // --- Sub-páginas de cadastros ---
-  'cadastros_usuarios',
-  'cadastros_leitos',
-  'cadastros_dietas',
-  'cadastros_condicoes',
-  'cadastros_condicoes_acompanhante',
-  'cadastros_refeicoes',
-  'cadastros_acrescimos',
-  'cadastros_configuracoes',
-  'cadastros_convenios',
-  'cadastros_logs',
-
-  'cadastros_substituicao_principal',
-  'cadastros_tabela_precos',
-  'faturamento',
-
+  "cadastros_usuarios",
+  "cadastros_leitos",
+  "cadastros_dietas",
+  "cadastros_condicoes",
+  "cadastros_condicoes_acompanhante",
+  "cadastros_refeicoes",
+  "cadastros_acrescimos",
+  "cadastros_configuracoes",
+  "cadastros_convenios",
+  "cadastros_logs",
+  "cadastros_tipos_acompanhante",
+  "cadastros_substituicao_principal",
+  "cadastros_tabela_precos",
+  "faturamento",
 ];
 
 /**
@@ -44,13 +43,13 @@ const PERMISSOES_VALIDAS = [
  * Admin pode customizar depois, mas estas vêm pré-marcadas
  */
 const PERFIL_PADRAO_NUTRICIONISTA = [
-  'dashboard',
-  'prescricoes',
-  'nova_prescricao',
-  'pacientes',
-  'cadastros',
-  'cadastros_leitos',
-  'cadastros_dietas',
+  "dashboard",
+  "prescricoes",
+  "nova_prescricao",
+  "pacientes",
+  "cadastros",
+  "cadastros_leitos",
+  "cadastros_dietas",
 ];
 
 /**
@@ -58,54 +57,54 @@ const PERFIL_PADRAO_NUTRICIONISTA = [
  * Mapeamento chave → nome legível
  */
 const PERMISSOES_LABELS = {
-  dashboard:                       'Início (Dashboard)',
-  prescricoes:                     'Prescrições',
-  nova_prescricao:                 'Nova Prescrição',
-  pacientes:                       'Pacientes',
-  cadastros:                       'Cadastros (menu)',
-  cadastros_usuarios:              'Gestão de Usuários',
-  cadastros_leitos:                'Setores e Leitos',
-  cadastros_dietas:                'Tipos de Dieta',
-  cadastros_condicoes:             'Condição Nutricional',
-  cadastros_condicoes_acompanhante:'Cond. Nutricional Acompanhante',
-  cadastros_refeicoes:             'Tipos de Refeição',
-  cadastros_acrescimos:            'Acréscimos',
-  cadastros_configuracoes:         'Configurações',
-  cadastros_convenios:             'Convênios',
-  cadastros_logs:                  'Logs de Login',
-  cadastros_substituicao_principal: 'Substituição de Principal',
-  cadastros_tabela_precos:          'Tabela de Preços',
-  faturamento:                      'Faturamento',
+  dashboard: "Início (Dashboard)",
+  prescricoes: "Prescrições",
+  nova_prescricao: "Nova Prescrição",
+  pacientes: "Pacientes",
+  cadastros: "Cadastros (menu)",
+  cadastros_usuarios: "Gestão de Usuários",
+  cadastros_leitos: "Setores e Leitos",
+  cadastros_dietas: "Tipos de Dieta",
+  cadastros_condicoes: "Condição Nutricional",
+  cadastros_condicoes_acompanhante: "Cond. Nutricional Acompanhante",
+  cadastros_refeicoes: "Tipos de Refeição",
+  cadastros_acrescimos: "Acréscimos",
+  cadastros_tipos_acompanhante: "Tipos de Acompanhante",
+  cadastros_configuracoes: "Configurações",
+  cadastros_convenios: "Convênios",
+  cadastros_logs: "Logs de Login",
+  cadastros_substituicao_principal: "Substituição de Principal",
+  cadastros_tabela_precos: "Tabela de Preços",
+  faturamento: "Faturamento",
 };
 
 /**
  * Agrupamento por categoria (para organizar os checkboxes no frontend)
  */
 const PERMISSOES_GRUPOS = {
-  'Páginas Principais': [
-    'dashboard',
-    'prescricoes',
-    'nova_prescricao',
-    'pacientes',
+  "Páginas Principais": [
+    "dashboard",
+    "prescricoes",
+    "nova_prescricao",
+    "pacientes",
   ],
-  'Cadastros e Configurações': [
-    'cadastros',
-    'cadastros_usuarios',
-    'cadastros_leitos',
-    'cadastros_dietas',
-    'cadastros_condicoes',
-    'cadastros_condicoes_acompanhante',
-    'cadastros_refeicoes',
-    'cadastros_acrescimos',
-    'cadastros_configuracoes',
-    'cadastros_convenios',
-    'cadastros_logs',
-    'cadastros_substituicao_principal',
-    'cadastros_tabela_precos',
+  "Cadastros e Configurações": [
+    "cadastros",
+    "cadastros_usuarios",
+    "cadastros_leitos",
+    "cadastros_tipos_acompanhante",
+    "cadastros_dietas",
+    "cadastros_condicoes",
+    "cadastros_condicoes_acompanhante",
+    "cadastros_refeicoes",
+    "cadastros_acrescimos",
+    "cadastros_configuracoes",
+    "cadastros_convenios",
+    "cadastros_logs",
+    "cadastros_substituicao_principal",
+    "cadastros_tabela_precos",
   ],
-  'Faturamento': [
-    'faturamento',
-  ],
+  Faturamento: ["faturamento"],
 };
 
 /**
@@ -116,7 +115,7 @@ const PERMISSOES_GRUPOS = {
  */
 function filtrarPermissoesValidas(permissoes) {
   if (!Array.isArray(permissoes)) return [];
-  return [...new Set(permissoes.filter(p => PERMISSOES_VALIDAS.includes(p)))];
+  return [...new Set(permissoes.filter((p) => PERMISSOES_VALIDAS.includes(p)))];
 }
 
 /**
@@ -132,7 +131,7 @@ const CRN_REGEX = /^CRN-([1-9]|1[0-1])\s?\d{4,6}$/i;
  * @returns {boolean}
  */
 function validarCRN(crn) {
-  if (!crn || typeof crn !== 'string') return false;
+  if (!crn || typeof crn !== "string") return false;
   return CRN_REGEX.test(crn.trim());
 }
 

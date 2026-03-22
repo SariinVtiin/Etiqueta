@@ -10,6 +10,9 @@ import {
 } from "../../services/api";
 import "./GestaoLeitos.css";
 
+import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
+import useModalAlerta from "../../hooks/useModalAlerta";
+
 function GestaoLeitos() {
   const navigate = useNavigate();
   const { refreshSystemData } = useOutletContext() || {};
@@ -35,7 +38,12 @@ function GestaoLeitos() {
     numeroInicio: "",
     numeroFim: "",
   });
-
+  const {
+    modal,
+    fecharModal: fecharModalAlerta,
+    mostrarAlerta,
+    mostrarConfirmacao,
+  } = useModalAlerta();
   // ============================================
   // CARREGAR DADOS
   // ============================================
@@ -46,11 +54,15 @@ function GestaoLeitos() {
       setLeitos(resposta.leitos || []);
     } catch (erro) {
       console.error("Erro ao carregar leitos:", erro);
-      alert("Erro ao carregar leitos");
+      mostrarAlerta({
+        titulo: "Erro ao carregar dados",
+        mensagem: "Erro ao carregar leitos",
+        tipo: "erro",
+      });
     } finally {
       setCarregando(false);
     }
-  }, [filtro]);
+  }, [filtro, mostrarAlerta]);
 
   useEffect(() => {
     carregarLeitos();
@@ -133,17 +145,29 @@ function GestaoLeitos() {
     e.preventDefault();
 
     if (!formData.numero.trim() || !formData.setor.trim()) {
-      alert("Número e setor são obrigatórios!");
+      mostrarAlerta({
+        titulo: "Campo obrigatório",
+        mensagem: "Número e setor são obrigatórios!",
+        tipo: "erro",
+      });
       return;
     }
 
     try {
       if (leitoEditando) {
         await atualizarLeito(leitoEditando.id, formData);
-        alert("Leito atualizado com sucesso!");
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: "Leito atualizado com sucesso!",
+          tipo: "sucesso",
+        });
       } else {
         await criarLeito(formData);
-        alert("Leito criado com sucesso!");
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: "Leito criado com sucesso!",
+          tipo: "sucesso",
+        });
       }
 
       fecharModal();
@@ -151,11 +175,15 @@ function GestaoLeitos() {
       refreshSystemData && refreshSystemData();
     } catch (erro) {
       console.error("Erro ao salvar:", erro);
-      alert(erro.message || "Erro ao salvar leito");
+      mostrarAlerta({
+        titulo: "Erro ao salvar",
+        mensagem: erro.message || "Erro ao salvar leito",
+        tipo: "erro",
+      });
     }
   };
 
-  const handleSubmitLote = async (e) => {
+  const handleSubmitLote = (e) => {
     e.preventDefault();
 
     if (
@@ -163,7 +191,11 @@ function GestaoLeitos() {
       !formLote.numeroInicio ||
       !formLote.numeroFim
     ) {
-      alert("Setor, número inicial e número final são obrigatórios!");
+      mostrarAlerta({
+        titulo: "Campo obrigatório",
+        mensagem: "Setor, número inicial e número final são obrigatórios!",
+        tipo: "erro",
+      });
       return;
     }
 
@@ -171,46 +203,76 @@ function GestaoLeitos() {
     const fim = parseInt(formLote.numeroFim);
 
     if (inicio > fim) {
-      alert("Número inicial deve ser menor ou igual ao final!");
+      mostrarAlerta({
+        titulo: "Intervalo inválido",
+        mensagem: "Número inicial deve ser menor ou igual ao final!",
+        tipo: "erro",
+      });
       return;
     }
 
     const quantidade = fim - inicio + 1;
-    const confirmar = window.confirm(
-      `Criar ${quantidade} leito(s) no setor "${formLote.setor.toUpperCase()}"?\n\nLeitos ${inicio} a ${fim}`,
-    );
 
-    if (!confirmar) return;
+    mostrarConfirmacao({
+      titulo: "Criar leitos em lote",
+      mensagem: `Criar ${quantidade} leito(s) no setor "${formLote.setor.toUpperCase()}"?\n\nLeitos ${inicio} a ${fim}`,
+      tipo: "confirmar",
+      textoBotaoConfirmar: "Criar",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        try {
+          const resposta = await criarLeitosLote(formLote);
+          fecharModalLote();
+          carregarLeitos();
+          refreshSystemData && refreshSystemData();
 
-    try {
-      const resposta = await criarLeitosLote(formLote);
-      alert(resposta.mensagem);
-      fecharModalLote();
-      carregarLeitos();
-      refreshSystemData && refreshSystemData();
-    } catch (erro) {
-      console.error("Erro ao criar lote:", erro);
-      alert(erro.message || "Erro ao criar leitos em lote");
-    }
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: resposta.mensagem || "Leitos criados com sucesso!",
+            tipo: "sucesso",
+          });
+        } catch (erro) {
+          console.error("Erro ao criar lote:", erro);
+          mostrarAlerta({
+            titulo: "Erro ao criar lote",
+            mensagem: erro.message || "Erro ao criar leitos em lote",
+            tipo: "erro",
+          });
+        }
+      },
+    });
   };
 
-  const handleToggleAtivo = async (leito) => {
+  const handleToggleAtivo = (leito) => {
     const novoStatus = !leito.ativo;
-    const confirmacao = window.confirm(
-      `Deseja realmente ${novoStatus ? "ativar" : "desativar"} o leito ${leito.numero} (${leito.setor})?`,
-    );
 
-    if (!confirmacao) return;
+    mostrarConfirmacao({
+      titulo: novoStatus ? "Ativar leito" : "Desativar leito",
+      mensagem: `Deseja realmente ${novoStatus ? "ativar" : "desativar"} o leito ${leito.numero} (${leito.setor})?`,
+      tipo: novoStatus ? "confirmar" : "perigo",
+      textoBotaoConfirmar: novoStatus ? "Ativar" : "Desativar",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        try {
+          await toggleLeitoAtivo(leito.id, novoStatus);
+          carregarLeitos();
+          refreshSystemData && refreshSystemData();
 
-    try {
-      await toggleLeitoAtivo(leito.id, novoStatus);
-      alert(`Leito ${novoStatus ? "ativado" : "desativado"} com sucesso!`);
-      carregarLeitos();
-      refreshSystemData && refreshSystemData();
-    } catch (erro) {
-      console.error("Erro ao alterar status:", erro);
-      alert(erro.message || "Erro ao alterar status");
-    }
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: `Leito ${novoStatus ? "ativado" : "desativado"} com sucesso!`,
+            tipo: "sucesso",
+          });
+        } catch (erro) {
+          console.error("Erro ao alterar status:", erro);
+          mostrarAlerta({
+            titulo: "Erro ao alterar status",
+            mensagem: erro.message || "Erro ao alterar status",
+            tipo: "erro",
+          });
+        }
+      },
+    });
   };
 
   // ============================================
@@ -228,7 +290,9 @@ function GestaoLeitos() {
           </button>
           <div className="gl-header-text">
             <h1>🏥 Setores e Leitos</h1>
-            <p className="gl-subtitulo">Gerenciar setores hospitalares e leitos</p>
+            <p className="gl-subtitulo">
+              Gerenciar setores hospitalares e leitos
+            </p>
           </div>
         </div>
       </div>
@@ -248,7 +312,9 @@ function GestaoLeitos() {
           </button>
           <div className="gl-header-text">
             <h1>🏥 Setores e Leitos</h1>
-            <p className="gl-subtitulo">Gerenciar setores hospitalares e leitos</p>
+            <p className="gl-subtitulo">
+              Gerenciar setores hospitalares e leitos
+            </p>
           </div>
         </div>
       </div>
@@ -581,6 +647,16 @@ function GestaoLeitos() {
           </div>
         </div>
       )}
+      <ModalAlerta
+        visivel={modal.visivel}
+        titulo={modal.titulo}
+        mensagem={modal.mensagem}
+        tipo={modal.tipo}
+        textoBotaoConfirmar={modal.textoBotaoConfirmar}
+        textoBotaoCancelar={modal.textoBotaoCancelar}
+        onConfirmar={modal.onConfirmar || fecharModalAlerta}
+        onCancelar={modal.onCancelar || fecharModalAlerta}
+      />
     </div>
   );
 }

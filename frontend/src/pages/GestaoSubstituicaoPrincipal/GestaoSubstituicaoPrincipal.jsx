@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   listarSubstituicoesPrincipal,
@@ -10,6 +10,9 @@ import {
   toggleItemSubstituicao,
 } from "../../services/api";
 import "./GestaoSubstituicaoPrincipal.css";
+
+import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
+import useModalAlerta from "../../hooks/useModalAlerta";
 
 function GestaoSubstituicaoPrincipal() {
   const navigate = useNavigate();
@@ -36,14 +39,18 @@ function GestaoSubstituicaoPrincipal() {
     ordem: "",
   });
 
+  const {
+    modal,
+    fecharModal: fecharModalAlerta,
+    mostrarAlerta,
+    mostrarConfirmacao,
+  } = useModalAlerta();
+
   // ====================================
   // CARREGAR DADOS
   // ====================================
-  useEffect(() => {
-    carregarDados();
-  }, []);
 
-  const carregarDados = async () => {
+  const carregarDados = useCallback(async () => {
     try {
       setCarregando(true);
       const resposta = await listarSubstituicoesPrincipal(true);
@@ -55,7 +62,6 @@ function GestaoSubstituicaoPrincipal() {
         }));
         setCategorias(cats);
 
-        // Expandir todas por padrão
         const expandidas = {};
         cats.forEach((c) => {
           expandidas[c.id] = true;
@@ -64,12 +70,19 @@ function GestaoSubstituicaoPrincipal() {
       }
     } catch (erro) {
       console.error("Erro ao carregar dados:", erro);
-      alert("Erro ao carregar dados: " + erro.message);
+      mostrarAlerta({
+        titulo: "Erro ao carregar dados",
+        mensagem: "Erro ao carregar dados: " + erro.message,
+        tipo: "erro",
+      });
     } finally {
       setCarregando(false);
     }
-  };
+  }, [mostrarAlerta]);
 
+  useEffect(() => {
+    carregarDados();
+  }, [carregarDados]);
   // ====================================
   // FILTROS
   // ====================================
@@ -86,7 +99,7 @@ function GestaoSubstituicaoPrincipal() {
     const buscaLower = busca.toLowerCase();
     const catMatch = cat.nome.toLowerCase().includes(buscaLower);
     const itemMatch = (cat.itens || []).some((item) =>
-      `${cat.nome} ${item.nome}`.toLowerCase().includes(buscaLower)
+      `${cat.nome} ${item.nome}`.toLowerCase().includes(buscaLower),
     );
 
     return catMatch || itemMatch;
@@ -158,8 +171,13 @@ function GestaoSubstituicaoPrincipal() {
   // ====================================
   const handleSubmitCategoria = async (e) => {
     e.preventDefault();
+
     if (!formCategoria.nome.trim()) {
-      alert("Nome da categoria é obrigatório!");
+      mostrarAlerta({
+        titulo: "Campo obrigatório",
+        mensagem: "Nome da categoria é obrigatório!",
+        tipo: "erro",
+      });
       return;
     }
 
@@ -169,8 +187,13 @@ function GestaoSubstituicaoPrincipal() {
           nome: formCategoria.nome,
           ordem: formCategoria.ordem ? parseInt(formCategoria.ordem) : 999,
         });
+
         if (resposta.sucesso) {
-          alert(resposta.mensagem);
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: resposta.mensagem,
+            tipo: "sucesso",
+          });
           fecharModal();
           carregarDados();
         }
@@ -180,36 +203,62 @@ function GestaoSubstituicaoPrincipal() {
           {
             nome: formCategoria.nome,
             ordem: formCategoria.ordem ? parseInt(formCategoria.ordem) : 999,
-          }
+          },
         );
+
         if (resposta.sucesso) {
-          alert(resposta.mensagem);
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: resposta.mensagem,
+            tipo: "sucesso",
+          });
           fecharModal();
           carregarDados();
         }
       }
     } catch (erro) {
-      alert("Erro: " + erro.message);
+      mostrarAlerta({
+        titulo: "Erro",
+        mensagem: "Erro: " + erro.message,
+        tipo: "erro",
+      });
     }
   };
 
-  const handleToggleCategoria = async (cat) => {
-    const acao = cat.ativa ? "desativar" : "ativar";
+  const handleToggleCategoria = (cat) => {
     const msg = cat.ativa
       ? `Desativar a categoria "${cat.nome}"? Todos os itens desta categoria também serão desativados.`
       : `Ativar a categoria "${cat.nome}"?`;
 
-    if (!window.confirm(msg)) return;
-
-    try {
-      const resposta = await toggleCategoriaSubstituicao(cat.id, !cat.ativa);
-      if (resposta.sucesso) {
-        alert(resposta.mensagem);
-        carregarDados();
-      }
-    } catch (erro) {
-      alert("Erro: " + erro.message);
-    }
+    mostrarConfirmacao({
+      titulo: cat.ativa ? "Desativar categoria" : "Ativar categoria",
+      mensagem: msg,
+      tipo: cat.ativa ? "perigo" : "confirmar",
+      textoBotaoConfirmar: cat.ativa ? "Desativar" : "Ativar",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        try {
+          const resposta = await toggleCategoriaSubstituicao(
+            cat.id,
+            !cat.ativa,
+          );
+          if (resposta.sucesso) {
+            mostrarAlerta({
+              titulo: "Sucesso",
+              mensagem: resposta.mensagem,
+              tipo: "sucesso",
+            });
+            carregarDados();
+          }
+        } catch (erro) {
+          mostrarAlerta({
+            titulo: "Erro",
+            mensagem: "Erro: " + erro.message,
+            tipo: "erro",
+          });
+        }
+      },
+    });
   };
 
   // ====================================
@@ -217,8 +266,13 @@ function GestaoSubstituicaoPrincipal() {
   // ====================================
   const handleSubmitItem = async (e) => {
     e.preventDefault();
+
     if (!formItem.nome.trim()) {
-      alert("Nome do item é obrigatório!");
+      mostrarAlerta({
+        titulo: "Campo obrigatório",
+        mensagem: "Nome do item é obrigatório!",
+        tipo: "erro",
+      });
       return;
     }
 
@@ -229,8 +283,13 @@ function GestaoSubstituicaoPrincipal() {
           nome: formItem.nome,
           ordem: formItem.ordem ? parseInt(formItem.ordem) : 999,
         });
+
         if (resposta.sucesso) {
-          alert(resposta.mensagem);
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: resposta.mensagem,
+            tipo: "sucesso",
+          });
           fecharModal();
           carregarDados();
         }
@@ -240,35 +299,58 @@ function GestaoSubstituicaoPrincipal() {
           categoria_id: formItem.categoria_id,
           ordem: formItem.ordem ? parseInt(formItem.ordem) : 999,
         });
+
         if (resposta.sucesso) {
-          alert(resposta.mensagem);
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: resposta.mensagem,
+            tipo: "sucesso",
+          });
           fecharModal();
           carregarDados();
         }
       }
     } catch (erro) {
-      alert("Erro: " + erro.message);
+      mostrarAlerta({
+        titulo: "Erro",
+        mensagem: "Erro: " + erro.message,
+        tipo: "erro",
+      });
     }
   };
 
-  const handleToggleItem = async (item) => {
+  const handleToggleItem = (item) => {
     const nomeCompleto = `${
       categorias.find((c) => c.id === item.categoria_id)?.nome || ""
     } ${item.nome}`;
     const acao = item.ativo ? "desativar" : "ativar";
 
-    if (!window.confirm(`${acao === "desativar" ? "Desativar" : "Ativar"} "${nomeCompleto}"?`))
-      return;
-
-    try {
-      const resposta = await toggleItemSubstituicao(item.id, !item.ativo);
-      if (resposta.sucesso) {
-        alert(resposta.mensagem);
-        carregarDados();
-      }
-    } catch (erro) {
-      alert("Erro: " + erro.message);
-    }
+    mostrarConfirmacao({
+      titulo: acao === "desativar" ? "Desativar item" : "Ativar item",
+      mensagem: `${acao === "desativar" ? "Desativar" : "Ativar"} "${nomeCompleto}"?`,
+      tipo: acao === "desativar" ? "perigo" : "confirmar",
+      textoBotaoConfirmar: acao === "desativar" ? "Desativar" : "Ativar",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        try {
+          const resposta = await toggleItemSubstituicao(item.id, !item.ativo);
+          if (resposta.sucesso) {
+            mostrarAlerta({
+              titulo: "Sucesso",
+              mensagem: resposta.mensagem,
+              tipo: "sucesso",
+            });
+            carregarDados();
+          }
+        } catch (erro) {
+          mostrarAlerta({
+            titulo: "Erro",
+            mensagem: "Erro: " + erro.message,
+            tipo: "erro",
+          });
+        }
+      },
+    });
   };
 
   // ====================================
@@ -280,7 +362,7 @@ function GestaoSubstituicaoPrincipal() {
     totalItens: categorias.reduce((acc, c) => acc + (c.itens || []).length, 0),
     itensAtivos: categorias.reduce(
       (acc, c) => acc + (c.itens || []).filter((i) => i.ativo).length,
-      0
+      0,
     ),
   };
 
@@ -306,7 +388,10 @@ function GestaoSubstituicaoPrincipal() {
           </div>
         </div>
         <div className="gsp-header-actions">
-          <button className="gsp-btn-novo-item" onClick={abrirModalCriarCategoria}>
+          <button
+            className="gsp-btn-novo-item"
+            onClick={abrirModalCriarCategoria}
+          >
             + Nova Categoria
           </button>
         </div>
@@ -316,7 +401,14 @@ function GestaoSubstituicaoPrincipal() {
       <div className="gsp-stats">
         <div className="gsp-stat-card">
           <div className="gsp-stat-icon gsp-stat-total">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
             </svg>
           </div>
@@ -327,7 +419,14 @@ function GestaoSubstituicaoPrincipal() {
         </div>
         <div className="gsp-stat-card">
           <div className="gsp-stat-icon gsp-stat-ativas">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
               <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
@@ -339,7 +438,14 @@ function GestaoSubstituicaoPrincipal() {
         </div>
         <div className="gsp-stat-card">
           <div className="gsp-stat-icon gsp-stat-itens">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <line x1="8" y1="6" x2="21" y2="6" />
               <line x1="8" y1="12" x2="21" y2="12" />
               <line x1="8" y1="18" x2="21" y2="18" />
@@ -355,7 +461,14 @@ function GestaoSubstituicaoPrincipal() {
         </div>
         <div className="gsp-stat-card">
           <div className="gsp-stat-icon gsp-stat-itens-ativos">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <polyline points="9 11 12 14 22 4" />
               <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
             </svg>
@@ -371,7 +484,15 @@ function GestaoSubstituicaoPrincipal() {
       <div className="gsp-toolbar">
         <div className="gsp-toolbar-left">
           <div className="gsp-search-wrapper">
-            <svg className="gsp-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              className="gsp-search-icon"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
@@ -393,8 +514,8 @@ function GestaoSubstituicaoPrincipal() {
                 {filtro === "todos"
                   ? "Todos"
                   : filtro === "ativos"
-                  ? "Ativos"
-                  : "Inativos"}
+                    ? "Ativos"
+                    : "Inativos"}
               </button>
             ))}
           </div>
@@ -418,7 +539,10 @@ function GestaoSubstituicaoPrincipal() {
       ) : categoriasFiltradas.length === 0 ? (
         <div className="gsp-vazio">
           <p>📭 Nenhuma categoria encontrada</p>
-          <button className="gsp-btn-novo-item" onClick={abrirModalCriarCategoria}>
+          <button
+            className="gsp-btn-novo-item"
+            onClick={abrirModalCriarCategoria}
+          >
             + Cadastrar Primeira Categoria
           </button>
         </div>
@@ -430,20 +554,29 @@ function GestaoSubstituicaoPrincipal() {
               className={`gsp-categoria-card ${!cat.ativa ? "gsp-inativa" : ""}`}
             >
               {/* Header da categoria */}
-              <div className="gsp-categoria-header" onClick={() => toggleExpandir(cat.id)}>
+              <div
+                className="gsp-categoria-header"
+                onClick={() => toggleExpandir(cat.id)}
+              >
                 <div className="gsp-categoria-info">
                   <span className="gsp-chevron">
                     {categoriasExpandidas[cat.id] ? "▼" : "▶"}
                   </span>
                   <h3 className="gsp-categoria-nome">{cat.nome}</h3>
-                  <span className={`gsp-status ${cat.ativa ? "ativa" : "inativa"}`}>
+                  <span
+                    className={`gsp-status ${cat.ativa ? "ativa" : "inativa"}`}
+                  >
                     {cat.ativa ? "Ativa" : "Inativa"}
                   </span>
                   <span className="gsp-badge-count">
-                    {(cat.itens || []).length} {(cat.itens || []).length === 1 ? "item" : "itens"}
+                    {(cat.itens || []).length}{" "}
+                    {(cat.itens || []).length === 1 ? "item" : "itens"}
                   </span>
                 </div>
-                <div className="gsp-categoria-acoes" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="gsp-categoria-acoes"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <button
                     className="gsp-btn-acao gsp-btn-add-item"
                     onClick={() => abrirModalCriarItem(cat)}
@@ -525,17 +658,18 @@ function GestaoSubstituicaoPrincipal() {
               )}
 
               {/* Mensagem se não tem itens */}
-              {categoriasExpandidas[cat.id] && (cat.itens || []).length === 0 && (
-                <div className="gsp-sem-itens">
-                  <p>Nenhum item cadastrado nesta categoria</p>
-                  <button
-                    className="gsp-btn-add-primeiro"
-                    onClick={() => abrirModalCriarItem(cat)}
-                  >
-                    + Adicionar primeiro item
-                  </button>
-                </div>
-              )}
+              {categoriasExpandidas[cat.id] &&
+                (cat.itens || []).length === 0 && (
+                  <div className="gsp-sem-itens">
+                    <p>Nenhum item cadastrado nesta categoria</p>
+                    <button
+                      className="gsp-btn-add-primeiro"
+                      onClick={() => abrirModalCriarItem(cat)}
+                    >
+                      + Adicionar primeiro item
+                    </button>
+                  </div>
+                )}
             </div>
           ))}
         </div>
@@ -544,7 +678,8 @@ function GestaoSubstituicaoPrincipal() {
       {/* ====================================
           MODAL - CATEGORIA
           ==================================== */}
-      {(modalAberto === "criarCategoria" || modalAberto === "editarCategoria") && (
+      {(modalAberto === "criarCategoria" ||
+        modalAberto === "editarCategoria") && (
         <div className="gsp-modal-overlay" onClick={fecharModal}>
           <div className="gsp-modal" onClick={(e) => e.stopPropagation()}>
             <div className="gsp-modal-header">
@@ -578,7 +713,10 @@ function GestaoSubstituicaoPrincipal() {
                   type="number"
                   value={formCategoria.ordem}
                   onChange={(e) =>
-                    setFormCategoria({ ...formCategoria, ordem: e.target.value })
+                    setFormCategoria({
+                      ...formCategoria,
+                      ordem: e.target.value,
+                    })
                   }
                   placeholder="Ex: 1, 2, 3..."
                   min={0}
@@ -644,7 +782,10 @@ function GestaoSubstituicaoPrincipal() {
                   required
                 />
                 <small>
-                  Resultado: <strong>{categoriaSelecionada?.nome} {formItem.nome || "..."}</strong>
+                  Resultado:{" "}
+                  <strong>
+                    {categoriaSelecionada?.nome} {formItem.nome || "..."}
+                  </strong>
                 </small>
               </div>
               <div className="gsp-campo">
@@ -678,6 +819,16 @@ function GestaoSubstituicaoPrincipal() {
           </div>
         </div>
       )}
+      <ModalAlerta
+        visivel={modal.visivel}
+        titulo={modal.titulo}
+        mensagem={modal.mensagem}
+        tipo={modal.tipo}
+        textoBotaoConfirmar={modal.textoBotaoConfirmar}
+        textoBotaoCancelar={modal.textoBotaoCancelar}
+        onConfirmar={modal.onConfirmar || fecharModalAlerta}
+        onCancelar={modal.onCancelar || fecharModalAlerta}
+      />
     </div>
   );
 }

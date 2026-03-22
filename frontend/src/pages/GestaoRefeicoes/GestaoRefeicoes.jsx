@@ -12,10 +12,19 @@ import {
   buscarEstatisticasItensRefeicao,
 } from "../../services/api";
 import "./GestaoRefeicoes.css";
+import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
+import useModalAlerta from "../../hooks/useModalAlerta";
 
 function GestaoRefeicoes() {
   const navigate = useNavigate();
   const { refreshSystemData } = useOutletContext() || {};
+
+  const {
+    modal,
+    fecharModal: fecharModalAlerta,
+    mostrarAlerta,
+    mostrarConfirmacao,
+  } = useModalAlerta();
 
   const [refeicoes, setRefeicoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -66,7 +75,11 @@ function GestaoRefeicoes() {
       setEstatisticas(statsMap);
     } catch (erro) {
       console.error("Erro ao carregar refeições:", erro);
-      alert("Erro ao carregar tipos de refeição");
+      mostrarAlerta({
+        titulo: "Erro ao carregar dados",
+        mensagem: "Erro ao carregar tipos de refeição",
+        tipo: "erro",
+      });
     } finally {
       setCarregando(false);
     }
@@ -102,67 +115,107 @@ function GestaoRefeicoes() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.nome.trim()) {
-      alert("Nome é obrigatório!");
+      mostrarAlerta({
+        titulo: "Campo obrigatório",
+        mensagem: "Nome é obrigatório!",
+        tipo: "erro",
+      });
       return;
     }
+
     try {
       if (refeicaoEditando) {
         await atualizarRefeicao(refeicaoEditando.id, formData);
-        alert("Refeição atualizada com sucesso!");
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: "Refeição atualizada com sucesso!",
+          tipo: "sucesso",
+        });
       } else {
         await criarRefeicao(formData);
-        alert("Refeição criada com sucesso!");
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: "Refeição criada com sucesso!",
+          tipo: "sucesso",
+        });
       }
+
       notificarApp();
       fecharModal();
       carregarRefeicoes();
     } catch (erro) {
-      alert(erro.message || "Erro ao salvar");
+      mostrarAlerta({
+        titulo: "Erro ao salvar",
+        mensagem: erro.message || "Erro ao salvar",
+        tipo: "erro",
+      });
     }
   };
 
-  const handleToggleAtiva = async (r) => {
+  const handleToggleAtiva = (r) => {
     const novoStatus = !r.ativa;
-    if (
-      !window.confirm(
-        `Deseja ${novoStatus ? "ativar" : "desativar"} "${r.nome}"?`,
-      )
-    )
-      return;
-    try {
-      await toggleRefeicaoAtiva(r.id, novoStatus);
-      notificarApp();
-      carregarRefeicoes();
-    } catch (erro) {
-      alert(erro.message);
-    }
+
+    mostrarConfirmacao({
+      titulo: novoStatus ? "Ativar refeição" : "Desativar refeição",
+      mensagem: `Deseja ${novoStatus ? "ativar" : "desativar"} "${r.nome}"?`,
+      tipo: novoStatus ? "confirmar" : "perigo",
+      textoBotaoConfirmar: novoStatus ? "Ativar" : "Desativar",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        try {
+          await toggleRefeicaoAtiva(r.id, novoStatus);
+          notificarApp();
+          carregarRefeicoes();
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: `Refeição ${novoStatus ? "ativada" : "desativada"} com sucesso!`,
+            tipo: "sucesso",
+          });
+        } catch (erro) {
+          mostrarAlerta({
+            titulo: "Erro ao alterar status",
+            mensagem: erro.message || "Erro ao alterar status",
+            tipo: "erro",
+          });
+        }
+      },
+    });
   };
 
-  const handleToggleLista = async (r) => {
+  const handleToggleLista = (r) => {
     const novoStatus = !r.tem_lista_personalizada;
-    if (novoStatus) {
-      if (
-        !window.confirm(
-          `Ativar lista personalizada para "${r.nome}"?\n\nIsso vai substituir as opções padrão por uma lista de produtos importada via planilha Excel.`,
-        )
-      )
-        return;
-    } else {
-      if (
-        !window.confirm(
-          `Desativar lista personalizada de "${r.nome}"?\n\nAs opções padrão voltarão a aparecer nas prescrições.`,
-        )
-      )
-        return;
-    }
-    try {
-      await toggleListaPersonalizada(r.id, novoStatus);
-      notificarApp();
-      carregarRefeicoes();
-    } catch (erro) {
-      alert(erro.message);
-    }
+
+    mostrarConfirmacao({
+      titulo: novoStatus
+        ? "Ativar lista personalizada"
+        : "Desativar lista personalizada",
+      mensagem: novoStatus
+        ? `Ativar lista personalizada para "${r.nome}"?\n\nIsso vai substituir as opções padrão por uma lista de produtos importada via planilha Excel.`
+        : `Desativar lista personalizada de "${r.nome}"?\n\nAs opções padrão voltarão a aparecer nas prescrições.`,
+      tipo: novoStatus ? "confirmar" : "perigo",
+      textoBotaoConfirmar: novoStatus ? "Ativar" : "Desativar",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        try {
+          await toggleListaPersonalizada(r.id, novoStatus);
+          notificarApp();
+          carregarRefeicoes();
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: `Lista personalizada ${novoStatus ? "ativada" : "desativada"} com sucesso!`,
+            tipo: "sucesso",
+          });
+        } catch (erro) {
+          mostrarAlerta({
+            titulo: "Erro ao alterar lista",
+            mensagem: erro.message || "Erro ao alterar lista personalizada",
+            tipo: "erro",
+          });
+        }
+      },
+    });
   };
 
   // ─── Modal IMPORTAÇÃO ─────────────────────────────────
@@ -181,7 +234,11 @@ function GestaoRefeicoes() {
 
   const handleImportar = async () => {
     if (!arquivoImport) {
-      alert("Selecione um arquivo!");
+      mostrarAlerta({
+        titulo: "Arquivo obrigatório",
+        mensagem: "Selecione um arquivo!",
+        tipo: "erro",
+      });
       return;
     }
     setImportando(true);
@@ -256,16 +313,16 @@ function GestaoRefeicoes() {
       {/* LEGENDA */}
       <div className="grf-legenda">
         <span className="grf-legenda-item">
-          <span className="grf-badge-normal">Padrão</span> opções normais (Dieta,
-          Restrições, etc.)
+          <span className="grf-badge-normal">Padrão</span> opções normais
+          (Dieta, Restrições, etc.)
         </span>
         <span className="grf-legenda-item">
           <span className="grf-badge-especial">Lista ✦</span> substitui tudo por
           produtos importados
         </span>
         <span className="grf-legenda-item">
-          <span className="grf-badge-dia-atual">Dia Atual</span> etiqueta sai com
-          data de hoje
+          <span className="grf-badge-dia-atual">Dia Atual</span> etiqueta sai
+          com data de hoje
         </span>
         <span className="grf-legenda-item">
           <span className="grf-badge-dia-proximo">Dia Seguinte</span> etiqueta
@@ -599,6 +656,16 @@ function GestaoRefeicoes() {
           </div>
         </div>
       )}
+      <ModalAlerta
+        visivel={modal.visivel}
+        titulo={modal.titulo}
+        mensagem={modal.mensagem}
+        tipo={modal.tipo}
+        textoBotaoConfirmar={modal.textoBotaoConfirmar}
+        textoBotaoCancelar={modal.textoBotaoCancelar}
+        onConfirmar={modal.onConfirmar || fecharModalAlerta}
+        onCancelar={modal.onCancelar || fecharModalAlerta}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   listarDietas,
@@ -7,6 +7,9 @@ import {
   toggleDietaAtiva,
 } from "../../services/api";
 import "./GestaoDietas.css";
+
+import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
+import useModalAlerta from "../../hooks/useModalAlerta";
 
 function GestaoDietas() {
   const navigate = useNavigate();
@@ -22,12 +25,14 @@ function GestaoDietas() {
     codigo: "",
     descricao: "",
   });
+  const {
+    modal,
+    fecharModal: fecharModalAlerta,
+    mostrarAlerta,
+    mostrarConfirmacao,
+  } = useModalAlerta();
 
-  useEffect(() => {
-    carregarDietas();
-  }, []);
-
-  const carregarDietas = async () => {
+  const carregarDietas = useCallback(async () => {
     try {
       setCarregando(true);
       const resposta = await listarDietas();
@@ -36,11 +41,19 @@ function GestaoDietas() {
       }
     } catch (erro) {
       console.error("Erro ao carregar dietas:", erro);
-      alert("Erro ao carregar dietas: " + erro.message);
+      mostrarAlerta({
+        titulo: "Erro ao carregar dados",
+        mensagem: "Erro ao carregar dietas: " + erro.message,
+        tipo: "erro",
+      });
     } finally {
       setCarregando(false);
     }
-  };
+  }, [mostrarAlerta]);
+
+  useEffect(() => {
+    carregarDietas();
+  }, [carregarDietas]);
 
   const dietasFiltradas = dietas.filter((dieta) => {
     const passaBusca =
@@ -81,56 +94,97 @@ function GestaoDietas() {
 
   const handleCriarDieta = async (e) => {
     e.preventDefault();
+
     if (!formData.nome || !formData.codigo) {
-      alert("Nome e código são obrigatórios!");
+      mostrarAlerta({
+        titulo: "Campo obrigatório",
+        mensagem: "Nome e código são obrigatórios!",
+        tipo: "erro",
+      });
       return;
     }
+
     try {
       const resposta = await criarDieta(formData);
       if (resposta.sucesso) {
-        alert(resposta.mensagem);
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: resposta.mensagem,
+          tipo: "sucesso",
+        });
         fecharModal();
         carregarDietas();
       }
     } catch (erro) {
-      alert("Erro ao criar dieta: " + erro.message);
+      mostrarAlerta({
+        titulo: "Erro ao criar dieta",
+        mensagem: "Erro ao criar dieta: " + erro.message,
+        tipo: "erro",
+      });
     }
   };
 
   const handleEditarDieta = async (e) => {
     e.preventDefault();
+
     if (!formData.nome || !formData.codigo) {
-      alert("Nome e código são obrigatórios!");
+      mostrarAlerta({
+        titulo: "Campo obrigatório",
+        mensagem: "Nome e código são obrigatórios!",
+        tipo: "erro",
+      });
       return;
     }
+
     try {
       const resposta = await atualizarDieta(dietaSelecionada.id, formData);
       if (resposta.sucesso) {
-        alert(resposta.mensagem);
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: resposta.mensagem,
+          tipo: "sucesso",
+        });
         fecharModal();
         carregarDietas();
       }
     } catch (erro) {
-      alert("Erro ao editar dieta: " + erro.message);
+      mostrarAlerta({
+        titulo: "Erro ao editar dieta",
+        mensagem: "Erro ao editar dieta: " + erro.message,
+        tipo: "erro",
+      });
     }
   };
 
-  const handleToggleAtivo = async (dieta) => {
+  const handleToggleAtivo = (dieta) => {
     const acao = dieta.ativa ? "desativar" : "ativar";
-    if (
-      !window.confirm(`Tem certeza que deseja ${acao} a dieta "${dieta.nome}"?`)
-    ) {
-      return;
-    }
-    try {
-      const resposta = await toggleDietaAtiva(dieta.id, !dieta.ativa);
-      if (resposta.sucesso) {
-        alert(resposta.mensagem);
-        carregarDietas();
-      }
-    } catch (erro) {
-      alert(`Erro ao ${acao} dieta: ` + erro.message);
-    }
+
+    mostrarConfirmacao({
+      titulo: acao === "desativar" ? "Desativar dieta" : "Ativar dieta",
+      mensagem: `Tem certeza que deseja ${acao} a dieta "${dieta.nome}"?`,
+      tipo: acao === "desativar" ? "perigo" : "confirmar",
+      textoBotaoConfirmar: acao === "desativar" ? "Desativar" : "Ativar",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        try {
+          const resposta = await toggleDietaAtiva(dieta.id, !dieta.ativa);
+          if (resposta.sucesso) {
+            mostrarAlerta({
+              titulo: "Sucesso",
+              mensagem: resposta.mensagem,
+              tipo: "sucesso",
+            });
+            carregarDietas();
+          }
+        } catch (erro) {
+          mostrarAlerta({
+            titulo: "Erro",
+            mensagem: `Erro ao ${acao} dieta: ` + erro.message,
+            tipo: "erro",
+          });
+        }
+      },
+    });
   };
 
   const stats = {
@@ -583,6 +637,16 @@ function GestaoDietas() {
           </div>
         </div>
       )}
+      <ModalAlerta
+        visivel={modal.visivel}
+        titulo={modal.titulo}
+        mensagem={modal.mensagem}
+        tipo={modal.tipo}
+        textoBotaoConfirmar={modal.textoBotaoConfirmar}
+        textoBotaoCancelar={modal.textoBotaoCancelar}
+        onConfirmar={modal.onConfirmar || fecharModalAlerta}
+        onCancelar={modal.onCancelar || fecharModalAlerta}
+      />
     </div>
   );
 }

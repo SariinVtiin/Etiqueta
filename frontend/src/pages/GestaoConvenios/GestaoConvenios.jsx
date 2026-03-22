@@ -10,6 +10,8 @@ import {
   toggleConvenioAtivo,
 } from "../../services/api";
 import "./GestaoConvenios.css";
+import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
+import useModalAlerta from "../../hooks/useModalAlerta";
 
 function GestaoConvenios() {
   const navigate = useNavigate();
@@ -27,6 +29,13 @@ function GestaoConvenios() {
     ordem: "",
   });
 
+  const {
+    modal,
+    fecharModal: fecharModalAlerta,
+    mostrarAlerta,
+    mostrarConfirmacao,
+  } = useModalAlerta();
+
   useEffect(() => {
     carregarConvenios();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -39,7 +48,11 @@ function GestaoConvenios() {
       setConvenios(resposta.convenios || []);
     } catch (erro) {
       console.error("Erro ao carregar convênios:", erro);
-      alert("Erro ao carregar convênios");
+      mostrarAlerta({
+        titulo: "Erro ao carregar dados",
+        mensagem: "Erro ao carregar convênios",
+        tipo: "erro",
+      });
     } finally {
       setCarregando(false);
     }
@@ -71,17 +84,29 @@ function GestaoConvenios() {
     e.preventDefault();
 
     if (!formData.nome.trim()) {
-      alert("Nome do convênio é obrigatório!");
+      mostrarAlerta({
+        titulo: "Campo obrigatório",
+        mensagem: "Nome do convênio é obrigatório!",
+        tipo: "erro",
+      });
       return;
     }
 
     try {
       if (convenioEditando) {
         await atualizarConvenio(convenioEditando.id, formData);
-        alert("Convênio atualizado com sucesso!");
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: "Convênio atualizado com sucesso!",
+          tipo: "sucesso",
+        });
       } else {
         await criarConvenio(formData);
-        alert("Convênio criado com sucesso!");
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: "Convênio criado com sucesso!",
+          tipo: "sucesso",
+        });
       }
 
       fecharModal();
@@ -90,28 +115,45 @@ function GestaoConvenios() {
       if (refreshSystemData) await refreshSystemData();
     } catch (erro) {
       console.error("Erro ao salvar:", erro);
-      alert(erro.message || "Erro ao salvar convênio");
+      mostrarAlerta({
+        titulo: "Erro ao salvar",
+        mensagem: erro.message || "Erro ao salvar convênio",
+        tipo: "erro",
+      });
     }
   };
 
-  const handleToggleAtivo = async (convenio) => {
+  const handleToggleAtivo = (convenio) => {
     const novoStatus = !convenio.ativa;
-    const confirmacao = window.confirm(
-      `Deseja realmente ${novoStatus ? "ativar" : "desativar"} o convênio "${convenio.nome}"?`
-    );
 
-    if (!confirmacao) return;
+    mostrarConfirmacao({
+      titulo: novoStatus ? "Ativar convênio" : "Desativar convênio",
+      mensagem: `Deseja realmente ${novoStatus ? "ativar" : "desativar"} o convênio "${convenio.nome}"?`,
+      tipo: novoStatus ? "confirmar" : "perigo",
+      textoBotaoConfirmar: novoStatus ? "Ativar" : "Desativar",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        try {
+          await toggleConvenioAtivo(convenio.id, novoStatus);
 
-    try {
-      await toggleConvenioAtivo(convenio.id, novoStatus);
-      alert(`Convênio ${novoStatus ? "ativado" : "desativado"} com sucesso!`);
+          await carregarConvenios();
+          if (refreshSystemData) await refreshSystemData();
 
-      await carregarConvenios();
-      if (refreshSystemData) await refreshSystemData();
-    } catch (erro) {
-      console.error("Erro ao alterar status:", erro);
-      alert(erro.message || "Erro ao alterar status");
-    }
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: `Convênio ${novoStatus ? "ativado" : "desativado"} com sucesso!`,
+            tipo: "sucesso",
+          });
+        } catch (erro) {
+          console.error("Erro ao alterar status:", erro);
+          mostrarAlerta({
+            titulo: "Erro ao alterar status",
+            mensagem: erro.message || "Erro ao alterar status",
+            tipo: "erro",
+          });
+        }
+      },
+    });
   };
 
   if (carregando) {
@@ -127,7 +169,9 @@ function GestaoConvenios() {
             </button>
             <div className="gc-header-text">
               <h1>🏦 Convênios</h1>
-              <p className="gc-subtitulo">Gerenciar tipos de convênio disponíveis</p>
+              <p className="gc-subtitulo">
+                Gerenciar tipos de convênio disponíveis
+              </p>
             </div>
           </div>
         </div>
@@ -147,7 +191,9 @@ function GestaoConvenios() {
           </button>
           <div className="gc-header-text">
             <h1>🏦 Convênios</h1>
-            <p className="gc-subtitulo">Gerenciar tipos de convênio disponíveis</p>
+            <p className="gc-subtitulo">
+              Gerenciar tipos de convênio disponíveis
+            </p>
           </div>
         </div>
       </div>
@@ -243,11 +289,7 @@ function GestaoConvenios() {
         <div className="gc-modal-overlay" onClick={fecharModal}>
           <div className="gc-modal" onClick={(e) => e.stopPropagation()}>
             <div className="gc-modal-header">
-              <h2>
-                {convenioEditando
-                  ? "Editar Convênio"
-                  : "Novo Convênio"}
-              </h2>
+              <h2>{convenioEditando ? "Editar Convênio" : "Novo Convênio"}</h2>
               <button className="gc-modal-fechar" onClick={fecharModal}>
                 ✕
               </button>
@@ -311,6 +353,16 @@ function GestaoConvenios() {
           </div>
         </div>
       )}
+      <ModalAlerta
+        visivel={modal.visivel}
+        titulo={modal.titulo}
+        mensagem={modal.mensagem}
+        tipo={modal.tipo}
+        textoBotaoConfirmar={modal.textoBotaoConfirmar}
+        textoBotaoCancelar={modal.textoBotaoCancelar}
+        onConfirmar={modal.onConfirmar || fecharModalAlerta}
+        onCancelar={modal.onCancelar || fecharModalAlerta}
+      />
     </div>
   );
 }

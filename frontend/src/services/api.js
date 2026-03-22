@@ -505,6 +505,48 @@ export const toggleRestricaoAcompanhanteAtiva = async (id, ativa) => {
   );
   return handleResponse(response);
 };
+
+export const listarTiposAcompanhante = async (todas = false) => {
+  const url = todas
+    ? `${API_URL}/tipos-acompanhante?todas=true`
+    : `${API_URL}/tipos-acompanhante`;
+
+  const response = await fetchAuth(url);
+  return handleResponse(response);
+};
+
+export const buscarTipoAcompanhante = async (codigo) => {
+  const response = await fetchAuth(`${API_URL}/tipos-acompanhante/${codigo}`);
+  return handleResponse(response);
+};
+
+export const criarTipoAcompanhante = async (payload) => {
+  const response = await fetchAuth(`${API_URL}/tipos-acompanhante`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(response);
+};
+
+export const atualizarTipoAcompanhante = async (id, payload) => {
+  const response = await fetchAuth(`${API_URL}/tipos-acompanhante/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(response);
+};
+
+export const toggleTipoAcompanhante = async (id, ativo) => {
+  const response = await fetchAuth(
+    `${API_URL}/tipos-acompanhante/${id}/toggle`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ ativo }),
+    },
+  );
+  return handleResponse(response);
+};
+
 // ====================================
 // FUNÇÕES DE SUBSTITUIÇÃO DE PRINCIPAL
 // ====================================
@@ -535,10 +577,13 @@ export const listarCategoriasSubstituicao = async (todas = false) => {
  * Criar categoria
  */
 export const criarCategoriaSubstituicao = async (dados) => {
-  const response = await fetchAuth(`${API_URL}/substituicoes-principal/categorias`, {
-    method: "POST",
-    body: JSON.stringify(dados),
-  });
+  const response = await fetchAuth(
+    `${API_URL}/substituicoes-principal/categorias`,
+    {
+      method: "POST",
+      body: JSON.stringify(dados),
+    },
+  );
   return response.json();
 };
 
@@ -546,10 +591,13 @@ export const criarCategoriaSubstituicao = async (dados) => {
  * Atualizar categoria
  */
 export const atualizarCategoriaSubstituicao = async (id, dados) => {
-  const response = await fetchAuth(`${API_URL}/substituicoes-principal/categorias/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(dados),
-  });
+  const response = await fetchAuth(
+    `${API_URL}/substituicoes-principal/categorias/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(dados),
+    },
+  );
   return response.json();
 };
 
@@ -557,10 +605,13 @@ export const atualizarCategoriaSubstituicao = async (id, dados) => {
  * Ativar/Desativar categoria
  */
 export const toggleCategoriaSubstituicao = async (id, ativa) => {
-  const response = await fetchAuth(`${API_URL}/substituicoes-principal/categorias/${id}/toggle`, {
-    method: "PATCH",
-    body: JSON.stringify({ ativa }),
-  });
+  const response = await fetchAuth(
+    `${API_URL}/substituicoes-principal/categorias/${id}/toggle`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ ativa }),
+    },
+  );
   return response.json();
 };
 
@@ -579,10 +630,13 @@ export const criarItemSubstituicao = async (dados) => {
  * Atualizar item/preparo
  */
 export const atualizarItemSubstituicao = async (id, dados) => {
-  const response = await fetchAuth(`${API_URL}/substituicoes-principal/itens/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(dados),
-  });
+  const response = await fetchAuth(
+    `${API_URL}/substituicoes-principal/itens/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(dados),
+    },
+  );
   return response.json();
 };
 
@@ -590,10 +644,13 @@ export const atualizarItemSubstituicao = async (id, dados) => {
  * Ativar/Desativar item
  */
 export const toggleItemSubstituicao = async (id, ativo) => {
-  const response = await fetchAuth(`${API_URL}/substituicoes-principal/itens/${id}/toggle`, {
-    method: "PATCH",
-    body: JSON.stringify({ ativo }),
-  });
+  const response = await fetchAuth(
+    `${API_URL}/substituicoes-principal/itens/${id}/toggle`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ ativo }),
+    },
+  );
   return response.json();
 };
 

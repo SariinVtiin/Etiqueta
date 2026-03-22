@@ -52,7 +52,7 @@
 }
 
 .sa-toggle-slider::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 3px;
   left: 3px;
@@ -132,8 +132,9 @@
    ============================================ */
 .sa-tipo-opcoes {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 10px;
+  width: 100%;
 }
 
 .sa-tipo-card {
@@ -148,6 +149,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sa-tipo-card:hover {

@@ -9,9 +9,19 @@ import {
 } from "../../services/api";
 import "./GestaoCondicoesAcompanhante.css";
 
+import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
+import useModalAlerta from "../../hooks/useModalAlerta";
+
 function GestaoCondicoesAcompanhante() {
   const navigate = useNavigate();
   const { refreshSystemData } = useOutletContext() || {};
+
+  const {
+    modal,
+    fecharModal: fecharModalAlerta,
+    mostrarAlerta,
+    mostrarConfirmacao,
+  } = useModalAlerta();
 
   const [restricoes, setRestricoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -37,7 +47,11 @@ function GestaoCondicoesAcompanhante() {
       setRestricoes(resposta.restricoes || []);
     } catch (erro) {
       console.error("Erro ao carregar condições do acompanhante:", erro);
-      alert("Erro ao carregar condições nutricionais do acompanhante");
+      mostrarAlerta({
+        titulo: "Erro ao carregar dados",
+        mensagem: "Erro ao carregar condições nutricionais do acompanhante",
+        tipo: "erro",
+      });
     } finally {
       setCarregando(false);
     }
@@ -69,17 +83,29 @@ function GestaoCondicoesAcompanhante() {
     e.preventDefault();
 
     if (!formData.nome.trim()) {
-      alert("Nome da condição nutricional é obrigatório!");
+      mostrarAlerta({
+        titulo: "Campo obrigatório",
+        mensagem: "Nome da condição nutricional é obrigatório!",
+        tipo: "erro",
+      });
       return;
     }
 
     try {
       if (restricaoEditando) {
         await atualizarRestricaoAcompanhante(restricaoEditando.id, formData);
-        alert("Condição nutricional atualizada com sucesso!");
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: "Condição nutricional atualizada com sucesso!",
+          tipo: "sucesso",
+        });
       } else {
         await criarRestricaoAcompanhante(formData);
-        alert("Condição nutricional criada com sucesso!");
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: "Condição nutricional criada com sucesso!",
+          tipo: "sucesso",
+        });
       }
 
       fecharModal();
@@ -87,28 +113,46 @@ function GestaoCondicoesAcompanhante() {
       if (refreshSystemData) await refreshSystemData();
     } catch (erro) {
       console.error("Erro ao salvar:", erro);
-      alert(erro.message || "Erro ao salvar condição nutricional");
+      mostrarAlerta({
+        titulo: "Erro ao salvar",
+        mensagem: erro.message || "Erro ao salvar condição nutricional",
+        tipo: "erro",
+      });
     }
   };
 
-  const handleToggleAtiva = async (restricao) => {
+  const handleToggleAtiva = (restricao) => {
     const novoStatus = !restricao.ativa;
-    const confirmacao = window.confirm(
-      `Deseja realmente ${novoStatus ? "ativar" : "desativar"} a condição nutricional "${restricao.nome}"?`,
-    );
-    if (!confirmacao) return;
 
-    try {
-      await toggleRestricaoAcompanhanteAtiva(restricao.id, novoStatus);
-      alert(
-        `Condição nutricional ${novoStatus ? "ativada" : "desativada"} com sucesso!`,
-      );
-      await carregarRestricoes();
-      if (refreshSystemData) await refreshSystemData();
-    } catch (erro) {
-      console.error("Erro ao alterar status:", erro);
-      alert(erro.message || "Erro ao alterar status");
-    }
+    mostrarConfirmacao({
+      titulo: novoStatus
+        ? "Ativar condição nutricional"
+        : "Desativar condição nutricional",
+      mensagem: `Deseja realmente ${novoStatus ? "ativar" : "desativar"} a condição nutricional "${restricao.nome}"?`,
+      tipo: novoStatus ? "confirmar" : "perigo",
+      textoBotaoConfirmar: novoStatus ? "Ativar" : "Desativar",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        try {
+          await toggleRestricaoAcompanhanteAtiva(restricao.id, novoStatus);
+          await carregarRestricoes();
+          if (refreshSystemData) await refreshSystemData();
+
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: `Condição nutricional ${novoStatus ? "ativada" : "desativada"} com sucesso!`,
+            tipo: "sucesso",
+          });
+        } catch (erro) {
+          console.error("Erro ao alterar status:", erro);
+          mostrarAlerta({
+            titulo: "Erro ao alterar status",
+            mensagem: erro.message || "Erro ao alterar status",
+            tipo: "erro",
+          });
+        }
+      },
+    });
   };
 
   if (carregando) {
@@ -116,12 +160,17 @@ function GestaoCondicoesAcompanhante() {
       <div className="gra-container">
         <div className="gra-header">
           <div className="gra-header-left">
-            <button className="gra-btn-voltar" onClick={() => navigate("/admin/cadastros")}>
+            <button
+              className="gra-btn-voltar"
+              onClick={() => navigate("/admin/cadastros")}
+            >
               ← Voltar
             </button>
             <div className="gra-header-text">
               <h1>👤 Cond. Nutricionais do Acompanhante</h1>
-              <p className="gra-subtitulo">Condições nutricionais específicas para acompanhantes</p>
+              <p className="gra-subtitulo">
+                Condições nutricionais específicas para acompanhantes
+              </p>
             </div>
           </div>
         </div>
@@ -134,12 +183,17 @@ function GestaoCondicoesAcompanhante() {
     <div className="gra-container">
       <div className="gra-header">
         <div className="gra-header-left">
-          <button className="gra-btn-voltar" onClick={() => navigate("/admin/cadastros")}>
+          <button
+            className="gra-btn-voltar"
+            onClick={() => navigate("/admin/cadastros")}
+          >
             ← Voltar
           </button>
           <div className="gra-header-text">
             <h1>👤 Cond. Nutricionais do Acompanhante</h1>
-            <p className="gra-subtitulo">Condições nutricionais específicas para acompanhantes</p>
+            <p className="gra-subtitulo">
+              Condições nutricionais específicas para acompanhantes
+            </p>
           </div>
         </div>
       </div>
@@ -306,6 +360,16 @@ function GestaoCondicoesAcompanhante() {
           </div>
         </div>
       )}
+      <ModalAlerta
+        visivel={modal.visivel}
+        titulo={modal.titulo}
+        mensagem={modal.mensagem}
+        tipo={modal.tipo}
+        textoBotaoConfirmar={modal.textoBotaoConfirmar}
+        textoBotaoCancelar={modal.textoBotaoCancelar}
+        onConfirmar={modal.onConfirmar || fecharModalAlerta}
+        onCancelar={modal.onCancelar || fecharModalAlerta}
+      />
     </div>
   );
 }

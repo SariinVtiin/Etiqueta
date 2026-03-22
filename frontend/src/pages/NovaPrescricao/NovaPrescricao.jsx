@@ -30,6 +30,7 @@ function NovaPrescricao() {
     refeicoesSelecionadas: [],
     temAcompanhante: false,
     tipoAcompanhante: "",
+    tipoAcompanhanteNome: "",
     acompanhanteRefeicoes: [],
     acompanhanteRestricoesIds: [],
     acompanhanteObsLivre: "",
@@ -159,21 +160,21 @@ function NovaPrescricao() {
   };
 
   const handleSemPrincipalToggle = (refeicao) => {
-      const novoValor = !configRefeicoes[refeicao].semPrincipal;
-      setConfigRefeicoes({
-        ...configRefeicoes,
-        [refeicao]: {
-          ...configRefeicoes[refeicao],
-          semPrincipal: novoValor,
-          descricaoSemPrincipal: novoValor
-            ? configRefeicoes[refeicao].descricaoSemPrincipal
-            : "",
-          substituicaoPrincipalIds: novoValor
-            ? configRefeicoes[refeicao].substituicaoPrincipalIds || []
-            : [],
-        },
-      });
-    };
+    const novoValor = !configRefeicoes[refeicao].semPrincipal;
+    setConfigRefeicoes({
+      ...configRefeicoes,
+      [refeicao]: {
+        ...configRefeicoes[refeicao],
+        semPrincipal: novoValor,
+        descricaoSemPrincipal: novoValor
+          ? configRefeicoes[refeicao].descricaoSemPrincipal
+          : "",
+        substituicaoPrincipalIds: novoValor
+          ? configRefeicoes[refeicao].substituicaoPrincipalIds || []
+          : [],
+      },
+    });
+  };
 
   const handleSubstituicaoPrincipalChange = (refeicao, ids, descricao) => {
     setConfigRefeicoes({
@@ -185,7 +186,7 @@ function NovaPrescricao() {
       },
     });
   };
-  
+
   const handleObsExclusao = (refeicao, obs) => {
     setConfigRefeicoes({
       ...configRefeicoes,
@@ -289,7 +290,7 @@ function NovaPrescricao() {
       const refeicaoObj = tiposAlimentacao.find(
         (t) => (typeof t === "string" ? t : t.nome) === refeicao,
       );
-      const isEspecial = refeicaoObj?.tem_lista_personalizada;
+      const isEspecial = !!refeicaoObj?.tem_lista_personalizada;
       const config = configRefeicoes[refeicao];
 
       return {
@@ -377,6 +378,7 @@ function NovaPrescricao() {
         refeicoesSelecionadas: [],
         temAcompanhante: false,
         tipoAcompanhante: "",
+        tipoAcompanhanteNome: "",
         acompanhanteRefeicoes: [],
         acompanhanteRestricoesIds: [],
         acompanhanteObsLivre: "",
@@ -498,10 +500,8 @@ function NovaPrescricao() {
 
         {/* Configuração individual de cada refeição */}
         {formData.refeicoesSelecionadas.map((refeicao) => {
-          const refeicaoObj = tiposAlimentacao.find(
-            (t) => t.nome === refeicao,
-          );
-          const isEspecial = refeicaoObj?.tem_lista_personalizada;
+          const refeicaoObj = tiposAlimentacao.find((t) => t.nome === refeicao);
+          const isEspecial = !!refeicaoObj?.tem_lista_personalizada;
 
           return (
             <div
@@ -511,9 +511,7 @@ function NovaPrescricao() {
               <h3 className="np-meal-title">
                 Configurar: {refeicao}
                 {isEspecial && (
-                  <span className="np-badge-special">
-                    Lista Personalizada
-                  </span>
+                  <span className="np-badge-special">Lista Personalizada</span>
                 )}
               </h3>
 
@@ -598,10 +596,15 @@ function NovaPrescricao() {
                       <div style={{ marginTop: "10px" }}>
                         <SeletorSubstituicaoPrincipal
                           itensSelecionados={
-                            configRefeicoes[refeicao]?.substituicaoPrincipalIds || []
+                            configRefeicoes[refeicao]
+                              ?.substituicaoPrincipalIds || []
                           }
                           onChange={(ids, descricao) =>
-                            handleSubstituicaoPrincipalChange(refeicao, ids, descricao)
+                            handleSubstituicaoPrincipalChange(
+                              refeicao,
+                              ids,
+                              descricao,
+                            )
                           }
                         />
                       </div>
@@ -667,9 +670,7 @@ function NovaPrescricao() {
               {toast.tipo === "sucesso" ? "✓" : "✕"}
             </div>
             <div className="np-toast-text">
-              <strong>
-                {toast.tipo === "sucesso" ? "Sucesso!" : "Erro"}
-              </strong>
+              <strong>{toast.tipo === "sucesso" ? "Sucesso!" : "Erro"}</strong>
               <span>{toast.mensagem}</span>
             </div>
             <button

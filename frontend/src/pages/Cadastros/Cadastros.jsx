@@ -37,6 +37,14 @@ function Cadastros() {
       botao: "Acessar",
     },
     {
+      permissao: "cadastros_tipos_acompanhante",
+      icon: "🧍",
+      titulo: "Tipos de Acompanhante",
+      descricao: "Gerenciar tipos de acompanhante e suas refeições permitidas",
+      acao: () => navigate("/admin/tipos-acompanhante"),
+      botao: "Acessar",
+    },
+    {
       permissao: "cadastros_dietas",
       icon: "🍽️",
       titulo: "Tipos de Dieta",
@@ -115,7 +123,8 @@ function Cadastros() {
       permissao: "cadastros_substituicao_principal",
       icon: "🍲",
       titulo: "Substituição de Principal",
-      descricao: "Gerenciar categorias e itens de substituição do prato principal",
+      descricao:
+        "Gerenciar categorias e itens de substituição do prato principal",
       acao: () => navigate("/admin/substituicao-principal"),
       botao: "Acessar",
     },

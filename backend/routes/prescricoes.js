@@ -104,14 +104,60 @@ function normalizarArrayNumericoUnico(values = []) {
   ];
 }
 
-function filtrarRefeicoesAcompanhanteDaPrescricao(
+async function buscarTipoAcompanhanteAtivo(codigoTipo) {
+  const codigo = String(codigoTipo || "")
+    .trim()
+    .toLowerCase();
+  if (!codigo) return null;
+
+  const [rows] = await pool.query(
+    `SELECT id, codigo, nome, ativo
+       FROM tipos_acompanhante
+      WHERE codigo = ?
+        AND ativo = 1
+      LIMIT 1`,
+    [codigo],
+  );
+
+  return rows[0] || null;
+}
+
+async function buscarRefeicoesPermitidasTipoAcompanhante(codigoTipo) {
+  const codigo = String(codigoTipo || "")
+    .trim()
+    .toLowerCase();
+  if (!codigo) return [];
+
+  const [rows] = await pool.query(
+    `SELECT tr.nome
+       FROM tipos_acompanhante ta
+       JOIN tipos_acompanhante_refeicoes tar
+         ON tar.tipo_acompanhante_id = ta.id
+       JOIN tipos_refeicao tr
+         ON tr.id = tar.tipo_refeicao_id
+      WHERE ta.codigo = ?
+        AND ta.ativo = 1
+        AND tr.ativa = 1
+      ORDER BY tr.ordem ASC, tr.nome ASC`,
+    [codigo],
+  );
+
+  return rows.map((r) => normalizarTextoComparacao(r.nome));
+}
+
+async function filtrarRefeicoesAcompanhanteDaPrescricao(
+  tipoAcompanhante,
   tipoAlimentacao,
   acompanhanteRefeicoes = [],
 ) {
   const alvo = normalizarTextoComparacao(tipoAlimentacao);
-  return normalizarArrayTextoUnico(acompanhanteRefeicoes).filter(
-    (item) => normalizarTextoComparacao(item) === alvo,
-  );
+  const permitidas =
+    await buscarRefeicoesPermitidasTipoAcompanhante(tipoAcompanhante);
+
+  return normalizarArrayTextoUnico(acompanhanteRefeicoes).filter((item) => {
+    const itemNorm = normalizarTextoComparacao(item);
+    return itemNorm === alvo && permitidas.includes(itemNorm);
+  });
 }
 
 /**
@@ -140,9 +186,11 @@ async function salvarOuAtualizarPaciente(dados) {
     );
 
     if (codigoExistente.length > 0) {
-      throw new Error(
+      const erro = new Error(
         `Código de atendimento ${codigoAtendimento} já está em uso pelo paciente: ${codigoExistente[0].nome_paciente}`,
       );
+      erro.statusCode = 400;
+      throw erro;
     }
 
     // 2. Verificar se o paciente já existe pelo CPF
@@ -262,45 +310,49 @@ router.get("/", autenticar, async (req, res) => {
       limit = 20,
     } = req.query;
 
-    let query = "SELECT * FROM prescricoes WHERE 1=1";
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.max(parseInt(limit, 10) || 20, 1);
+
+    let whereClause = "FROM prescricoes WHERE 1=1";
     const params = [];
 
     if (busca) {
-      query += " AND (nome_paciente LIKE ? OR cpf LIKE ? OR leito LIKE ?)";
+      whereClause +=
+        " AND (nome_paciente LIKE ? OR cpf LIKE ? OR leito LIKE ?)";
       const buscaParam = `%${busca}%`;
       params.push(buscaParam, buscaParam, buscaParam);
     }
 
     if (dataInicio) {
-      query += " AND DATE(data_prescricao) >= ?";
+      whereClause += " AND DATE(data_prescricao) >= ?";
       params.push(dataInicio);
     }
 
     if (dataFim) {
-      query += " AND DATE(data_prescricao) <= ?";
+      whereClause += " AND DATE(data_prescricao) <= ?";
       params.push(dataFim);
     }
 
     if (setor) {
-      query += " AND nucleo = ?";
+      whereClause += " AND nucleo = ?";
       params.push(setor);
     }
 
     if (refeicao) {
-      query += " AND tipo_alimentacao = ?";
+      whereClause += " AND tipo_alimentacao = ?";
       params.push(refeicao);
     }
 
-    query += " ORDER BY data_prescricao DESC";
+    const offset = (pageNum - 1) * limitNum;
 
-    const offset = (page - 1) * limit;
-    query += " LIMIT ? OFFSET ?";
-    params.push(parseInt(limit), parseInt(offset));
-
-    const [prescricoes] = await pool.query(query, params);
+    const [prescricoes] = await pool.query(
+      `SELECT * ${whereClause} ORDER BY data_prescricao DESC LIMIT ? OFFSET ?`,
+      [...params, limitNum, offset],
+    );
 
     const [[{ total }]] = await pool.query(
-      "SELECT COUNT(*) as total FROM prescricoes WHERE 1=1",
+      `SELECT COUNT(*) as total ${whereClause}`,
+      params,
     );
 
     res.json({
@@ -308,9 +360,9 @@ router.get("/", autenticar, async (req, res) => {
       prescricoes,
       paginacao: {
         total,
-        pagina: parseInt(page),
-        limite: parseInt(limit),
-        totalPaginas: Math.ceil(total / limit),
+        pagina: pageNum,
+        limite: limitNum,
+        totalPaginas: Math.ceil(total / limitNum),
       },
     });
   } catch (erro) {
@@ -380,15 +432,39 @@ router.post("/", autenticar, async (req, res) => {
     } = req.body;
 
     const temItensEspeciais = itensEspeciaisIds && itensEspeciaisIds.length > 0;
+
     if (
       !tipoAlimentacao ||
       (!dieta && !temItensEspeciais) ||
       !nomePaciente ||
-      !cpf
+      !cpf ||
+      !codigoAtendimento ||
+      !convenio ||
+      !nomeMae ||
+      !dataNascimento ||
+      idade === undefined ||
+      idade === null ||
+      idade === "" ||
+      !nucleo ||
+      !leito
     ) {
-      return res
-        .status(400)
-        .json({ sucesso: false, erro: "Campos obrigatórios faltando" });
+      return res.status(400).json({
+        sucesso: false,
+        erro: "Campos obrigatórios faltando",
+        detalhes: {
+          cpf: !!cpf,
+          codigoAtendimento: !!codigoAtendimento,
+          convenio: !!convenio,
+          nomePaciente: !!nomePaciente,
+          nomeMae: !!nomeMae,
+          dataNascimento: !!dataNascimento,
+          idade: idade !== undefined && idade !== null && idade !== "",
+          nucleo: !!nucleo,
+          leito: !!leito,
+          tipoAlimentacao: !!tipoAlimentacao,
+          dietaOuItensEspeciais: !!dieta || temItensEspeciais,
+        },
+      });
     }
 
     console.log("📦 Dados recebidos:", {
@@ -420,28 +496,54 @@ router.post("/", autenticar, async (req, res) => {
       normalizarArrayNumericoUnico(acrescimosIds);
     const itensEspeciaisIdsNormalizados =
       normalizarArrayNumericoUnico(itensEspeciaisIds);
+    const substituicaoPrincipalIdsNormalizados = normalizarArrayNumericoUnico(
+      substituicaoPrincipalIds,
+    );
+
     const acompanhanteRefeicoesNormalizadas =
-      filtrarRefeicoesAcompanhanteDaPrescricao(
+      await filtrarRefeicoesAcompanhanteDaPrescricao(
+        tipoAcompanhante,
         tipoAlimentacao,
         acompanhanteRefeicoes,
       );
+
     const acompanhanteRestricoesIdsNormalizados = normalizarArrayNumericoUnico(
       acompanhanteRestricoesIds,
     );
 
     const temAcompanhanteNaPrescricao =
       Boolean(temAcompanhante) && acompanhanteRefeicoesNormalizadas.length > 0;
+
+    if (temAcompanhante) {
+      if (!tipoAcompanhante) {
+        return res.status(400).json({
+          sucesso: false,
+          erro: "Tipo de acompanhante é obrigatório quando houver acompanhante",
+        });
+      }
+
+      const tipoAcompanhanteValido =
+        await buscarTipoAcompanhanteAtivo(tipoAcompanhante);
+
+      if (!tipoAcompanhanteValido) {
+        return res.status(400).json({
+          sucesso: false,
+          erro: "Tipo de acompanhante inválido ou inativo",
+        });
+      }
+    }
+
     // ✅ ATUALIZADO: INSERT com campos do acompanhante
     const [resultado] = await pool.query(
       `INSERT INTO prescricoes (
-        cpf, codigo_atendimento, convenio, nome_paciente, nome_mae,
-        data_nascimento, idade, nucleo, leito, tipo_alimentacao, dieta,
-        restricoes, sem_principal, descricao_sem_principal,
-        obs_exclusao, obs_acrescimo, acrescimos_ids, itens_especiais_ids,
-        tem_acompanhante, tipo_acompanhante, acompanhante_refeicoes,
-        acompanhante_restricoes_ids, acompanhante_obs_livre,
-        data_prescricao, usuario_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    cpf, codigo_atendimento, convenio, nome_paciente, nome_mae,
+    data_nascimento, idade, nucleo, leito, tipo_alimentacao, dieta,
+    restricoes, sem_principal, descricao_sem_principal, substituicao_principal_ids,
+    obs_exclusao, obs_acrescimo, acrescimos_ids, itens_especiais_ids,
+    tem_acompanhante, tipo_acompanhante, acompanhante_refeicoes,
+    acompanhante_restricoes_ids, acompanhante_obs_livre,
+    data_prescricao, usuario_id
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         cpf,
         codigoAtendimento,
@@ -457,8 +559,9 @@ router.post("/", autenticar, async (req, res) => {
         restricoes ? JSON.stringify(restricoes) : null,
         semPrincipal || false,
         descricaoSemPrincipal || null,
-        substituicaoPrincipalIds 
-          ? JSON.stringify(substituicaoPrincipalIds) : null,
+        substituicaoPrincipalIdsNormalizados.length
+          ? JSON.stringify(substituicaoPrincipalIdsNormalizados)
+          : null,
         obsExclusao || null,
         obsAcrescimo || null,
         acrescimosIdsNormalizados.length
@@ -505,7 +608,46 @@ router.post("/", autenticar, async (req, res) => {
     });
   } catch (erro) {
     console.error("Erro ao criar prescrição:", erro);
-    res.status(500).json({ sucesso: false, erro: "Erro ao criar prescrição" });
+
+    if (erro.statusCode) {
+      return res.status(erro.statusCode).json({
+        sucesso: false,
+        erro: erro.message,
+      });
+    }
+
+    if (erro.code === "ER_BAD_NULL_ERROR") {
+      return res.status(400).json({
+        sucesso: false,
+        erro: "Há campos obrigatórios vazios no envio da prescrição",
+        detalheBanco: erro.sqlMessage,
+      });
+    }
+
+    if (
+      erro.code === "ER_TRUNCATED_WRONG_VALUE" ||
+      erro.code === "ER_WRONG_VALUE"
+    ) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: "Algum campo foi enviado em formato inválido",
+        detalheBanco: erro.sqlMessage,
+      });
+    }
+
+    if (erro.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({
+        sucesso: false,
+        erro: "Já existe um registro com dados únicos duplicados",
+        detalheBanco: erro.sqlMessage,
+      });
+    }
+
+    return res.status(500).json({
+      sucesso: false,
+      erro: "Erro ao criar prescrição",
+      detalheBanco: erro.sqlMessage || erro.message,
+    });
   }
 });
 
@@ -552,20 +694,29 @@ router.put("/:id", autenticar, async (req, res) => {
       restricoes,
       semPrincipal,
       descricaoSemPrincipal,
+      substituicaoPrincipalIds,
       obsExclusao,
       obsAcrescimo,
       acrescimosIds,
       itensEspeciaisIds,
     } = req.body;
 
+    const acrescimosIdsNormalizados =
+      normalizarArrayNumericoUnico(acrescimosIds);
+    const itensEspeciaisIdsNormalizados =
+      normalizarArrayNumericoUnico(itensEspeciaisIds);
+    const substituicaoPrincipalIdsNormalizados = normalizarArrayNumericoUnico(
+      substituicaoPrincipalIds,
+    );
+
     await pool.query(
       `UPDATE prescricoes SET
-        cpf = ?, codigo_atendimento = ?, convenio = ?, nome_paciente = ?,
-        nome_mae = ?, data_nascimento = ?, idade = ?, nucleo = ?, leito = ?,
-        tipo_alimentacao = ?, dieta = ?, restricoes = ?, sem_principal = ?,
-        descricao_sem_principal = ?, substituicao_principal_ids = ?, obs_exclusao = ?, obs_acrescimo = ?,
-        acrescimos_ids = ?, itens_especiais_ids = ?
-      WHERE id = ?`,
+    cpf = ?, codigo_atendimento = ?, convenio = ?, nome_paciente = ?,
+    nome_mae = ?, data_nascimento = ?, idade = ?, nucleo = ?, leito = ?,
+    tipo_alimentacao = ?, dieta = ?, restricoes = ?, sem_principal = ?,
+    descricao_sem_principal = ?, substituicao_principal_ids = ?, obs_exclusao = ?, obs_acrescimo = ?,
+    acrescimos_ids = ?, itens_especiais_ids = ?
+  WHERE id = ?`,
       [
         cpf,
         codigoAtendimento,
@@ -581,11 +732,17 @@ router.put("/:id", autenticar, async (req, res) => {
         restricoes ? JSON.stringify(restricoes) : null,
         semPrincipal || false,
         descricaoSemPrincipal || null,
-        substituicaoPrincipalIds ? JSON.stringify(substituicaoPrincipalIds) : null,
+        substituicaoPrincipalIdsNormalizados.length
+          ? JSON.stringify(substituicaoPrincipalIdsNormalizados)
+          : null,
         obsExclusao || null,
         obsAcrescimo || null,
-        acrescimosIds ? JSON.stringify(acrescimosIds) : null,
-        itensEspeciaisIds ? JSON.stringify(itensEspeciaisIds) : null,
+        acrescimosIdsNormalizados.length
+          ? JSON.stringify(acrescimosIdsNormalizados)
+          : null,
+        itensEspeciaisIdsNormalizados.length
+          ? JSON.stringify(itensEspeciaisIdsNormalizados)
+          : null,
         id,
       ],
     );

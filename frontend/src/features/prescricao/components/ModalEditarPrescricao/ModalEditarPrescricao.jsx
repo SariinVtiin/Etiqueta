@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import SeletorAcrescimos from '../SeletorAcrescimos';
-import './ModalEditarPrescricao.css';
+import React, { useState, useEffect } from "react";
+import SeletorAcrescimos from "../SeletorAcrescimos";
+import "./ModalEditarPrescricao.css";
 import SeletorSubstituicaoPrincipal from "../../../../components/forms/SeletorSubstituicaoPrincipal";
 
-function ModalEditarPrescricao({ 
-  prescricao, 
+function ModalEditarPrescricao({
+  prescricao,
   convenios = [],
-  onSalvar, 
-  onCancelar, 
-  nucleos, 
-  dietas, 
-  restricoes,        // ✅ Condições nutricionais dinâmicas do BD
-  tiposAlimentacao   // ✅ NOVO: Tipos de alimentação dinâmicos
+  onSalvar,
+  onCancelar,
+  nucleos,
+  dietas,
+  restricoes, // ✅ Condições nutricionais dinâmicas do BD
+  tiposAlimentacao, // ✅ NOVO: Tipos de alimentação dinâmicos
 }) {
   // Proteção contra props undefined
   const nucleosSafe = nucleos || {};
@@ -20,23 +20,23 @@ function ModalEditarPrescricao({
   const tiposSafe = tiposAlimentacao || [];
 
   const [formData, setFormData] = useState({
-    cpf: '',
-    codigoAtendimento: '',
-    convenio: '',
-    nomePaciente: '',
-    nomeMae: '',
-    dataNascimento: '',
-    idade: '',
-    nucleo: '',
-    leito: '',
-    tipoAlimentacao: '',
-    dieta: '',
+    cpf: "",
+    codigoAtendimento: "",
+    convenio: "",
+    nomePaciente: "",
+    nomeMae: "",
+    dataNascimento: "",
+    idade: "",
+    nucleo: "",
+    leito: "",
+    tipoAlimentacao: "",
+    dieta: "",
     restricoes: [],
     semPrincipal: false,
-    descricaoSemPrincipal: '',
-    obsExclusao: '',
-    obsAcrescimo: '',
-    acrescimosIds: []   // ✅ NOVO: IDs dos acréscimos selecionados
+    descricaoSemPrincipal: "",
+    obsExclusao: "",
+    obsAcrescimo: "",
+    acrescimosIds: [], // ✅ NOVO: IDs dos acréscimos selecionados
   });
 
   const [salvando, setSalvando] = useState(false);
@@ -50,14 +50,14 @@ function ModalEditarPrescricao({
       const regex = /(\d+)|(\D+)/g;
       const aParts = String(a).match(regex) || [];
       const bParts = String(b).match(regex) || [];
-      
+
       for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-        const aPart = aParts[i] || '';
-        const bPart = bParts[i] || '';
-        
+        const aPart = aParts[i] || "";
+        const bPart = bParts[i] || "";
+
         const aNum = parseInt(aPart);
         const bNum = parseInt(bPart);
-        
+
         if (!isNaN(aNum) && !isNaN(bNum)) {
           if (aNum !== bNum) return aNum - bNum;
         } else {
@@ -69,54 +69,69 @@ function ModalEditarPrescricao({
     });
   };
 
+  const formatarDataISOParaBR = (valor) => {
+    if (!valor) return "";
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(valor))) {
+      const [ano, mes, dia] = String(valor).split("-");
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    const data = new Date(valor);
+    if (Number.isNaN(data.getTime())) return "";
+
+    const dia = String(data.getDate()).padStart(2, "0");
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const ano = data.getFullYear();
+
+    return `${dia}/${mes}/${ano}`;
+  };
+
   // ============================================
   // PREENCHER FORMULÁRIO COM DADOS DA PRESCRIÇÃO
   // ============================================
   useEffect(() => {
     if (prescricao) {
       // Converter data de AAAA-MM-DD para DD/MM/AAAA
-      const dataObj = new Date(prescricao.data_nascimento);
-      const dia = String(dataObj.getDate() + 1).padStart(2, '0');
-      const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
-      const ano = dataObj.getFullYear();
-      const dataFormatada = `${dia}/${mes}/${ano}`;
+      const dataFormatada = formatarDataISOParaBR(prescricao.data_nascimento);
 
       // Parsear acrescimos_ids (vem como JSON string do BD)
       let acrescimosIds = [];
       if (prescricao.acrescimos_ids) {
         try {
-          acrescimosIds = typeof prescricao.acrescimos_ids === 'string'
-            ? JSON.parse(prescricao.acrescimos_ids)
-            : prescricao.acrescimos_ids;
+          acrescimosIds =
+            typeof prescricao.acrescimos_ids === "string"
+              ? JSON.parse(prescricao.acrescimos_ids)
+              : prescricao.acrescimos_ids;
         } catch (e) {
-          console.error('Erro ao parsear acrescimos_ids:', e);
+          console.error("Erro ao parsear acrescimos_ids:", e);
           acrescimosIds = [];
         }
       }
 
       setFormData({
-        cpf: prescricao.cpf || '',
-        codigoAtendimento: prescricao.codigo_atendimento || '',
-        convenio: prescricao.convenio || '',
-        nomePaciente: prescricao.nome_paciente || '',
-        nomeMae: prescricao.nome_mae || '',
+        cpf: prescricao.cpf || "",
+        codigoAtendimento: prescricao.codigo_atendimento || "",
+        convenio: prescricao.convenio || "",
+        nomePaciente: prescricao.nome_paciente || "",
+        nomeMae: prescricao.nome_mae || "",
         dataNascimento: dataFormatada,
-        idade: String(prescricao.idade || ''),
-        nucleo: prescricao.nucleo || '',
-        leito: prescricao.leito || '',
-        tipoAlimentacao: prescricao.tipo_alimentacao || '',
-        dieta: prescricao.dieta || '',
+        idade: String(prescricao.idade || ""),
+        nucleo: prescricao.nucleo || "",
+        leito: prescricao.leito || "",
+        tipoAlimentacao: prescricao.tipo_alimentacao || "",
+        dieta: prescricao.dieta || "",
         restricoes: prescricao.restricoes || [],
         semPrincipal: prescricao.sem_principal || false,
-        descricaoSemPrincipal: prescricao.descricao_sem_principal || '',
+        descricaoSemPrincipal: prescricao.descricao_sem_principal || "",
         substituicaoPrincipalIds: prescricao?.substituicao_principal_ids
-          ? (typeof prescricao.substituicao_principal_ids === 'string'
+          ? typeof prescricao.substituicao_principal_ids === "string"
             ? JSON.parse(prescricao.substituicao_principal_ids)
-            : prescricao.substituicao_principal_ids)
+            : prescricao.substituicao_principal_ids
           : [],
-        obsExclusao: prescricao.obs_exclusao || '',
-        obsAcrescimo: prescricao.obs_acrescimo || '',
-        acrescimosIds: acrescimosIds
+        obsExclusao: prescricao.obs_exclusao || "",
+        obsAcrescimo: prescricao.obs_acrescimo || "",
+        acrescimosIds: acrescimosIds,
       });
     }
   }, [prescricao]);
@@ -126,88 +141,96 @@ function ModalEditarPrescricao({
   // ============================================
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     // Se mudou o núcleo, limpar o leito
-    if (name === 'nucleo') {
-      setFormData(prev => ({
+    if (name === "nucleo") {
+      setFormData((prev) => ({
         ...prev,
         nucleo: value,
-        leito: ''
+        leito: "",
       }));
       return;
     }
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleDataNascimentoChange = (e) => {
-    let valor = e.target.value.replace(/\D/g, '');
-    
+    let valor = e.target.value.replace(/\D/g, "");
+
     if (valor.length >= 2) {
-      valor = valor.substring(0, 2) + '/' + valor.substring(2);
+      valor = valor.substring(0, 2) + "/" + valor.substring(2);
     }
     if (valor.length >= 5) {
-      valor = valor.substring(0, 5) + '/' + valor.substring(5, 9);
+      valor = valor.substring(0, 5) + "/" + valor.substring(5, 9);
     }
-    
-    setFormData(prev => ({ ...prev, dataNascimento: valor }));
-    
+
+    setFormData((prev) => ({ ...prev, dataNascimento: valor }));
+
     if (valor.length === 10) {
-      const [dia, mes, ano] = valor.split('/');
+      const [dia, mes, ano] = valor.split("/");
       const dataNasc = new Date(ano, mes - 1, dia);
       const hoje = new Date();
       const idade = hoje.getFullYear() - dataNasc.getFullYear();
       const mesAtual = hoje.getMonth();
       const mesNasc = dataNasc.getMonth();
-      
-      const idadeFinal = (mesAtual < mesNasc || (mesAtual === mesNasc && hoje.getDate() < dataNasc.getDate())) 
-        ? idade - 1 
-        : idade;
-      
-      setFormData(prev => ({ ...prev, idade: String(idadeFinal) }));
+
+      const idadeFinal =
+        mesAtual < mesNasc ||
+        (mesAtual === mesNasc && hoje.getDate() < dataNasc.getDate())
+          ? idade - 1
+          : idade;
+
+      setFormData((prev) => ({ ...prev, idade: String(idadeFinal) }));
     }
   };
 
   const toggleRestricao = (restricao) => {
     const novasRestricoes = formData.restricoes.includes(restricao)
-      ? formData.restricoes.filter(r => r !== restricao)
+      ? formData.restricoes.filter((r) => r !== restricao)
       : [...formData.restricoes, restricao];
-    
-    setFormData(prev => ({ ...prev, restricoes: novasRestricoes }));
+
+    setFormData((prev) => ({ ...prev, restricoes: novasRestricoes }));
   };
 
   const handleAcrescimosChange = (ids) => {
-    setFormData(prev => ({ ...prev, acrescimosIds: ids }));
+    setFormData((prev) => ({ ...prev, acrescimosIds: ids }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.nomePaciente || !formData.nucleo || !formData.leito || !formData.dieta || formData.substituicaoPrincipalIds || !formData.tipoAlimentacao) {
-      alert('Preencha todos os campos obrigatórios!');
+
+    if (
+      !formData.nomePaciente ||
+      !formData.nucleo ||
+      !formData.leito ||
+      !formData.dieta ||
+      !formData.tipoAlimentacao
+    ) {
+      alert("Preencha todos os campos obrigatórios!");
       return;
     }
-    
+
     setSalvando(true);
-    
+
     try {
       // Converter data de DD/MM/AAAA para AAAA-MM-DD
-      const [dia, mes, ano] = formData.dataNascimento.split('/');
+      const [dia, mes, ano] = formData.dataNascimento.split("/");
       const dataFormatada = `${ano}-${mes}-${dia}`;
-      
+
       const dadosAtualizados = {
         ...formData,
         dataNascimento: dataFormatada,
-        idade: parseInt(formData.idade)
+        idade: parseInt(formData.idade),
       };
-      
+
       await onSalvar(dadosAtualizados);
     } catch (erro) {
-      console.error('Erro ao salvar:', erro);
-      alert('Erro ao salvar prescrição: ' + erro.message);
+      console.error("Erro ao salvar:", erro);
+      alert("Erro ao salvar prescrição: " + erro.message);
     } finally {
       setSalvando(false);
     }
@@ -216,9 +239,10 @@ function ModalEditarPrescricao({
   // ============================================
   // LEITOS ORDENADOS
   // ============================================
-  const leitosDisponiveis = formData.nucleo && nucleosSafe[formData.nucleo] 
-    ? ordenarLeitosNatural(nucleosSafe[formData.nucleo])
-    : [];
+  const leitosDisponiveis =
+    formData.nucleo && nucleosSafe[formData.nucleo]
+      ? ordenarLeitosNatural(nucleosSafe[formData.nucleo])
+      : [];
 
   // ============================================
   // RENDER
@@ -228,12 +252,13 @@ function ModalEditarPrescricao({
       <div className="modal-content-editar">
         <div className="modal-header-editar">
           <h2>✏️ Editar Prescrição #{prescricao?.id}</h2>
-          <button className="btn-fechar-modal" onClick={onCancelar}>✕</button>
+          <button className="btn-fechar-modal" onClick={onCancelar}>
+            ✕
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="form-editar">
           <div className="form-grid">
-
             {/* ===== DADOS DO PACIENTE ===== */}
 
             {/* CPF */}
@@ -265,11 +290,17 @@ function ModalEditarPrescricao({
             {/* Convênio */}
             <div className="campo">
               <label>Convênio *</label>
-              <select name="convenio" value={formData.convenio} onChange={handleChange}>
+              <select
+                name="convenio"
+                value={formData.convenio}
+                onChange={handleChange}
+              >
                 <option value="">Selecione...</option>
                 {convenios.length > 0 ? (
                   convenios.map((conv) => (
-                    <option key={conv.id} value={conv.nome}>{conv.nome}</option>
+                    <option key={conv.id} value={conv.nome}>
+                      {conv.nome}
+                    </option>
                   ))
                 ) : (
                   <>
@@ -317,7 +348,9 @@ function ModalEditarPrescricao({
                 maxLength="10"
               />
               {formData.idade && (
-                <small className="info-idade">Idade: {formData.idade} anos</small>
+                <small className="info-idade">
+                  Idade: {formData.idade} anos
+                </small>
               )}
             </div>
 
@@ -326,10 +359,16 @@ function ModalEditarPrescricao({
             {/* Núcleo */}
             <div className="campo">
               <label>Núcleo/Setor *</label>
-              <select name="nucleo" value={formData.nucleo} onChange={handleChange}>
+              <select
+                name="nucleo"
+                value={formData.nucleo}
+                onChange={handleChange}
+              >
                 <option value="">Selecione...</option>
-                {Object.keys(nucleosSafe).map(nucleo => (
-                  <option key={nucleo} value={nucleo}>{nucleo}</option>
+                {Object.keys(nucleosSafe).map((nucleo) => (
+                  <option key={nucleo} value={nucleo}>
+                    {nucleo}
+                  </option>
                 ))}
               </select>
             </div>
@@ -337,14 +376,23 @@ function ModalEditarPrescricao({
             {/* Leito */}
             <div className="campo">
               <label>Leito *</label>
-              <select name="leito" value={formData.leito} onChange={handleChange} disabled={!formData.nucleo}>
+              <select
+                name="leito"
+                value={formData.leito}
+                onChange={handleChange}
+                disabled={!formData.nucleo}
+              >
                 <option value="">Selecione...</option>
-                {leitosDisponiveis.map(leito => (
-                  <option key={leito} value={leito}>{leito}</option>
+                {leitosDisponiveis.map((leito) => (
+                  <option key={leito} value={leito}>
+                    {leito}
+                  </option>
                 ))}
               </select>
               {!formData.nucleo && (
-                <small className="aviso-campo">⚠️ Selecione um núcleo primeiro</small>
+                <small className="aviso-campo">
+                  ⚠️ Selecione um núcleo primeiro
+                </small>
               )}
             </div>
 
@@ -354,12 +402,20 @@ function ModalEditarPrescricao({
             <div className="campo">
               <label>Tipo de Alimentação *</label>
               {tiposSafe.length > 0 ? (
-                <select name="tipoAlimentacao" value={formData.tipoAlimentacao} onChange={handleChange}>
+                <select
+                  name="tipoAlimentacao"
+                  value={formData.tipoAlimentacao}
+                  onChange={handleChange}
+                >
                   <option value="">Selecione...</option>
-                    {tiposSafe.map((tipo, index) => {
-                        const valor = typeof tipo === 'object' ? tipo.nome : tipo;
-                        return <option key={index} value={valor}>{valor}</option>;
-                    })}
+                  {tiposSafe.map((tipo, index) => {
+                    const valor = typeof tipo === "object" ? tipo.nome : tipo;
+                    return (
+                      <option key={index} value={valor}>
+                        {valor}
+                      </option>
+                    );
+                  })}
                 </select>
               ) : (
                 <input
@@ -375,10 +431,16 @@ function ModalEditarPrescricao({
             {/* Dieta */}
             <div className="campo">
               <label>Dieta *</label>
-              <select name="dieta" value={formData.dieta} onChange={handleChange}>
+              <select
+                name="dieta"
+                value={formData.dieta}
+                onChange={handleChange}
+              >
                 <option value="">Selecione...</option>
-                {dietasSafe.map(dieta => (
-                  <option key={dieta.id} value={dieta.nome}>{dieta.nome}</option>
+                {dietasSafe.map((dieta) => (
+                  <option key={dieta.id} value={dieta.nome}>
+                    {dieta.nome}
+                  </option>
                 ))}
               </select>
             </div>
@@ -388,8 +450,11 @@ function ModalEditarPrescricao({
               <label>Condições Nutricionais</label>
               <div className="restricoes-grid">
                 {restricoesSafe.length > 0 ? (
-                  restricoesSafe.map(restricao => (
-                    <label key={restricao.id || restricao.nome} className="checkbox-label">
+                  restricoesSafe.map((restricao) => (
+                    <label
+                      key={restricao.id || restricao.nome}
+                      className="checkbox-label"
+                    >
                       <input
                         type="checkbox"
                         checked={formData.restricoes.includes(restricao.nome)}
@@ -399,7 +464,9 @@ function ModalEditarPrescricao({
                     </label>
                   ))
                 ) : (
-                  <span className="aviso-campo">Nenhuma condição nutricional cadastrada</span>
+                  <span className="aviso-campo">
+                    Nenhuma condição nutricional cadastrada
+                  </span>
                 )}
               </div>
             </div>
@@ -416,7 +483,7 @@ function ModalEditarPrescricao({
                 <span>Paciente NÃO quer o prato principal do cardápio</span>
               </label>
               {formData.semPrincipal && (
-                <div style={{ marginTop: '8px' }}>
+                <div style={{ marginTop: "8px" }}>
                   <SeletorSubstituicaoPrincipal
                     itensSelecionados={formData.substituicaoPrincipalIds || []}
                     onChange={(ids, descricao) =>
@@ -428,7 +495,7 @@ function ModalEditarPrescricao({
                     }
                   />
                 </div>
-              )}  
+              )}
             </div>
 
             {/* Observação Exclusão */}
@@ -464,24 +531,23 @@ function ModalEditarPrescricao({
                 placeholder="Ex: observações extras sobre acréscimos"
               />
             </div>
-
           </div>
 
           <div className="modal-footer-editar">
-            <button 
-              type="button" 
-              className="btn-cancelar-modal" 
+            <button
+              type="button"
+              className="btn-cancelar-modal"
               onClick={onCancelar}
               disabled={salvando}
             >
               Cancelar
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn-salvar-modal"
               disabled={salvando}
             >
-              {salvando ? 'Salvando...' : '✓ Salvar Alterações'}
+              {salvando ? "Salvando..." : "✓ Salvar Alterações"}
             </button>
           </div>
         </form>

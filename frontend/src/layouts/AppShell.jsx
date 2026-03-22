@@ -1,15 +1,12 @@
-﻿
 // frontend/src/layouts/AppShell.jsx
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../contexts/AuthContext";
 import CentroNotificacoes from "../components/common/CentroNotificacoes/CentroNotificacoes";
+
+import ModalAlerta from "../components/common/ModalAlerta/ModalAlerta";
+import useModalAlerta from "../hooks/useModalAlerta";
 
 import {
   listarDietas,
@@ -159,6 +156,12 @@ export default function AppShell() {
   const [restricoesAcompanhante, setRestricoesAcompanhante] = useState([]);
   const [convenios, setConvenios] = useState([]);
 
+  const {
+    modal,
+    fecharModal: fecharModalAlerta,
+    mostrarConfirmacao,
+  } = useModalAlerta();
+
   const carregarDadosBD = useCallback(async () => {
     if (!autenticado) return;
 
@@ -193,9 +196,7 @@ export default function AppShell() {
 
     if (resDietas.status === "fulfilled" && resDietas.value?.sucesso) {
       setDietas(
-        resDietas.value.dietas.filter(
-          (d) => d.ativa === 1 || d.ativa === true,
-        ),
+        resDietas.value.dietas.filter((d) => d.ativa === 1 || d.ativa === true),
       );
     }
 
@@ -220,13 +221,26 @@ export default function AppShell() {
     }
 
     // Log de erros
-    [resLeitos, resDietas, resRestricoes, resRestAcomp, resConvenios, resRefeicoes]
-      .forEach((r, i) => {
-        if (r.status === "rejected") {
-          const nomes = ["leitos", "dietas", "restrições", "restrições acomp.", "convênios", "refeições"];
-          console.error(`Erro ao carregar ${nomes[i]}:`, r.reason);
-        }
-      });
+    [
+      resLeitos,
+      resDietas,
+      resRestricoes,
+      resRestAcomp,
+      resConvenios,
+      resRefeicoes,
+    ].forEach((r, i) => {
+      if (r.status === "rejected") {
+        const nomes = [
+          "leitos",
+          "dietas",
+          "restrições",
+          "restrições acomp.",
+          "convênios",
+          "refeições",
+        ];
+        console.error(`Erro ao carregar ${nomes[i]}:`, r.reason);
+      }
+    });
 
     setCarregandoDados(false);
   }, [autenticado]);
@@ -241,19 +255,24 @@ export default function AppShell() {
     await carregarDadosBD();
   }, [carregarDadosBD]);
 
-  const handleLogout = async () => {
-    const confirmar = window.confirm("Deseja realmente sair?");
-    if (!confirmar) return;
-    await logout();
-    navigate("/login", { replace: true });
+  const handleLogout = () => {
+    mostrarConfirmacao({
+      titulo: "Sair do sistema",
+      mensagem: "Deseja realmente sair?",
+      tipo: "confirmar",
+      textoBotaoConfirmar: "Sair",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        await logout();
+        navigate("/login", { replace: true });
+      },
+    });
   };
 
   const isAdminSection = useMemo(
     () => location.pathname.startsWith("/admin"),
     [location.pathname],
   );
-
-  console.log('>>> APPSHELL RENDER - nucleos:', Object.keys(nucleos), 'carregando:', carregandoDados);
 
   return (
     <div className="App">
@@ -323,11 +342,14 @@ export default function AppShell() {
             "cadastros_dietas",
             "cadastros_condicoes",
             "cadastros_condicoes_acompanhante",
+            "cadastros_tipos_acompanhante",
             "cadastros_refeicoes",
             "cadastros_acrescimos",
             "cadastros_configuracoes",
             "cadastros_convenios",
             "cadastros_logs",
+            "cadastros_substituicao_principal",
+            "cadastros_tabela_precos",
           ]) && (
             <NavLink
               to="/admin/cadastros"
@@ -358,6 +380,17 @@ export default function AppShell() {
       <CentroNotificacoes
         isOpen={notificacoesAbertas}
         onClose={() => setNotificacoesAbertas(false)}
+      />
+
+      <ModalAlerta
+        visivel={modal.visivel}
+        titulo={modal.titulo}
+        mensagem={modal.mensagem}
+        tipo={modal.tipo}
+        textoBotaoConfirmar={modal.textoBotaoConfirmar}
+        textoBotaoCancelar={modal.textoBotaoCancelar}
+        onConfirmar={modal.onConfirmar || fecharModalAlerta}
+        onCancelar={modal.onCancelar || fecharModalAlerta}
       />
 
       <Outlet

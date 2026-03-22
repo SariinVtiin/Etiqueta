@@ -38,6 +38,8 @@ import GestaoTabelaPrecos from "../pages/GestaoTabelaPrecos/GestaoTabelaPrecos";
 
 import GestaoSubstituicaoPrincipal from "../pages/GestaoSubstituicaoPrincipal/GestaoSubstituicaoPrincipal";
 
+import GestaoTiposAcompanhante from "../pages/GestaoTiposAcompanhante/GestaoTiposAcompanhante";
+
 export const routes = [
   { path: "/login", element: <Login /> },
 
@@ -145,19 +147,33 @@ export const routes = [
               },
             ],
           },
-          
+
           {
             element: <ProtectedRoute permissao="cadastros_condicoes" />,
             children: [
               { path: "/admin/condicoes", element: <GestaoCondicoes /> },
             ],
           },
-
-          
           {
-            element: <ProtectedRoute permissao="Gestao_Substituicao_Principal" />,
+            element: (
+              <ProtectedRoute permissao="cadastros_tipos_acompanhante" />
+            ),
             children: [
-              { path: "/admin/substituicao-principal", element: <GestaoSubstituicaoPrincipal /> },
+              {
+                path: "/admin/tipos-acompanhante",
+                element: <GestaoTiposAcompanhante />,
+              },
+            ],
+          },
+          {
+            element: (
+              <ProtectedRoute permissao="cadastros_substituicao_principal" />
+            ),
+            children: [
+              {
+                path: "/admin/substituicao-principal",
+                element: <GestaoSubstituicaoPrincipal />,
+              },
             ],
           },
 

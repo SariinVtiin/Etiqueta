@@ -1,0 +1,556 @@
+/* ============================================
+   SALUSVITA TECH - GESTÃO DE TIPOS DE ACOMPANHANTE
+   Desenvolvido por FerMax Solution
+   ============================================ */
+
+.gta-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px;
+  min-height: calc(100vh - 68px);
+  font-family: var(--app-font-body);
+}
+
+.gta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 25px;
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
+}
+
+.gta-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gta-header-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.gta-header h1 {
+  font-family: var(--app-font-display);
+  font-size: 1.5rem;
+  color: var(--app-primary);
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.gta-subtitulo {
+  font-size: 0.8125rem;
+  color: var(--app-gray-500);
+  margin: 2px 0 0 0;
+}
+
+.gta-btn-voltar {
+  padding: 10px 20px;
+  background: var(--app-gray-100);
+  color: var(--app-gray-700);
+  border: 1px solid var(--app-gray-200);
+  border-radius: var(--app-radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--app-font-body);
+  cursor: pointer;
+  transition: all var(--app-transition-fast);
+  white-space: nowrap;
+}
+
+.gta-btn-voltar:hover {
+  background: var(--app-gray-200);
+  color: var(--app-gray-800);
+  transform: translateX(-3px);
+}
+
+.gta-info-box,
+.gta-acoes,
+.gta-carregando,
+.gta-vazio,
+.gta-tabela-container {
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-gray-200);
+}
+
+.gta-info-box {
+  margin-bottom: 20px;
+  padding: 18px 22px;
+  border-left: 4px solid var(--app-primary);
+}
+
+.gta-info-box p {
+  margin: 0;
+  color: var(--app-gray-700);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.gta-acoes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 20px 25px;
+}
+
+.gta-btn-novo,
+.gta-btn-salvar {
+  background: linear-gradient(
+    135deg,
+    var(--app-primary) 0%,
+    var(--app-secondary) 100%
+  );
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--app-radius-md);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--app-font-body);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(13, 148, 136, 0.25);
+}
+
+.gta-btn-novo:hover,
+.gta-btn-salvar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(13, 148, 136, 0.35);
+}
+
+.gta-btn-salvar:disabled,
+.gta-btn-cancelar:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.gta-filtros {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.gta-filtros label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--app-gray-700);
+}
+
+.gta-filtros input[type="radio"] {
+  cursor: pointer;
+  accent-color: var(--app-primary);
+}
+
+.gta-carregando,
+.gta-vazio {
+  text-align: center;
+  padding: 60px 40px;
+  color: var(--app-gray-500);
+}
+
+.gta-vazio p {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.gta-tabela-container {
+  overflow: hidden;
+}
+
+.gta-tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.gta-tabela thead {
+  background: linear-gradient(
+    135deg,
+    var(--app-primary) 0%,
+    var(--app-primary-dark) 100%
+  );
+  color: white;
+}
+
+.gta-tabela th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gta-tabela tbody tr {
+  border-bottom: 1px solid var(--app-gray-100);
+  transition: background 0.15s ease;
+}
+
+.gta-tabela tbody tr:hover {
+  background: #f0fdfa;
+}
+
+.gta-tabela tbody tr.gta-inativa {
+  opacity: 0.6;
+  background: var(--app-gray-50);
+}
+
+.gta-tabela td {
+  padding: 14px 16px;
+  font-size: 0.875rem;
+  color: var(--app-gray-700);
+  vertical-align: top;
+}
+
+.gta-emoji-cell {
+  font-size: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gta-nome {
+  font-weight: 700;
+  color: var(--app-primary-dark);
+}
+
+.gta-codigo {
+  display: inline-block;
+  background: var(--app-gray-100);
+  color: var(--app-primary-dark);
+  padding: 4px 8px;
+  border-radius: var(--app-radius-sm);
+  font-size: 0.8rem;
+}
+
+.gta-refeicoes-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 360px;
+}
+
+.gta-refeicoes-count {
+  font-weight: 600;
+  color: var(--app-primary-dark);
+}
+
+.gta-refeicoes-texto {
+  color: var(--app-gray-500);
+  line-height: 1.45;
+}
+
+.gta-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.gta-status.ativa {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.gta-status.inativa {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.gta-acoes-linha {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gta-btn-editar,
+.gta-btn-toggle,
+.gta-btn-cancelar {
+  background: transparent;
+  border: 1px solid var(--app-gray-200);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--app-font-body);
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--app-radius-sm);
+  transition: all 0.2s ease;
+  color: var(--app-gray-600);
+}
+
+.gta-btn-editar:hover {
+  background: var(--app-primary-50);
+  border-color: var(--app-primary);
+  color: var(--app-primary);
+}
+
+.gta-btn-toggle.ativar:hover {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #047857;
+}
+
+.gta-btn-toggle.desativar:hover,
+.gta-btn-cancelar:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+.gta-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.gta-modal {
+  width: 100%;
+  max-width: 980px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--app-white);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-lg);
+  border: 1px solid var(--app-gray-200);
+}
+
+.gta-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--app-gray-200);
+}
+
+.gta-modal-header h2 {
+  margin: 0;
+  color: var(--app-primary-dark);
+  font-size: 1.25rem;
+}
+
+.gta-modal-fechar {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--app-gray-100);
+  color: var(--app-gray-600);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.gta-modal-fechar:hover {
+  background: var(--app-gray-200);
+  color: var(--app-gray-800);
+}
+
+.gta-modal-form {
+  padding: 24px;
+}
+
+.gta-form-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.gta-form-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gta-form-grid-3 {
+  grid-template-columns: 120px 160px 1fr;
+}
+
+.gta-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.gta-campo label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--app-gray-700);
+}
+
+.gta-campo input[type="text"],
+.gta-campo input[type="number"],
+.gta-campo textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--app-gray-300);
+  border-radius: var(--app-radius-md);
+  font-size: 0.95rem;
+  font-family: var(--app-font-body);
+  color: var(--app-gray-800);
+  background: white;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.gta-campo textarea {
+  resize: vertical;
+  min-height: 92px;
+}
+
+.gta-campo input:focus,
+.gta-campo textarea:focus {
+  outline: none;
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.gta-campo small {
+  color: var(--app-gray-500);
+  font-size: 0.75rem;
+}
+
+.gta-campo-checkbox-inline {
+  justify-content: flex-end;
+}
+
+.gta-switch-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--app-gray-300);
+  border-radius: var(--app-radius-md);
+  cursor: pointer;
+  user-select: none;
+}
+
+.gta-switch-label input {
+  accent-color: var(--app-primary);
+}
+
+.gta-refeicoes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.gta-refeicao-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--app-gray-200);
+  border-radius: var(--app-radius-md);
+  background: var(--app-gray-50);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gta-refeicao-item:hover {
+  border-color: var(--app-primary);
+  background: #f0fdfa;
+}
+
+.gta-refeicao-item.selecionada {
+  border-color: var(--app-primary);
+  background: rgba(13, 148, 136, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(13, 148, 136, 0.2);
+}
+
+.gta-refeicao-item input {
+  margin-top: 2px;
+  accent-color: var(--app-primary);
+}
+
+.gta-refeicao-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gta-refeicao-nome {
+  font-weight: 600;
+  color: var(--app-gray-800);
+}
+
+.gta-refeicao-meta {
+  font-size: 0.75rem;
+  color: var(--app-gray-500);
+}
+
+.gta-refeicoes-vazio {
+  padding: 14px;
+  border-radius: var(--app-radius-md);
+  background: var(--app-gray-50);
+  color: var(--app-gray-500);
+  border: 1px dashed var(--app-gray-300);
+}
+
+.gta-modal-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--app-gray-200);
+}
+
+@media (max-width: 900px) {
+  .gta-container {
+    padding: 20px;
+  }
+
+  .gta-acoes,
+  .gta-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gta-header-left {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gta-form-grid-2,
+  .gta-form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .gta-modal {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .gta-tabela-container {
+    overflow-x: auto;
+  }
+
+  .gta-tabela {
+    min-width: 900px;
+  }
+
+  .gta-refeicoes-grid {
+    grid-template-columns: 1fr;
+  }
+}

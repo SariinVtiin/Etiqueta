@@ -9,6 +9,9 @@ import {
 } from "../../services/api";
 import "./GestaoCondicoes.css";
 
+import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
+import useModalAlerta from "../../hooks/useModalAlerta";
+
 function GestaoCondicoes() {
   const navigate = useNavigate();
   const { refreshSystemData } = useOutletContext() || {};
@@ -18,6 +21,13 @@ function GestaoCondicoes() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [restricaoEditando, setRestricaoEditando] = useState(null);
   const [filtro, setFiltro] = useState("ativas"); // 'ativas' ou 'todas'
+
+  const {
+    modal,
+    fecharModal: fecharModalAlerta,
+    mostrarAlerta,
+    mostrarConfirmacao,
+  } = useModalAlerta();
 
   const [formData, setFormData] = useState({
     nome: "",
@@ -37,7 +47,11 @@ function GestaoCondicoes() {
       setRestricoes(resposta.restricoes || []);
     } catch (erro) {
       console.error("Erro ao carregar condições nutricionais:", erro);
-      alert("Erro ao carregar Condições Nutricionais");
+      mostrarAlerta({
+        titulo: "Erro ao carregar dados",
+        mensagem: "Erro ao carregar Condições Nutricionais",
+        tipo: "erro",
+      });
     } finally {
       setCarregando(false);
     }
@@ -69,51 +83,77 @@ function GestaoCondicoes() {
     e.preventDefault();
 
     if (!formData.nome.trim()) {
-      alert("Nome da Condição Nutricional é obrigatório!");
+      mostrarAlerta({
+        titulo: "Campo obrigatório",
+        mensagem: "Nome da Condição Nutricional é obrigatório!",
+        tipo: "erro",
+      });
       return;
     }
 
     try {
       if (restricaoEditando) {
         await atualizarRestricao(restricaoEditando.id, formData);
-        alert("Condição nutricional atualizada com sucesso!");
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: "Condição nutricional atualizada com sucesso!",
+          tipo: "sucesso",
+        });
       } else {
         await criarRestricao(formData);
-        alert("Condição nutricional criada com sucesso!");
+        mostrarAlerta({
+          titulo: "Sucesso",
+          mensagem: "Condição nutricional criada com sucesso!",
+          tipo: "sucesso",
+        });
       }
 
-      // atualiza lista local
       fecharModal();
       await carregarRestricoes();
-
-      // atualiza cache global (AppShell) para refletir no NovaPrescricao etc.
       if (refreshSystemData) await refreshSystemData();
     } catch (erro) {
       console.error("Erro ao salvar:", erro);
-      alert(erro.message || "Erro ao salvar condição nutricional");
+      mostrarAlerta({
+        titulo: "Erro ao salvar",
+        mensagem: erro.message || "Erro ao salvar condição nutricional",
+        tipo: "erro",
+      });
     }
   };
 
-  const handleToggleAtiva = async (restricao) => {
+  const handleToggleAtiva = (restricao) => {
     const novoStatus = !restricao.ativa;
-    const confirmacao = window.confirm(
-      `Deseja realmente ${novoStatus ? "ativar" : "desativar"} a condição nutricional "${restricao.nome}"?`,
-    );
 
-    if (!confirmacao) return;
+    mostrarConfirmacao({
+      titulo: novoStatus
+        ? "Ativar condição nutricional"
+        : "Desativar condição nutricional",
+      mensagem: `Deseja realmente ${novoStatus ? "ativar" : "desativar"} a condição nutricional "${restricao.nome}"?`,
+      tipo: novoStatus ? "confirmar" : "perigo",
+      textoBotaoConfirmar: novoStatus ? "Ativar" : "Desativar",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        try {
+          await toggleRestricaoAtiva(restricao.id, novoStatus);
 
-    try {
-      await toggleRestricaoAtiva(restricao.id, novoStatus);
-      alert(
-        `Condição nutricional ${novoStatus ? "ativada" : "desativada"} com sucesso!`,
-      );
+          await carregarRestricoes();
+          if (refreshSystemData) await refreshSystemData();
 
-      await carregarRestricoes();
-      if (refreshSystemData) await refreshSystemData();
-    } catch (erro) {
-      console.error("Erro ao alterar status:", erro);
-      alert(erro.message || "Erro ao alterar status");
-    }
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: `Condição nutricional ${novoStatus ? "ativada" : "desativada"} com sucesso!`,
+            tipo: "sucesso",
+          });
+        } catch (erro) {
+          console.error("Erro ao alterar status:", erro);
+          mostrarAlerta({
+            titulo: "Erro ao alterar status",
+            mensagem: erro.message || "Erro ao alterar status",
+            tipo: "erro",
+          });
+        }
+      },
+    });
   };
 
   if (carregando) {
@@ -121,12 +161,17 @@ function GestaoCondicoes() {
       <div className="gr-container">
         <div className="gr-header">
           <div className="gr-header-left">
-            <button className="gr-btn-voltar" onClick={() => navigate("/admin/cadastros")}>
+            <button
+              className="gr-btn-voltar"
+              onClick={() => navigate("/admin/cadastros")}
+            >
               ← Voltar
             </button>
             <div className="gr-header-text">
               <h1>🩺 Condições Nutricionais</h1>
-              <p className="gr-subtitulo">Gerenciar condições nutricionais para prescrições</p>
+              <p className="gr-subtitulo">
+                Gerenciar condições nutricionais para prescrições
+              </p>
             </div>
           </div>
         </div>
@@ -139,12 +184,17 @@ function GestaoCondicoes() {
     <div className="gr-container">
       <div className="gr-header">
         <div className="gr-header-left">
-          <button className="gr-btn-voltar" onClick={() => navigate("/admin/cadastros")}>
+          <button
+            className="gr-btn-voltar"
+            onClick={() => navigate("/admin/cadastros")}
+          >
             ← Voltar
           </button>
           <div className="gr-header-text">
             <h1>🩺 Condições Nutricionais</h1>
-            <p className="gr-subtitulo">Gerenciar condições nutricionais para prescrições</p>
+            <p className="gr-subtitulo">
+              Gerenciar condições nutricionais para prescrições
+            </p>
           </div>
         </div>
       </div>
@@ -307,6 +357,16 @@ function GestaoCondicoes() {
           </div>
         </div>
       )}
+      <ModalAlerta
+        visivel={modal.visivel}
+        titulo={modal.titulo}
+        mensagem={modal.mensagem}
+        tipo={modal.tipo}
+        textoBotaoConfirmar={modal.textoBotaoConfirmar}
+        textoBotaoCancelar={modal.textoBotaoCancelar}
+        onConfirmar={modal.onConfirmar || fecharModalAlerta}
+        onCancelar={modal.onCancelar || fecharModalAlerta}
+      />
     </div>
   );
 }

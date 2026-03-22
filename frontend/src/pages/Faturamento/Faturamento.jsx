@@ -8,6 +8,8 @@ import {
   reprocessarHistoricoFaturamento,
 } from "../../services/api";
 import "./Faturamento.css";
+import ModalAlerta from "../../components/common/ModalAlerta/ModalAlerta";
+import useModalAlerta from "../../hooks/useModalAlerta";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -79,6 +81,13 @@ export default function Faturamento() {
     convenios = [],
   } = useOutletContext() || {};
 
+  const {
+    modal,
+    fecharModal: fecharModalAlerta,
+    mostrarAlerta,
+    mostrarConfirmacao,
+  } = useModalAlerta();
+
   const [filtros, setFiltros] = useState(filtrosIniciais);
   const [filtrosAplicados, setFiltrosAplicados] = useState({});
   const [pagina, setPagina] = useState(1);
@@ -143,7 +152,6 @@ export default function Faturamento() {
   const carregarOpcoesFiltro = useCallback(async () => {
     try {
       const resposta = await listarOpcoesFiltroFaturamento();
-      console.log("RESPOSTA OPÇÕES FATURAMENTO:", resposta);
 
       setOpcoesFiltro(
         resposta?.opcoes || {
@@ -199,33 +207,49 @@ export default function Faturamento() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Erro ao exportar faturamento:", error);
-      alert(error.message || "Não foi possível exportar o relatório.");
+      mostrarAlerta({
+        titulo: "Erro ao exportar",
+        mensagem: error.message || "Não foi possível exportar o relatório.",
+        tipo: "erro",
+      });
     } finally {
       setExportando(false);
     }
   };
 
-  const handleReprocessarHistorico = async () => {
-    const confirmar = window.confirm(
-      "Isso vai recalcular o faturamento de todas as prescrições existentes. Deseja continuar?",
-    );
-    if (!confirmar) return;
+  const handleReprocessarHistorico = () => {
+    mostrarConfirmacao({
+      titulo: "Reprocessar histórico",
+      mensagem:
+        "Isso vai recalcular o faturamento de todas as prescrições existentes. Deseja continuar?",
+      tipo: "perigo",
+      textoBotaoConfirmar: "Reprocessar",
+      textoBotaoCancelar: "Cancelar",
+      onConfirmar: async () => {
+        try {
+          setReprocessando(true);
+          const resposta = await reprocessarHistoricoFaturamento();
 
-    try {
-      setReprocessando(true);
-      const resposta = await reprocessarHistoricoFaturamento();
+          mostrarAlerta({
+            titulo: "Sucesso",
+            mensagem: `Histórico reprocessado. Prescrições processadas: ${resposta.resultado.processadas}/${resposta.resultado.totalPrescricoes}`,
+            tipo: "sucesso",
+          });
 
-      alert(
-        `Histórico reprocessado. Prescrições processadas: ${resposta.resultado.processadas}/${resposta.resultado.totalPrescricoes}`,
-      );
-
-      await Promise.all([carregarDados(), carregarOpcoesFiltro()]);
-    } catch (error) {
-      console.error("Erro ao reprocessar histórico:", error);
-      alert(error.message || "Não foi possível reprocessar o histórico.");
-    } finally {
-      setReprocessando(false);
-    }
+          await Promise.all([carregarDados(), carregarOpcoesFiltro()]);
+        } catch (error) {
+          console.error("Erro ao reprocessar histórico:", error);
+          mostrarAlerta({
+            titulo: "Erro ao reprocessar",
+            mensagem:
+              error.message || "Não foi possível reprocessar o histórico.",
+            tipo: "erro",
+          });
+        } finally {
+          setReprocessando(false);
+        }
+      },
+    });
   };
 
   const opcoesConvenios = useMemo(() => {
@@ -628,6 +652,16 @@ export default function Faturamento() {
           </div>
         </div>
       </section>
+      <ModalAlerta
+        visivel={modal.visivel}
+        titulo={modal.titulo}
+        mensagem={modal.mensagem}
+        tipo={modal.tipo}
+        textoBotaoConfirmar={modal.textoBotaoConfirmar}
+        textoBotaoCancelar={modal.textoBotaoCancelar}
+        onConfirmar={modal.onConfirmar || fecharModalAlerta}
+        onCancelar={modal.onCancelar || fecharModalAlerta}
+      />
     </div>
   );
 }
