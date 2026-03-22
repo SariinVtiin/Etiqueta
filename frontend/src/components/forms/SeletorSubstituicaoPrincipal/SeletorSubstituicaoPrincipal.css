@@ -1,0 +1,163 @@
+/* ============================================
+   SALUSVITA TECH - SELETOR SUBSTITUIÇÃO PRINCIPAL
+   Desenvolvido por FerMax Solution
+   ============================================ */
+
+.ssp-wrapper {
+  margin-top: 6px;
+}
+
+.ssp-loading,
+.ssp-erro,
+.ssp-vazio {
+  padding: 8px 12px;
+  border-radius: var(--app-radius-sm);
+  font-size: 0.8125rem;
+}
+
+.ssp-loading { background: var(--app-primary-50); color: var(--app-primary); }
+.ssp-erro { background: #fee2e2; color: #991b1b; }
+.ssp-vazio { background: var(--app-gray-50); color: var(--app-gray-500); }
+
+/* ===== LISTA DE CATEGORIAS ===== */
+.ssp-categorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ===== CATEGORIA (ACCORDION ITEM) ===== */
+.ssp-cat {
+  flex: 1 1 calc(50% - 3px);
+  min-width: 170px;
+  border: 1px solid var(--app-gray-200);
+  border-radius: var(--app-radius-sm);
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.ssp-cat-aberta {
+  border-color: var(--app-primary-light);
+}
+
+/* Botão da categoria */
+.ssp-cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  background: var(--app-gray-50);
+  cursor: pointer;
+  font-family: var(--app-font-body);
+  transition: background 0.15s ease;
+}
+
+.ssp-cat-btn:hover {
+  background: var(--app-primary-50);
+}
+
+.ssp-cat-btn-ativa {
+  background: var(--app-primary-50);
+}
+
+.ssp-cat-seta {
+  font-size: 0.6875rem;
+  color: var(--app-gray-400);
+  width: 12px;
+  flex-shrink: 0;
+}
+
+.ssp-cat-nome {
+  font-family: var(--app-font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--app-primary-dark);
+}
+
+.ssp-cat-badge {
+  margin-left: auto;
+  padding: 1px 7px;
+  border-radius: 20px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  background: var(--app-primary);
+  color: white;
+  line-height: 1.5;
+}
+
+/* ===== ITENS EXPANDIDOS ===== */
+.ssp-itens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--app-gray-100);
+  background: var(--app-white);
+  animation: sspFade 0.15s ease;
+}
+
+@keyframes sspFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ssp-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--app-gray-200);
+  border-radius: var(--app-radius-sm);
+  cursor: pointer;
+  user-select: none;
+  background: var(--app-white);
+  font-size: 0.8125rem;
+  color: var(--app-gray-700);
+  font-weight: 500;
+  transition: all 0.12s ease;
+}
+
+.ssp-item:hover {
+  border-color: var(--app-primary-light);
+  background: var(--app-primary-50);
+}
+
+.ssp-item-ativo {
+  border-color: var(--app-primary);
+  background: var(--app-primary-50);
+  color: var(--app-primary-dark);
+  font-weight: 600;
+}
+
+.ssp-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--app-primary);
+  cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* ===== RESUMO ===== */
+.ssp-resumo {
+  margin-top: 8px;
+  padding: 5px 12px;
+  background: var(--app-primary-50);
+  border-radius: var(--app-radius-sm);
+  font-size: 0.75rem;
+  color: var(--app-primary-dark);
+  border-left: 3px solid var(--app-primary);
+}
+
+.ssp-resumo strong {
+  font-weight: 700;
+}
+
+/* ===== RESPONSIVO ===== */
+@media (max-width: 480px) {
+  .ssp-cat {
+    flex: 1 1 100%;
+  }
+}

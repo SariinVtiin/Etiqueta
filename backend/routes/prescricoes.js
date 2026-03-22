@@ -367,6 +367,7 @@ router.post("/", autenticar, async (req, res) => {
       restricoes,
       semPrincipal,
       descricaoSemPrincipal,
+      substituicaoPrincipalIds,
       obsExclusao,
       obsAcrescimo,
       acrescimosIds,
@@ -456,6 +457,8 @@ router.post("/", autenticar, async (req, res) => {
         restricoes ? JSON.stringify(restricoes) : null,
         semPrincipal || false,
         descricaoSemPrincipal || null,
+        substituicaoPrincipalIds 
+          ? JSON.stringify(substituicaoPrincipalIds) : null,
         obsExclusao || null,
         obsAcrescimo || null,
         acrescimosIdsNormalizados.length
@@ -560,7 +563,7 @@ router.put("/:id", autenticar, async (req, res) => {
         cpf = ?, codigo_atendimento = ?, convenio = ?, nome_paciente = ?,
         nome_mae = ?, data_nascimento = ?, idade = ?, nucleo = ?, leito = ?,
         tipo_alimentacao = ?, dieta = ?, restricoes = ?, sem_principal = ?,
-        descricao_sem_principal = ?, obs_exclusao = ?, obs_acrescimo = ?,
+        descricao_sem_principal = ?, substituicao_principal_ids = ?, obs_exclusao = ?, obs_acrescimo = ?,
         acrescimos_ids = ?, itens_especiais_ids = ?
       WHERE id = ?`,
       [
@@ -578,6 +581,7 @@ router.put("/:id", autenticar, async (req, res) => {
         restricoes ? JSON.stringify(restricoes) : null,
         semPrincipal || false,
         descricaoSemPrincipal || null,
+        substituicaoPrincipalIds ? JSON.stringify(substituicaoPrincipalIds) : null,
         obsExclusao || null,
         obsAcrescimo || null,
         acrescimosIds ? JSON.stringify(acrescimosIds) : null,

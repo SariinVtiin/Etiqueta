@@ -505,6 +505,97 @@ export const toggleRestricaoAcompanhanteAtiva = async (id, ativa) => {
   );
   return handleResponse(response);
 };
+// ====================================
+// FUNÇÕES DE SUBSTITUIÇÃO DE PRINCIPAL
+// ====================================
+
+/**
+ * Listar tudo (categorias + itens agrupados)
+ */
+export const listarSubstituicoesPrincipal = async (todas = false) => {
+  const url = todas
+    ? `${API_URL}/substituicoes-principal?todas=true`
+    : `${API_URL}/substituicoes-principal`;
+  const response = await fetchAuth(url);
+  return response.json();
+};
+
+/**
+ * Listar apenas categorias
+ */
+export const listarCategoriasSubstituicao = async (todas = false) => {
+  const url = todas
+    ? `${API_URL}/substituicoes-principal/categorias?todas=true`
+    : `${API_URL}/substituicoes-principal/categorias`;
+  const response = await fetchAuth(url);
+  return response.json();
+};
+
+/**
+ * Criar categoria
+ */
+export const criarCategoriaSubstituicao = async (dados) => {
+  const response = await fetchAuth(`${API_URL}/substituicoes-principal/categorias`, {
+    method: "POST",
+    body: JSON.stringify(dados),
+  });
+  return response.json();
+};
+
+/**
+ * Atualizar categoria
+ */
+export const atualizarCategoriaSubstituicao = async (id, dados) => {
+  const response = await fetchAuth(`${API_URL}/substituicoes-principal/categorias/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(dados),
+  });
+  return response.json();
+};
+
+/**
+ * Ativar/Desativar categoria
+ */
+export const toggleCategoriaSubstituicao = async (id, ativa) => {
+  const response = await fetchAuth(`${API_URL}/substituicoes-principal/categorias/${id}/toggle`, {
+    method: "PATCH",
+    body: JSON.stringify({ ativa }),
+  });
+  return response.json();
+};
+
+/**
+ * Criar item/preparo
+ */
+export const criarItemSubstituicao = async (dados) => {
+  const response = await fetchAuth(`${API_URL}/substituicoes-principal/itens`, {
+    method: "POST",
+    body: JSON.stringify(dados),
+  });
+  return response.json();
+};
+
+/**
+ * Atualizar item/preparo
+ */
+export const atualizarItemSubstituicao = async (id, dados) => {
+  const response = await fetchAuth(`${API_URL}/substituicoes-principal/itens/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(dados),
+  });
+  return response.json();
+};
+
+/**
+ * Ativar/Desativar item
+ */
+export const toggleItemSubstituicao = async (id, ativo) => {
+  const response = await fetchAuth(`${API_URL}/substituicoes-principal/itens/${id}/toggle`, {
+    method: "PATCH",
+    body: JSON.stringify({ ativo }),
+  });
+  return response.json();
+};
 
 // ============================================
 // ENDPOINTS - CONVÊNIOS

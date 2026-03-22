@@ -1,0 +1,2 @@
+import SeletorSubstituicaoPrincipal from "./SeletorSubstituicaoPrincipal";
+export default SeletorSubstituicaoPrincipal;

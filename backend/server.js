@@ -29,6 +29,7 @@ const restricoesAcompanhanteRouter = require("./routes/restricoesAcompanhante");
 const conveniosRoutes = require("./routes/convenios");
 const faturamentoRouter = require("./routes/faturamento");
 const tabelaPrecosRouter = require("./routes/tabelaPrecos");
+const substituicoesPrincipalRouter = require('./routes/substituicoesPrincipal');
 // ============================================
 // REGISTRAR ROTAS
 // ============================================
@@ -49,6 +50,7 @@ app.use("/api/restricoes-acompanhante", restricoesAcompanhanteRouter);
 app.use("/api/convenios", conveniosRoutes);
 app.use("/api/faturamento", faturamentoRouter);
 app.use("/api/tabela-precos", tabelaPrecosRouter);
+app.use('/api/substituicoes-principal', substituicoesPrincipalRouter);
 
 // Testar conexão ao iniciar
 testarConexao();

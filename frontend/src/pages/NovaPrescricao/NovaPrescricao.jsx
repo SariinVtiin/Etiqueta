@@ -7,7 +7,7 @@ import SeletorAcrescimos from "../../features/prescricao/components/SeletorAcres
 import { criarPrescricao } from "../../services/api";
 import SeletorItensEspeciais from "../../features/prescricao/components/SeletorItensEspeciais/SeletorItensEspeciais";
 import SecaoAcompanhante from "../../features/prescricao/components/SecaoAcompanhante/SecaoAcompanhante";
-
+import SeletorSubstituicaoPrincipal from "../../components/forms/SeletorSubstituicaoPrincipal/SeletorSubstituicaoPrincipal";
 function NovaPrescricao() {
   const {
     nucleos = {},
@@ -119,6 +119,7 @@ function NovaPrescricao() {
           restricoes: [],
           semPrincipal: false,
           descricaoSemPrincipal: "",
+          substituicaoPrincipalIds: [],
           obsExclusao: "",
           acrescimosIds: [],
           itensEspeciaisIds: [],
@@ -158,28 +159,33 @@ function NovaPrescricao() {
   };
 
   const handleSemPrincipalToggle = (refeicao) => {
-    setConfigRefeicoes({
-      ...configRefeicoes,
-      [refeicao]: {
-        ...configRefeicoes[refeicao],
-        semPrincipal: !configRefeicoes[refeicao].semPrincipal,
-        descricaoSemPrincipal: !configRefeicoes[refeicao].semPrincipal
-          ? configRefeicoes[refeicao].descricaoSemPrincipal
-          : "",
-      },
-    });
-  };
+      const novoValor = !configRefeicoes[refeicao].semPrincipal;
+      setConfigRefeicoes({
+        ...configRefeicoes,
+        [refeicao]: {
+          ...configRefeicoes[refeicao],
+          semPrincipal: novoValor,
+          descricaoSemPrincipal: novoValor
+            ? configRefeicoes[refeicao].descricaoSemPrincipal
+            : "",
+          substituicaoPrincipalIds: novoValor
+            ? configRefeicoes[refeicao].substituicaoPrincipalIds || []
+            : [],
+        },
+      });
+    };
 
-  const handleDescricaoSemPrincipal = (refeicao, descricao) => {
+  const handleSubstituicaoPrincipalChange = (refeicao, ids, descricao) => {
     setConfigRefeicoes({
       ...configRefeicoes,
       [refeicao]: {
         ...configRefeicoes[refeicao],
+        substituicaoPrincipalIds: ids,
         descricaoSemPrincipal: descricao,
       },
     });
   };
-
+  
   const handleObsExclusao = (refeicao, obs) => {
     setConfigRefeicoes({
       ...configRefeicoes,
@@ -294,6 +300,7 @@ function NovaPrescricao() {
         restricoes: config?.restricoes || [],
         semPrincipal: config?.semPrincipal || false,
         descricaoSemPrincipal: config?.descricaoSemPrincipal || "",
+        substituicaoPrincipalIds: config?.substituicaoPrincipalIds || [],
         obsExclusao: config?.obsExclusao || "",
         acrescimosIds: config?.acrescimosIds || [],
         itensEspeciaisIds: config?.itensEspeciaisIds || [],
@@ -333,9 +340,9 @@ function NovaPrescricao() {
           semPrincipal: refeicao.isEspecial
             ? false
             : refeicao.semPrincipal || false,
-          descricaoSemPrincipal: refeicao.isEspecial
-            ? ""
-            : refeicao.descricaoSemPrincipal || "",
+          substituicaoPrincipalIds: refeicao.isEspecial
+            ? []
+            : refeicao.substituicaoPrincipalIds || [],
           obsExclusao: refeicao.isEspecial ? "" : refeicao.obsExclusao || "",
           acrescimosIds: refeicao.isEspecial
             ? []
@@ -588,28 +595,16 @@ function NovaPrescricao() {
                       </label>
                     </div>
                     {configRefeicoes[refeicao]?.semPrincipal && (
-                      <input
-                        type="text"
-                        value={
-                          configRefeicoes[refeicao]?.descricaoSemPrincipal || ""
-                        }
-                        onChange={(e) =>
-                          handleDescricaoSemPrincipal(refeicao, e.target.value)
-                        }
-                        placeholder="Descreva o que o paciente quer no lugar do principal"
-                        style={{
-                          marginTop: "10px",
-                          width: "100%",
-                          padding: "11px 14px",
-                          border: "1px solid #cbd5e1",
-                          borderRadius: "12px",
-                          fontSize: "0.95rem",
-                          fontFamily: "var(--app-font-body)",
-                          color: "#0f172a",
-                          outline: "none",
-                          boxSizing: "border-box",
-                        }}
-                      />
+                      <div style={{ marginTop: "10px" }}>
+                        <SeletorSubstituicaoPrincipal
+                          itensSelecionados={
+                            configRefeicoes[refeicao]?.substituicaoPrincipalIds || []
+                          }
+                          onChange={(ids, descricao) =>
+                            handleSubstituicaoPrincipalChange(refeicao, ids, descricao)
+                          }
+                        />
+                      </div>
                     )}
                   </div>
 

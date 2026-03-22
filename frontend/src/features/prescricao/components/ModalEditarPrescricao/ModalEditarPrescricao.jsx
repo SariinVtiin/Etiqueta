@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import SeletorAcrescimos from '../SeletorAcrescimos';
 import './ModalEditarPrescricao.css';
+import SeletorSubstituicaoPrincipal from "../../../../components/forms/SeletorSubstituicaoPrincipal";
 
 function ModalEditarPrescricao({ 
   prescricao, 
@@ -108,6 +109,11 @@ function ModalEditarPrescricao({
         restricoes: prescricao.restricoes || [],
         semPrincipal: prescricao.sem_principal || false,
         descricaoSemPrincipal: prescricao.descricao_sem_principal || '',
+        substituicaoPrincipalIds: prescricao?.substituicao_principal_ids
+          ? (typeof prescricao.substituicao_principal_ids === 'string'
+            ? JSON.parse(prescricao.substituicao_principal_ids)
+            : prescricao.substituicao_principal_ids)
+          : [],
         obsExclusao: prescricao.obs_exclusao || '',
         obsAcrescimo: prescricao.obs_acrescimo || '',
         acrescimosIds: acrescimosIds
@@ -180,7 +186,7 @@ function ModalEditarPrescricao({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.nomePaciente || !formData.nucleo || !formData.leito || !formData.dieta || !formData.tipoAlimentacao) {
+    if (!formData.nomePaciente || !formData.nucleo || !formData.leito || !formData.dieta || formData.substituicaoPrincipalIds || !formData.tipoAlimentacao) {
       alert('Preencha todos os campos obrigatórios!');
       return;
     }
@@ -410,16 +416,19 @@ function ModalEditarPrescricao({
                 <span>Paciente NÃO quer o prato principal do cardápio</span>
               </label>
               {formData.semPrincipal && (
-                <input
-                  type="text"
-                  name="descricaoSemPrincipal"
-                  value={formData.descricaoSemPrincipal}
-                  onChange={handleChange}
-                  placeholder="Descreva o que o paciente quer no lugar do principal"
-                  className="input-sem-principal"
-                  style={{ marginTop: '8px' }}
-                />
-              )}
+                <div style={{ marginTop: '8px' }}>
+                  <SeletorSubstituicaoPrincipal
+                    itensSelecionados={formData.substituicaoPrincipalIds || []}
+                    onChange={(ids, descricao) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        substituicaoPrincipalIds: ids,
+                        descricaoSemPrincipal: descricao,
+                      }))
+                    }
+                  />
+                </div>
+              )}  
             </div>
 
             {/* Observação Exclusão */}

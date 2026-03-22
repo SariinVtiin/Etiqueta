@@ -111,6 +111,14 @@ function Cadastros() {
       acao: () => navigate("/admin/tabela-precos"),
       botao: "Acessar",
     },
+    {
+      permissao: "cadastros_substituicao_principal",
+      icon: "🍲",
+      titulo: "Substituição de Principal",
+      descricao: "Gerenciar categorias e itens de substituição do prato principal",
+      acao: () => navigate("/admin/substituicao-principal"),
+      botao: "Acessar",
+    },
   ];
 
   // Filtrar cards por permissão
