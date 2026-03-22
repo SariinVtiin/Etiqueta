@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
-const { autenticar, verificarRole } = require('./auth');
+const { autenticar, verificarPermissao } = require('./auth');
 
 // ====================================
 // LISTAR condições nutricionais do acompanhante
@@ -38,7 +38,7 @@ router.get('/', autenticar, async (req, res) => {
 // ====================================
 // CRIAR condição nutricional (SOMENTE ADMIN)
 // ====================================
-router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
+router.post('/', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { nome, descricao, ordem } = req.body;
 
@@ -79,7 +79,7 @@ router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
 // ====================================
 // ATUALIZAR condição nutricional (SOMENTE ADMIN)
 // ====================================
-router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
+router.put('/:id', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, descricao, ordem } = req.body;
@@ -126,7 +126,7 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
 // ====================================
 // ATIVAR/DESATIVAR condição nutricional (SOMENTE ADMIN)
 // ====================================
-router.patch('/:id/toggle', autenticar, verificarRole(['admin']), async (req, res) => {
+router.patch('/:id/toggle', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { id } = req.params;
     const { ativa } = req.body;

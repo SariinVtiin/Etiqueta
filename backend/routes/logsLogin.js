@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const ExcelJS = require('exceljs');
-const { autenticar, verificarRole } = require('./auth');
+const { autenticar, verificarPermissao } = require('./auth');
 const { consultarLogsLogin, gerarEstatisticas, listarUsuariosParaFiltro } = require('../services/logsLogin');
 
 // ============================================
@@ -31,7 +31,7 @@ const CORES = {
  * GET /api/logs-login/exportar - Gerar relatório Excel
  * Query params: dataInicio, dataFim, usuarioId, tipoEvento
  */
-router.get('/exportar', autenticar, verificarRole(['admin']), async (req, res) => {
+router.get('/exportar', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { dataInicio, dataFim, usuarioId, tipoEvento } = req.query;
 
@@ -280,7 +280,7 @@ router.get('/exportar', autenticar, verificarRole(['admin']), async (req, res) =
 /**
  * GET /api/logs-login/usuarios - Lista de usuários para filtro
  */
-router.get('/usuarios', autenticar, verificarRole(['admin']), async (req, res) => {
+router.get('/usuarios', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const usuarios = await listarUsuariosParaFiltro();
     res.json({ sucesso: true, usuarios });

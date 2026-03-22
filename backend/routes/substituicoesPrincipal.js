@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
-const { autenticar, verificarRole } = require('./auth');
+const { autenticar, verificarPermissao } = require('./auth');
 
 // ====================================
 // LISTAR TUDO (categorias + itens agrupados)
@@ -75,7 +75,7 @@ router.get('/categorias', autenticar, async (req, res) => {
 // ====================================
 // CRIAR CATEGORIA (SOMENTE ADMIN)
 // ====================================
-router.post('/categorias', autenticar, verificarRole(['admin']), async (req, res) => {
+router.post('/categorias', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { nome, ordem } = req.body;
 
@@ -119,7 +119,7 @@ router.post('/categorias', autenticar, verificarRole(['admin']), async (req, res
 // ====================================
 // ATUALIZAR CATEGORIA (SOMENTE ADMIN)
 // ====================================
-router.put('/categorias/:id', autenticar, verificarRole(['admin']), async (req, res) => {
+router.put('/categorias/:id', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, ordem } = req.body;
@@ -159,7 +159,7 @@ router.put('/categorias/:id', autenticar, verificarRole(['admin']), async (req, 
 // ====================================
 // ATIVAR/DESATIVAR CATEGORIA (SOMENTE ADMIN)
 // ====================================
-router.patch('/categorias/:id/toggle', autenticar, verificarRole(['admin']), async (req, res) => {
+router.patch('/categorias/:id/toggle', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { id } = req.params;
     const { ativa } = req.body;
@@ -201,7 +201,7 @@ router.patch('/categorias/:id/toggle', autenticar, verificarRole(['admin']), asy
 // ====================================
 // CRIAR ITEM/PREPARO (SOMENTE ADMIN)
 // ====================================
-router.post('/itens', autenticar, verificarRole(['admin']), async (req, res) => {
+router.post('/itens', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { categoria_id, nome, ordem } = req.body;
 
@@ -258,7 +258,7 @@ router.post('/itens', autenticar, verificarRole(['admin']), async (req, res) => 
 // ====================================
 // ATUALIZAR ITEM/PREPARO (SOMENTE ADMIN)
 // ====================================
-router.put('/itens/:id', autenticar, verificarRole(['admin']), async (req, res) => {
+router.put('/itens/:id', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, categoria_id, ordem } = req.body;
@@ -306,7 +306,7 @@ router.put('/itens/:id', autenticar, verificarRole(['admin']), async (req, res) 
 // ====================================
 // ATIVAR/DESATIVAR ITEM (SOMENTE ADMIN)
 // ====================================
-router.patch('/itens/:id/toggle', autenticar, verificarRole(['admin']), async (req, res) => {
+router.patch('/itens/:id/toggle', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { id } = req.params;
     const { ativo } = req.body;

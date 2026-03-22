@@ -1,13 +1,13 @@
 // backend/routes/auditoria.js
 const express = require('express');
 const router = express.Router();
-const { autenticar, verificarRole } = require('./auth');
+const { autenticar, verificarPermissao } = require('./auth');
 const { listarLogs, obterEstatisticas } = require('../services/auditoria');
 
 /**
  * GET /api/auditoria/logs - Listar logs de auditoria (apenas admin)
  */
-router.get('/logs', autenticar, verificarRole(['admin']), async (req, res) => {
+router.get('/logs', autenticar, verificarPermissao('cadastros_logs'), async (req, res) => {
   try {
     const filtros = {
       usuarioId: req.query.usuarioId,
@@ -35,7 +35,7 @@ router.get('/logs', autenticar, verificarRole(['admin']), async (req, res) => {
 /**
  * GET /api/auditoria/estatisticas - Obter estatísticas de auditoria (apenas admin)
  */
-router.get('/estatisticas', autenticar, verificarRole(['admin']), async (req, res) => {
+router.get('/estatisticas', autenticar, verificarPermissao('cadastros_logs'), async (req, res) => {
   try {
     const resultado = await obterEstatisticas();
     res.json(resultado);

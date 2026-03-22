@@ -6,7 +6,7 @@ const router = express.Router();
 const multer = require('multer');
 const xlsx = require('xlsx');
 const { pool } = require('../config/database');
-const { autenticar, verificarRole } = require('./auth');
+const { autenticar, verificarPermissao } = require('./auth');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -36,7 +36,7 @@ router.get('/', autenticar, async (req, res) => {
 // CRIAR REFEIÇÃO (SOMENTE ADMIN)
 // POST /api/refeicoes
 // ====================================
-router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
+router.post('/', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { nome, descricao, ordem } = req.body;
 
@@ -68,7 +68,7 @@ router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
 // ATUALIZAR REFEIÇÃO (SOMENTE ADMIN)
 // PUT /api/refeicoes/:id
 // ====================================
-router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
+router.put('/:id', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, descricao, ordem } = req.body;
@@ -100,7 +100,7 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
 // ATIVAR / DESATIVAR REFEIÇÃO
 // PATCH /api/refeicoes/:id/toggle
 // ====================================
-router.patch('/:id/toggle', autenticar, verificarRole(['admin']), async (req, res) => {
+router.patch('/:id/toggle', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { id } = req.params;
     const { ativa } = req.body;
@@ -120,7 +120,7 @@ router.patch('/:id/toggle', autenticar, verificarRole(['admin']), async (req, re
 // TOGGLE LISTA PERSONALIZADA
 // PATCH /api/refeicoes/:id/toggle-lista
 // ====================================
-router.patch('/:id/toggle-lista', autenticar, verificarRole(['admin']), async (req, res) => {
+router.patch('/:id/toggle-lista', autenticar, verificarPermissao("faturamento"), async (req, res) => {
   try {
     const { id } = req.params;
     const { tem_lista_personalizada } = req.body;
@@ -207,7 +207,7 @@ router.get('/itens/buscar/:ids', autenticar, async (req, res) => {
 // IMPORTAR PLANILHA EXCEL (SOMENTE ADMIN)
 // POST /api/refeicoes/:id/itens/importar
 // ====================================
-router.post('/:id/itens/importar', autenticar, verificarRole(['admin']), upload.single('arquivo'), async (req, res) => {
+router.post('/:id/itens/importar', autenticar, verificarPermissao("faturamento"), upload.single('arquivo'), async (req, res) => {
   try {
     const { id } = req.params;
 

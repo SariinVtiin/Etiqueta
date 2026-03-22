@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
-const { autenticar, verificarRole } = require('./auth');
+const { autenticar, verificarPermissao } = require('./auth');
 
 /**
  * GET /api/convenios - Listar convênios (ativos ou todos)
@@ -26,7 +26,7 @@ router.get('/', autenticar, async (req, res) => {
 /**
  * POST /api/convenios - Criar convênio
  */
-router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
+router.post('/', autenticar, verificarPermissao('cadastros_convenios'), async (req, res) => {
   try {
     const { nome, descricao, ordem } = req.body;
 
@@ -61,7 +61,7 @@ router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
 /**
  * PUT /api/convenios/:id - Atualizar convênio
  */
-router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
+router.put('/:id', autenticar, verificarPermissao('cadastros_convenios'), async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, descricao, ordem } = req.body;
@@ -93,7 +93,7 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
 /**
  * PATCH /api/convenios/:id/toggle - Ativar/Desativar
  */
-router.patch('/:id/toggle', autenticar, verificarRole(['admin']), async (req, res) => {
+router.patch('/:id/toggle', autenticar, verificarPermissao('cadastros_convenios'), async (req, res) => {
   try {
     const { id } = req.params;
     const { ativa } = req.body;

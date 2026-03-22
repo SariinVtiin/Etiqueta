@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { autenticar, verificarRole } = require("./auth");
+const { autenticar, verificarPermissao } = require("./auth");
 const {
   exportarFaturamentoExcel,
   listarAnaliticoFaturamento,
@@ -13,7 +13,7 @@ const {
 router.get(
   "/resumo",
   autenticar,
-  verificarRole(["admin"]),
+  verificarPermissao("faturamento"),
   async (req, res) => {
     try {
       const resumo = await obterResumoFaturamento(req.query);
@@ -30,7 +30,7 @@ router.get(
 router.get(
   "/analitico",
   autenticar,
-  verificarRole(["admin"]),
+  verificarPermissao("faturamento"),
   async (req, res) => {
     try {
       const analitico = await listarAnaliticoFaturamento(req.query);
@@ -47,7 +47,7 @@ router.get(
 router.get(
   "/opcoes-filtro",
   autenticar,
-  verificarRole(["admin"]),
+  verificarPermissao("faturamento"),
   async (req, res) => {
     try {
       const opcoes = await listarOpcoesFiltroFaturamento();
@@ -64,7 +64,7 @@ router.get(
 router.get(
   "/exportar",
   autenticar,
-  verificarRole(["admin"]),
+  verificarPermissao("faturamento"),
   async (req, res) => {
     try {
       const buffer = await exportarFaturamentoExcel(req.query);
@@ -91,7 +91,7 @@ router.get(
 router.post(
   "/reprocessar/:prescricaoId",
   autenticar,
-  verificarRole(["admin"]),
+  verificarPermissao("faturamento"),
   async (req, res) => {
     try {
       const { prescricaoId } = req.params;
@@ -110,7 +110,7 @@ router.post(
 router.post(
   "/reprocessar-historico",
   autenticar,
-  verificarRole(["admin"]),
+  verificarPermissao("faturamento"),
   async (_req, res) => {
     try {
       const resultado = await reprocessarHistoricoFaturamento();

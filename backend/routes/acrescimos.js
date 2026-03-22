@@ -4,7 +4,7 @@ const router = express.Router();
 const multer = require('multer');
 const xlsx = require('xlsx');
 const { pool } = require('../config/database');
-const { autenticar, verificarRole } = require('./auth');
+const { autenticar, verificarPermissao } = require('./auth');
 
 // Configurar multer para upload de arquivos
 const upload = multer({ 
@@ -99,7 +99,7 @@ router.get('/estatisticas', autenticar, async (req, res) => {
 /**
  * POST /api/acrescimos/importar - Importar planilha de acréscimos (apenas admin)
  */
-router.post('/importar', autenticar, upload.single('arquivo'), async (req, res) => {
+router.post('/importar', autenticar, verificarPermissao('cadastros_acrescimos'), upload.single('arquivo'), async (req, res) => {
   try {
     // ← VERIFICAÇÃO MELHORADA DO ROLE
     console.log('🔍 Verificando permissões...');

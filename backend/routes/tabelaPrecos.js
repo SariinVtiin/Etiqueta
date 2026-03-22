@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { pool } = require("../config/database");
-const { autenticar, verificarRole } = require("./auth");
+const { autenticar, verificarPermissao } = require("./auth");
 
 router.get("/", autenticar, async (req, res) => {
   try {
@@ -25,7 +25,7 @@ router.get("/", autenticar, async (req, res) => {
   }
 });
 
-router.post("/", autenticar, verificarRole(["admin"]), async (req, res) => {
+router.post("/", autenticar, verificarPermissao("cadastros_tabela_precos"), async (req, res) => {
   try {
     const { categoria, chave_dieta, tipo_refeicao_id, valor, observacao } =
       req.body;
@@ -93,7 +93,7 @@ router.post("/", autenticar, verificarRole(["admin"]), async (req, res) => {
   }
 });
 
-router.put("/:id", autenticar, verificarRole(["admin"]), async (req, res) => {
+router.put("/:id", autenticar, verificarPermissao("cadastros_tabela_precos"), async (req, res) => {
   try {
     const { id } = req.params;
     const { categoria, chave_dieta, tipo_refeicao_id, valor, observacao } =
@@ -173,7 +173,7 @@ router.put("/:id", autenticar, verificarRole(["admin"]), async (req, res) => {
 router.patch(
   "/:id/toggle",
   autenticar,
-  verificarRole(["admin"]),
+  verificarPermissao("cadastros_tabela_precos"),
   async (req, res) => {
     try {
       const { id } = req.params;

@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
-const { autenticar, verificarRole } = require('./auth'); // ← CAMINHO CORRIGIDO
+const { autenticar, verificarPermissao } = require('./auth');
 
 // ====================================
 // LISTAR TODAS AS CONDIÇÕES NUTRICIONAIS (ativas ou todas)
@@ -71,7 +71,7 @@ router.get('/:id', autenticar, async (req, res) => {
 // ====================================
 // CRIAR NOVA Condição nutricional (SOMENTE ADMIN)
 // ====================================
-router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
+router.post('/', autenticar, verificarPermissao('cadastros_condicoes'), async (req, res) => {
   try {
     const { nome, descricao, ordem } = req.body;
     
@@ -128,7 +128,7 @@ router.post('/', autenticar, verificarRole(['admin']), async (req, res) => {
 // ====================================
 // ATUALIZAR Condição nutricional (SOMENTE ADMIN)
 // ====================================
-router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
+router.put('/:id', autenticar, verificarPermissao('cadastros_condicoes'), async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, descricao, ordem } = req.body;
@@ -200,7 +200,7 @@ router.put('/:id', autenticar, verificarRole(['admin']), async (req, res) => {
 // ====================================
 // ATIVAR/DESATIVAR Condição nutricional (SOMENTE ADMIN)
 // ====================================
-router.patch('/:id/toggle', autenticar, verificarRole(['admin']), async (req, res) => {
+router.patch('/:id/toggle', autenticar, verificarPermissao('cadastros_condicoes'), async (req, res) => {
   try {
     const { id } = req.params;
     const { ativa } = req.body;
@@ -242,7 +242,7 @@ router.patch('/:id/toggle', autenticar, verificarRole(['admin']), async (req, re
 // ====================================
 // REORDENAR CONDIÇÕES NUTRICIONAIS (SOMENTE ADMIN)
 // ====================================
-router.post('/reordenar', autenticar, verificarRole(['admin']), async (req, res) => {
+router.post('/reordenar', autenticar, verificarPermissao('cadastros_condicoes'), async (req, res) => {
   try {
     const { condicoes } = req.body; // Array de { id, ordem }
     

@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
-const { autenticar, verificarRole } = require('./auth');
+const { autenticar, verificarPermissao } = require('./auth');
 
 /**
  * Função utilitária exportada para uso em outros módulos (ex: prescricoes.js)
@@ -22,7 +22,7 @@ async function buscarHoraCorte() {
 /**
  * GET /api/configuracoes - Listar todas as configurações
  */
-router.get('/', autenticar, verificarRole(['admin']), async (req, res) => {
+router.get('/', autenticar, verificarPermissao('cadastros_configuracoes'), async (req, res) => {
   try {
     const [configs] = await pool.query(
       'SELECT chave, valor, descricao, atualizado_em FROM configuracoes ORDER BY chave'
@@ -37,7 +37,7 @@ router.get('/', autenticar, verificarRole(['admin']), async (req, res) => {
 /**
  * PUT /api/configuracoes/:chave - Atualizar configuração
  */
-router.put('/:chave', autenticar, verificarRole(['admin']), async (req, res) => {
+router.put('/:chave', autenticar, verificarPermissao('cadastros_configuracoes'), async (req, res) => {
   try {
     const { chave } = req.params;
     const { valor } = req.body;

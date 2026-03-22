@@ -32,6 +32,11 @@ const PERMISSOES_VALIDAS = [
   'cadastros_configuracoes',
   'cadastros_convenios',
   'cadastros_logs',
+
+  'cadastros_substituicao_principal',
+  'cadastros_tabela_precos',
+  'faturamento',
+
 ];
 
 /**
@@ -68,6 +73,9 @@ const PERMISSOES_LABELS = {
   cadastros_configuracoes:         'Configurações',
   cadastros_convenios:             'Convênios',
   cadastros_logs:                  'Logs de Login',
+  cadastros_substituicao_principal: 'Substituição de Principal',
+  cadastros_tabela_precos:          'Tabela de Preços',
+  faturamento:                      'Faturamento',
 };
 
 /**
@@ -92,6 +100,11 @@ const PERMISSOES_GRUPOS = {
     'cadastros_configuracoes',
     'cadastros_convenios',
     'cadastros_logs',
+    'cadastros_substituicao_principal',
+    'cadastros_tabela_precos',
+  ],
+  'Faturamento': [
+    'faturamento',
   ],
 };
 
