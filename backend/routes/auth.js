@@ -43,9 +43,10 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 
-  // keyGenerator: extrai IP correto atrás do IIS reverse proxy
+  // ✅ ipKeyGenerator trata IPv6 corretamente + mantém fallback pro IIS
   keyGenerator: (req) => {
-    return req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
+    const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.ip;
+    return ipKeyGenerator(ip);
   },
 
   // handler: resposta customizada quando rate limit é atingido

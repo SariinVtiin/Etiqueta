@@ -3,6 +3,40 @@ import SeletorAcrescimos from "../SeletorAcrescimos";
 import "./ModalEditarPrescricao.css";
 import SeletorSubstituicaoPrincipal from "../../../../components/forms/SeletorSubstituicaoPrincipal";
 
+// ============================================
+// UTILITÁRIO — IDADE POR EXTENSO
+// ============================================
+const calcularIdadeCompleta = (dataNascStr) => {
+  if (!dataNascStr || dataNascStr.length !== 10) return '';
+  const [dia, mes, ano] = dataNascStr.split('/').map(Number);
+  if (!dia || !mes || !ano) return '';
+
+  const nasc = new Date(ano, mes - 1, dia);
+  const hoje = new Date();
+  if (nasc > hoje) return '';
+
+  let anos  = hoje.getFullYear() - nasc.getFullYear();
+  let meses = hoje.getMonth()    - nasc.getMonth();
+  let dias  = hoje.getDate()     - nasc.getDate();
+
+  if (dias < 0) {
+    meses--;
+    const ultimoDiaMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth(), 0).getDate();
+    dias += ultimoDiaMesAnterior;
+  }
+  if (meses < 0) { anos--; meses += 12; }
+
+  const partes = [];
+  if (anos  > 0) partes.push(`${anos} ${anos  === 1 ? 'ano'  : 'anos'}`);
+  if (meses > 0) partes.push(`${meses} ${meses === 1 ? 'mês' : 'meses'}`);
+  if (dias  > 0) partes.push(`${dias} ${dias  === 1 ? 'dia'  : 'dias'}`);
+
+  if (partes.length === 0) return '0 dias';
+  if (partes.length === 1) return partes[0];
+  return partes.slice(0, -1).join(', ') + ' e ' + partes[partes.length - 1];
+};
+
+
 function ModalEditarPrescricao({
   prescricao,
   convenios = [],
@@ -86,6 +120,7 @@ function ModalEditarPrescricao({
 
     return `${dia}/${mes}/${ano}`;
   };
+
 
   // ============================================
   // PREENCHER FORMULÁRIO COM DADOS DA PRESCRIÇÃO
@@ -349,7 +384,7 @@ function ModalEditarPrescricao({
               />
               {formData.idade && (
                 <small className="info-idade">
-                  Idade: {formData.idade} anos
+                  Idade: {calcularIdadeCompleta(formData.dataNascimento)}
                 </small>
               )}
             </div>

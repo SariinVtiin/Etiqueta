@@ -349,10 +349,10 @@ export const ativarUsuario = async (id) => {
   return handleResponse(response);
 };
 
-export const resetarSenhaUsuario = async (id, novaSenha) => {
+export const resetarSenhaUsuario = async (id, novaSenha, confirmarSenha) => {
   const response = await fetchAuth(`${API_URL}/usuarios/${id}/resetar-senha`, {
     method: "POST",
-    body: JSON.stringify({ novaSenha }),
+    body: JSON.stringify({ novaSenha, confirmarSenha }),
   });
   return handleResponse(response);
 };

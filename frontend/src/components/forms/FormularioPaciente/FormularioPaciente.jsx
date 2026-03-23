@@ -32,6 +32,37 @@ function FormularioPaciente({ formData, onChange, convenios = [] }) {
     return valor;
   };
 
+  // Calcula idade por extenso: "25 anos 6 meses e 15 dias"
+  const calcularIdadeCompleta = (dataNascStr) => {
+    if (!dataNascStr || dataNascStr.length !== 10) return '';
+    const [dia, mes, ano] = dataNascStr.split('/').map(Number);
+    if (!dia || !mes || !ano) return '';
+
+    const nasc  = new Date(ano, mes - 1, dia);
+    const hoje  = new Date();
+    if (nasc > hoje) return '';
+
+    let anos   = hoje.getFullYear() - nasc.getFullYear();
+    let meses  = hoje.getMonth()    - nasc.getMonth();
+    let dias   = hoje.getDate()     - nasc.getDate();
+
+    if (dias < 0) {
+      meses--;
+      const ultimoDiaMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth(), 0).getDate();
+      dias += ultimoDiaMesAnterior;
+    }
+    if (meses < 0) { anos--; meses += 12; }
+
+    const partes = [];
+    if (anos  > 0) partes.push(`${anos} ${anos  === 1 ? 'ano'  : 'anos'}`);
+    if (meses > 0) partes.push(`${meses} ${meses === 1 ? 'mês' : 'meses'}`);
+    if (dias  > 0) partes.push(`${dias}  ${dias  === 1 ? 'dia' : 'dias'}`);
+
+    if (partes.length === 0) return '0 dias';
+    if (partes.length === 1) return partes[0];
+    return partes.slice(0, -1).join(', ') + ' e ' + partes[partes.length - 1];
+  };
+
   // Formatar data DD/MM/AAAA
   const formatarData = (valor) => {
     const numeros = valor.replace(/\D/g, '');
@@ -315,7 +346,9 @@ function FormularioPaciente({ formData, onChange, convenios = [] }) {
         <input type="text" name="dataNascimento" value={formData.dataNascimento}
           onChange={handleDataNascimentoChange} placeholder="Ex: 25/06/1999" disabled={buscandoPaciente} />
         {formData.dataNascimento && formData.dataNascimento.length === 10 && formData.idade !== '' && (
-          <small className="info-idade">✅ Idade: {formData.idade} anos</small>
+          <small className="info-idade">
+            ✅ Idade: {calcularIdadeCompleta(formData.dataNascimento)}
+          </small>
         )}
         {formData.dataNascimento && formData.dataNascimento.length === 10 && formData.idade === '' && (
           <small className="aviso-erro">Data inválida</small>
