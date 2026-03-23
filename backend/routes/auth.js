@@ -1,13 +1,13 @@
-// backend/routes/auth.js
+﻿// backend/routes/auth.js
 // ============================================
-// SALUSVITA TECH - Autenticação e Autorização
+// SALUSVITA TECH - AutenticaÃ§Ã£o e AutorizaÃ§Ã£o
 // Desenvolvido por FerMax Solution
 // ============================================
-// SEGURANÇA:
-// - JWT contém APENAS { id, email } — dados imutáveis
+// SEGURANÃ‡A:
+// - JWT contÃ©m APENAS { id, email } â€” dados imutÃ¡veis
 // - Middleware autenticar consulta BD a cada request (dados frescos)
-// - verificarPermissao() valida permissões granulares do BD
-// - JWT_SECRET obrigatório (crash se não definido)
+// - verificarPermissao() valida permissÃµes granulares do BD
+// - JWT_SECRET obrigatÃ³rio (crash se nÃ£o definido)
 // - Rate limiting no login com keyGenerator correto para IIS
 // ============================================
 
@@ -20,16 +20,16 @@ const { registrarLogLogin } = require('../services/logsLogin');
 const rateLimit = require('express-rate-limit');
 
 // ============================================
-// VARIÁVEIS DE AMBIENTE (sem fallbacks perigosos)
+// VARIÃVEIS DE AMBIENTE (sem fallbacks perigosos)
 // ============================================
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
-// Crash intencional se JWT_SECRET não estiver definido
+// Crash intencional se JWT_SECRET nÃ£o estiver definido
 if (!JWT_SECRET) {
-  console.error('❌ FATAL: JWT_SECRET não definido no .env');
-  console.error('   O servidor NÃO pode iniciar sem uma chave secreta.');
+  console.error('âŒ FATAL: JWT_SECRET nÃ£o definido no .env');
+  console.error('   O servidor NÃƒO pode iniciar sem uma chave secreta.');
   process.exit(1);
 }
 
@@ -43,13 +43,12 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 
-  // ✅ ipKeyGenerator trata IPv6 corretamente + mantém fallback pro IIS
   keyGenerator: (req) => {
-    const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.ip;
-    return ipKeyGenerator(ip);
+    const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket?.remoteAddress || req.ip || 'unknown';
+    return ip.replace('::ffff:', '');
   },
 
-  // handler: resposta customizada quando rate limit é atingido
+  // handler: resposta customizada quando rate limit Ã© atingido
   handler: async (req, res) => {
     const ip = req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress || null;
     const userAgent = req.headers['user-agent'] || null;
@@ -97,35 +96,35 @@ router.post('/login', loginLimiter, async (req, res) => {
     if (!email || !senha) {
       return res.status(400).json({
         sucesso: false,
-        erro: 'Email e senha são obrigatórios'
+        erro: 'Email e senha sÃ£o obrigatÃ³rios'
       });
     }
 
-    // Buscar usuário completo
+    // Buscar usuÃ¡rio completo
     const [usuarios] = await pool.query(
       'SELECT * FROM usuarios WHERE email = ?',
       [email]
     );
 
-    // Email não encontrado
+    // Email nÃ£o encontrado
     if (usuarios.length === 0) {
       await registrarLogLogin({
         emailTentado: email,
         tipoEvento: 'LOGIN_FALHA_EMAIL',
-        motivo: 'Email não encontrado no sistema.',
+        motivo: 'Email nÃ£o encontrado no sistema.',
         ipAddress: ip,
         userAgent
       });
 
       return res.status(401).json({
         sucesso: false,
-        erro: 'Credenciais inválidas'
+        erro: 'Credenciais invÃ¡lidas'
       });
     }
 
     const usuario = usuarios[0];
 
-    // Usuário inativo
+    // UsuÃ¡rio inativo
     if (!usuario.ativo) {
       await registrarLogLogin({
         usuarioId: usuario.id,
@@ -133,14 +132,14 @@ router.post('/login', loginLimiter, async (req, res) => {
         usuarioEmail: usuario.email,
         emailTentado: email,
         tipoEvento: 'LOGIN_FALHA_INATIVO',
-        motivo: 'Conta de usuário desativada.',
+        motivo: 'Conta de usuÃ¡rio desativada.',
         ipAddress: ip,
         userAgent
       });
 
       return res.status(401).json({
         sucesso: false,
-        erro: 'Credenciais inválidas'
+        erro: 'Credenciais invÃ¡lidas'
       });
     }
 
@@ -161,19 +160,19 @@ router.post('/login', loginLimiter, async (req, res) => {
 
       return res.status(401).json({
         sucesso: false,
-        erro: 'Credenciais inválidas'
+        erro: 'Credenciais invÃ¡lidas'
       });
     }
 
-    // ✅ JWT LEVE: apenas id e email (dados que não mudam)
-    // Role e permissões vêm do BD a cada request via middleware
+    // âœ… JWT LEVE: apenas id e email (dados que nÃ£o mudam)
+    // Role e permissÃµes vÃªm do BD a cada request via middleware
     const token = jwt.sign(
       { id: usuario.id, email: usuario.email },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    // Atualizar último login
+    // Atualizar Ãºltimo login
     await pool.query(
       'UPDATE usuarios SET ultimo_login = NOW() WHERE id = ?',
       [usuario.id]
@@ -191,7 +190,7 @@ router.post('/login', loginLimiter, async (req, res) => {
       userAgent
     });
 
-    // Parse seguro do JSON de permissões
+    // Parse seguro do JSON de permissÃµes
     let permissoes = null;
     try {
       permissoes = typeof usuario.permissoes === 'string'
@@ -201,7 +200,7 @@ router.post('/login', loginLimiter, async (req, res) => {
       permissoes = null;
     }
 
-    // Retornar dados (sem senha, COM permissões e crn)
+    // Retornar dados (sem senha, COM permissÃµes e crn)
     res.json({
       sucesso: true,
       token,
@@ -225,7 +224,7 @@ router.post('/login', loginLimiter, async (req, res) => {
 });
 
 // ============================================
-// GET /api/auth/me - Verificar sessão atual
+// GET /api/auth/me - Verificar sessÃ£o atual
 // ============================================
 
 router.get('/me', async (req, res) => {
@@ -235,13 +234,13 @@ router.get('/me', async (req, res) => {
     if (!token) {
       return res.status(401).json({
         sucesso: false,
-        erro: 'Token não fornecido'
+        erro: 'Token nÃ£o fornecido'
       });
     }
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Buscar dados ATUAIS do BD (não confiar no JWT)
+    // Buscar dados ATUAIS do BD (nÃ£o confiar no JWT)
     const [usuarios] = await pool.query(
       'SELECT id, nome, email, role, crn, permissoes FROM usuarios WHERE id = ? AND ativo = TRUE',
       [decoded.id]
@@ -250,13 +249,13 @@ router.get('/me', async (req, res) => {
     if (usuarios.length === 0) {
       return res.status(401).json({
         sucesso: false,
-        erro: 'Usuário não encontrado ou desativado'
+        erro: 'UsuÃ¡rio nÃ£o encontrado ou desativado'
       });
     }
 
     const usuario = usuarios[0];
 
-    // Parse seguro do JSON de permissões
+    // Parse seguro do JSON de permissÃµes
     let permissoes = null;
     try {
       permissoes = typeof usuario.permissoes === 'string'
@@ -282,7 +281,7 @@ router.get('/me', async (req, res) => {
     console.error('Erro ao verificar token:', erro);
     res.status(401).json({
       sucesso: false,
-      erro: 'Token inválido ou expirado'
+      erro: 'Token invÃ¡lido ou expirado'
     });
   }
 });
@@ -314,7 +313,7 @@ router.post('/logout', async (req, res) => {
           usuarioNome = usuarios[0].nome;
         }
       } catch (e) {
-        // Token inválido/expirado — registrar logout mesmo assim
+        // Token invÃ¡lido/expirado â€” registrar logout mesmo assim
       }
     }
 
@@ -343,9 +342,9 @@ router.post('/logout', async (req, res) => {
 // ============================================
 // Decodifica JWT, depois consulta o BD para dados FRESCOS.
 // Isso garante que:
-// - Usuário desativado é bloqueado imediatamente
-// - Mudanças de role/permissões valem na próxima request
-// - Não dependemos de dados stale no token
+// - UsuÃ¡rio desativado Ã© bloqueado imediatamente
+// - MudanÃ§as de role/permissÃµes valem na prÃ³xima request
+// - NÃ£o dependemos de dados stale no token
 // ============================================
 
 const autenticar = async (req, res, next) => {
@@ -355,11 +354,11 @@ const autenticar = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         sucesso: false,
-        erro: 'Não autenticado'
+        erro: 'NÃ£o autenticado'
       });
     }
 
-    // Decodifica JWT (só tem id e email)
+    // Decodifica JWT (sÃ³ tem id e email)
     const decoded = jwt.verify(token, JWT_SECRET);
 
     // Buscar dados ATUAIS do BD
@@ -371,13 +370,13 @@ const autenticar = async (req, res, next) => {
     if (usuarios.length === 0) {
       return res.status(401).json({
         sucesso: false,
-        erro: 'Usuário não encontrado'
+        erro: 'UsuÃ¡rio nÃ£o encontrado'
       });
     }
 
     const usuario = usuarios[0];
 
-    // Verificar se está ativo
+    // Verificar se estÃ¡ ativo
     if (!usuario.ativo) {
       return res.status(401).json({
         sucesso: false,
@@ -385,7 +384,7 @@ const autenticar = async (req, res, next) => {
       });
     }
 
-    // Parse seguro do JSON de permissões
+    // Parse seguro do JSON de permissÃµes
     let permissoes = null;
     try {
       permissoes = typeof usuario.permissoes === 'string'
@@ -408,10 +407,10 @@ const autenticar = async (req, res, next) => {
     next();
 
   } catch (erro) {
-    // jwt.verify falhou (token expirado, inválido, etc.)
+    // jwt.verify falhou (token expirado, invÃ¡lido, etc.)
     res.status(401).json({
       sucesso: false,
-      erro: 'Token inválido ou expirado'
+      erro: 'Token invÃ¡lido ou expirado'
     });
   }
 };
@@ -419,8 +418,8 @@ const autenticar = async (req, res, next) => {
 // ============================================
 // MIDDLEWARE: verificarRole
 // ============================================
-// Checa se o role do usuário (do BD) está na lista permitida
-// Usar DEPOIS de autenticar (req.usuario já tem dados frescos)
+// Checa se o role do usuÃ¡rio (do BD) estÃ¡ na lista permitida
+// Usar DEPOIS de autenticar (req.usuario jÃ¡ tem dados frescos)
 // ============================================
 
 const verificarRole = (rolesPermitidos) => {
@@ -428,7 +427,7 @@ const verificarRole = (rolesPermitidos) => {
     if (!rolesPermitidos.includes(req.usuario.role)) {
       return res.status(403).json({
         sucesso: false,
-        erro: 'Sem permissão para acessar este recurso'
+        erro: 'Sem permissÃ£o para acessar este recurso'
       });
     }
     next();
@@ -438,28 +437,28 @@ const verificarRole = (rolesPermitidos) => {
 // ============================================
 // MIDDLEWARE: verificarPermissao
 // ============================================
-// Checa se o usuário tem uma permissão específica.
-// - Admin: SEMPRE passa (acesso total automático)
-// - Nutricionista: checa se a chave está no array permissoes
-// Usar DEPOIS de autenticar (req.usuario já tem dados frescos)
+// Checa se o usuÃ¡rio tem uma permissÃ£o especÃ­fica.
+// - Admin: SEMPRE passa (acesso total automÃ¡tico)
+// - Nutricionista: checa se a chave estÃ¡ no array permissoes
+// Usar DEPOIS de autenticar (req.usuario jÃ¡ tem dados frescos)
 //
 // Uso: router.post('/', autenticar, verificarPermissao('cadastros_leitos'), ...)
 // ============================================
 
 const verificarPermissao = (permissaoNecessaria) => {
   return (req, res, next) => {
-    // Admin tem acesso total — passa direto
+    // Admin tem acesso total â€” passa direto
     if (req.usuario.role === 'admin') {
       return next();
     }
 
-    // Nutricionista — checar array de permissões do BD
+    // Nutricionista â€” checar array de permissÃµes do BD
     const permissoesUsuario = req.usuario.permissoes || [];
 
     if (!permissoesUsuario.includes(permissaoNecessaria)) {
       return res.status(403).json({
         sucesso: false,
-        erro: 'Você não tem permissão para acessar este recurso'
+        erro: 'VocÃª nÃ£o tem permissÃ£o para acessar este recurso'
       });
     }
 
