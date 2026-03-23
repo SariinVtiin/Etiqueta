@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export default function useModalAlerta() {
   const [modal, setModal] = useState({
@@ -12,14 +12,11 @@ export default function useModalAlerta() {
     onCancelar: null,
   });
 
-  const fecharModal = () => {
-    setModal((prev) => ({
-      ...prev,
-      visivel: false,
-    }));
-  };
+  const fecharModal = useCallback(() => {
+    setModal((prev) => ({ ...prev, visivel: false }));
+  }, []);
 
-  const mostrarAlerta = ({
+  const mostrarAlerta = useCallback(({
     titulo = "Aviso",
     mensagem = "",
     tipo = "info",
@@ -34,14 +31,14 @@ export default function useModalAlerta() {
       textoBotaoConfirmar,
       textoBotaoCancelar: "",
       onConfirmar: () => {
-        fecharModal();
+        setModal((prev) => ({ ...prev, visivel: false }));
         if (onConfirmar) onConfirmar();
       },
-      onCancelar: fecharModal,
+      onCancelar: () => setModal((prev) => ({ ...prev, visivel: false })),
     });
-  };
+  }, []);
 
-  const mostrarConfirmacao = ({
+  const mostrarConfirmacao = useCallback(({
     titulo = "Confirmar ação",
     mensagem = "",
     tipo = "confirmar",
@@ -58,20 +55,15 @@ export default function useModalAlerta() {
       textoBotaoConfirmar,
       textoBotaoCancelar,
       onConfirmar: () => {
-        fecharModal();
+        setModal((prev) => ({ ...prev, visivel: false }));
         if (onConfirmar) onConfirmar();
       },
       onCancelar: () => {
-        fecharModal();
+        setModal((prev) => ({ ...prev, visivel: false }));
         if (onCancelar) onCancelar();
       },
     });
-  };
+  }, []);
 
-  return {
-    modal,
-    fecharModal,
-    mostrarAlerta,
-    mostrarConfirmacao,
-  };
+  return { modal, fecharModal, mostrarAlerta, mostrarConfirmacao };
 }
